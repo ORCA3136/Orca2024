@@ -20,7 +20,6 @@ import frc.utils.SwerveUtils;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-//import com.pathplanner.lib.*;
 import com.pathplanner.lib.commands.FollowPathHolonomic;
 import com.pathplanner.lib.commands.FollowPathWithEvents;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -29,8 +28,6 @@ import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 
 public class DriveSubsystem extends SubsystemBase {
-  private static final edu.wpi.first.wpilibj.ADIS16470_IMU.IMUAxis yaw = edu.wpi.first.wpilibj.ADIS16470_IMU.IMUAxis.kY;
-
   // Create MAXSwerveModules
   private final MAXSwerveModule m_frontLeft = new MAXSwerveModule(
       DriveConstants.kFrontLeftDrivingCanId,
@@ -67,7 +64,7 @@ public class DriveSubsystem extends SubsystemBase {
   // Odometry class for tracking robot pose
   SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
       DriveConstants.kDriveKinematics,
-      Rotation2d.fromDegrees(m_gyro.getAngle(yaw)),
+      Rotation2d.fromDegrees(m_gyro.getAngle(edu.wpi.first.wpilibj.ADIS16470_IMU.IMUAxis.kZ)),
       new SwerveModulePosition[] {
           m_frontLeft.getPosition(),
           m_frontRight.getPosition(),
@@ -77,15 +74,14 @@ public class DriveSubsystem extends SubsystemBase {
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
-    //m_gyro.setYawAxis(yaw);
+    
   }
 
   @Override
   public void periodic() {
-    //System.out.println("angle: "+m_gyro.getAngle());
     // Update the odometry in the periodic block
     m_odometry.update(
-        Rotation2d.fromDegrees(m_gyro.getAngle(yaw)),
+        Rotation2d.fromDegrees(m_gyro.getAngle(edu.wpi.first.wpilibj.ADIS16470_IMU.IMUAxis.kZ)),
         new SwerveModulePosition[] {
             m_frontLeft.getPosition(),
             m_frontRight.getPosition(),
@@ -110,7 +106,7 @@ public class DriveSubsystem extends SubsystemBase {
    */
   public void resetOdometry(Pose2d pose) {
     m_odometry.resetPosition(
-        Rotation2d.fromDegrees(m_gyro.getAngle(yaw)),
+        Rotation2d.fromDegrees(m_gyro.getAngle(edu.wpi.first.wpilibj.ADIS16470_IMU.IMUAxis.kZ)),
         new SwerveModulePosition[] {
             m_frontLeft.getPosition(),
             m_frontRight.getPosition(),
@@ -190,7 +186,7 @@ public class DriveSubsystem extends SubsystemBase {
 
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(
         fieldRelative
-            ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, Rotation2d.fromDegrees(m_gyro.getAngle(yaw)))
+            ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, Rotation2d.fromDegrees(m_gyro.getAngle(edu.wpi.first.wpilibj.ADIS16470_IMU.IMUAxis.kZ)))
             : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
@@ -201,7 +197,7 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   public void driveRobotRelative(ChassisSpeeds chassisSpeeds) {
-var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(chassisSpeeds);
+    var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(chassisSpeeds);
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
     m_frontLeft.setDesiredState(swerveModuleStates[0]);
@@ -213,31 +209,6 @@ var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(ch
   public ChassisSpeeds getRobotRelativeSpeeds() {
     ChassisSpeeds chassisSpeeds = new ChassisSpeeds(m_currentTranslationMag, m_currentTranslationDir, m_currentRotation);
     return chassisSpeeds;
-  }
-
-  // Assuming this is a method in your drive subsystem
-  public Command followPathCommand(String pathName){
-    PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
-
-    // You must wrap the path following command in a FollowPathWithEvents command in order for event markers to work
-    return new FollowPathWithEvents(
-        new FollowPathHolonomic(
-            path,
-            this::getPose, // Robot pose supplier
-            this::getRobotRelativeSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-            this::driveRobotRelative, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
-            new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
-                new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
-                new PIDConstants(5.0, 0.0, 0.0), // Rotation PID constants
-                4.5, // Max module speed, in m/s
-                0.4, // Drive base radius in meters. Distance from robot center to furthest module.
-                new ReplanningConfig() // Default path replanning config. See the API for the options here
-            ),
-            this // Reference to this subsystem to set requirements
-        ),
-        path, // FollowPathWithEvents also requires the path
-        this::getPose // FollowPathWithEvents also requires the robot pose supplier
-    );
   }
 
   /**
@@ -283,7 +254,7 @@ var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(ch
    * @return the robot's heading in degrees, from -180 to 180
    */
   public double getHeading() {
-    return Rotation2d.fromDegrees(m_gyro.getAngle(yaw)).getDegrees();
+    return Rotation2d.fromDegrees(m_gyro.getAngle(edu.wpi.first.wpilibj.ADIS16470_IMU.IMUAxis.kZ)).getDegrees();
   }
 
   /**
@@ -292,6 +263,6 @@ var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(ch
    * @return The turn rate of the robot, in degrees per second
    */
   public double getTurnRate() {
-    return m_gyro.getRate(yaw) * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
+    return m_gyro.getRate(edu.wpi.first.wpilibj.ADIS16470_IMU.IMUAxis.kZ) * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
   }
 }

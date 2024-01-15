@@ -14,19 +14,27 @@ import frc.robot.Constants;
 public class IntakeSubsystem extends SubsystemBase {
   /** Creates a new IntakeSubsystem. */
 
-  CANSparkMax m_LeftIntake;
-  CANSparkMax m_RightIntake;
+  CANSparkMax m_LeftArm;
+  CANSparkMax m_RightArm;
+
+  CANSparkMax m_Intake;
+  CANSparkMax m_Shooter;
 
   public IntakeSubsystem() {
 
-    m_LeftIntake = new CANSparkMax(Constants.DriveConstants.kLeftIntakeCanId, MotorType.kBrushless);
-    m_RightIntake = new CANSparkMax(Constants.DriveConstants.kRightIntakeCanId, MotorType.kBrushless);
+    m_LeftArm = new CANSparkMax(Constants.DriveConstants.kLeftArmCanId, MotorType.kBrushless);
+    m_RightArm = new CANSparkMax(Constants.DriveConstants.kRightArmCanId, MotorType.kBrushless);
 
-    m_LeftIntake.setIdleMode(IdleMode.kCoast);
-    m_RightIntake.setIdleMode(IdleMode.kCoast);
+    m_LeftArm.setIdleMode(IdleMode.kBrake);
+    m_RightArm.setIdleMode(IdleMode.kBrake);
 
-    m_RightIntake.setInverted(true);
+    m_RightArm.setInverted(true);
 
+    //m_Intake = new CANSparkMax(Constants.DriveConstants.kIntakeCanId, MotorType.kBrushless);
+    //m_Intake.setIdleMode(IdleMode.kCoast);
+
+    //m_Shooter = new CANSparkMax(Constants.DriveConstants.kShooterCanId, MotorType.kBrushless);
+    //m_Shooter.setIdleMode(IdleMode.kCoast);
   }
 
   @Override
@@ -35,10 +43,16 @@ public class IntakeSubsystem extends SubsystemBase {
   }
 
   public void RunIntake(double speed) {
+    m_Intake.set(speed);
+  }
 
-    m_LeftIntake.set(speed);
-    m_RightIntake.set(speed);
+  public void RunShooter(double speed) {
+    m_Shooter.set(speed);
+  }
 
+  public void RunArm(double speed) {
+    m_LeftArm.set(speed);
+    m_RightArm.set(speed);
   }
 
 }
