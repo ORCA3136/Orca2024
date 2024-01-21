@@ -5,20 +5,20 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.ShooterSubsystem;
 
 public class RunShooterCommand extends Command {
   /** Creates a new RunIntakeCommand. */
 
-  IntakeSubsystem m_IntakeSubsystem;
+  ShooterSubsystem m_ShooterSubsystem;
   double m_speed;
 
-  public RunShooterCommand(double speed, IntakeSubsystem IntakeSubsystem) {
+  public RunShooterCommand(double speed, ShooterSubsystem ShooterSubsystem) {
     // Use addRequirements() here to declare subsystem dependencies.
-    m_IntakeSubsystem = IntakeSubsystem;
+    m_ShooterSubsystem = ShooterSubsystem;
     m_speed = speed;
 
-    addRequirements(IntakeSubsystem);
+    addRequirements(ShooterSubsystem);
 
   }
 
@@ -26,7 +26,7 @@ public class RunShooterCommand extends Command {
   @Override
   public void initialize() {
 
-    m_IntakeSubsystem.RunShooter(m_speed);
+    m_ShooterSubsystem.RunShooter(m_speed);
 
   }
 
@@ -38,7 +38,7 @@ public class RunShooterCommand extends Command {
   @Override
   public void end(boolean interrupted) {
 
-    m_IntakeSubsystem.RunShooter(0);
+    m_ShooterSubsystem.RunShooter(0);
 
   }
 

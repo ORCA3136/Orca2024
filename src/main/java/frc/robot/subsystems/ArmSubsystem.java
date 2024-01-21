@@ -11,15 +11,21 @@ import com.revrobotics.CANSparkLowLevel.MotorType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
-public class IntakeSubsystem extends SubsystemBase {
+public class ArmSubsystem extends SubsystemBase {
   /** Creates a new IntakeSubsystem. */
 
-  CANSparkMax m_Intake;
+  CANSparkMax m_LeftArm;
+  CANSparkMax m_RightArm;
 
-  public IntakeSubsystem() {
+  public ArmSubsystem() {
 
-    m_Intake = new CANSparkMax(Constants.DriveConstants.kIntakeCanId, MotorType.kBrushless);
-    m_Intake.setIdleMode(IdleMode.kCoast);
+    m_LeftArm = new CANSparkMax(Constants.DriveConstants.kLeftArmCanId, MotorType.kBrushless);
+    m_RightArm = new CANSparkMax(Constants.DriveConstants.kRightArmCanId, MotorType.kBrushless);
+
+    m_LeftArm.setIdleMode(IdleMode.kBrake);
+    m_RightArm.setIdleMode(IdleMode.kBrake);
+
+    m_RightArm.setInverted(true);
   }
 
   @Override
@@ -27,8 +33,9 @@ public class IntakeSubsystem extends SubsystemBase {
     // This method will be called once per scheduler run
   }
 
-  public void RunIntake(double speed) {
-    m_Intake.set(speed);
+  public void RunArm(double speed) {
+    m_LeftArm.set(speed);
+    m_RightArm.set(speed);
   }
 
 }

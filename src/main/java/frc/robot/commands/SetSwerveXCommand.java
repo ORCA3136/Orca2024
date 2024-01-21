@@ -5,20 +5,18 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.ArmSubsystem;
+import frc.robot.subsystems.DriveSubsystem;
 
-public class RunArmCommand extends Command {
+public class SetSwerveXCommand extends Command {
   /** Creates a new RunIntakeCommand. */
 
-  ArmSubsystem m_ArmSubsystem;
-  double m_speed;
+  DriveSubsystem m_DriveSubsystem;
 
-  public RunArmCommand(double speed, ArmSubsystem ArmSubsystem) {
+  public SetSwerveXCommand(DriveSubsystem driveSubsystem) {
     // Use addRequirements() here to declare subsystem dependencies.
-    m_ArmSubsystem = ArmSubsystem;
-    m_speed = speed;
+    m_DriveSubsystem = driveSubsystem;
 
-    addRequirements(ArmSubsystem);
+    addRequirements(driveSubsystem);
 
   }
 
@@ -26,7 +24,7 @@ public class RunArmCommand extends Command {
   @Override
   public void initialize() {
 
-    m_ArmSubsystem.RunArm(m_speed);
+    m_DriveSubsystem.setX();
 
   }
 
@@ -38,7 +36,7 @@ public class RunArmCommand extends Command {
   @Override
   public void end(boolean interrupted) {
 
-    m_ArmSubsystem.RunArm(0);
+    
 
   }
 

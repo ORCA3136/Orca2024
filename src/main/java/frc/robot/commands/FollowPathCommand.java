@@ -4,29 +4,37 @@
 
 package frc.robot.commands;
 
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.ArmSubsystem;
+import frc.robot.subsystems.DriveSubsystem;
 
-public class RunArmCommand extends Command {
+public class FollowPathCommand extends Command {
   /** Creates a new RunIntakeCommand. */
 
-  ArmSubsystem m_ArmSubsystem;
-  double m_speed;
+  Command followPathCommand;
+  DriveSubsystem m_DriveSubsystem;
+  String path;
 
-  public RunArmCommand(double speed, ArmSubsystem ArmSubsystem) {
+  public FollowPathCommand(DriveSubsystem driveSubsystem, String pathName) {
     // Use addRequirements() here to declare subsystem dependencies.
-    m_ArmSubsystem = ArmSubsystem;
-    m_speed = speed;
+    m_DriveSubsystem = driveSubsystem;
+    path = pathName;
 
-    addRequirements(ArmSubsystem);
-
+    System.out.println("Path: " + path);
+    addRequirements(driveSubsystem);
   }
 
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
 
-    m_ArmSubsystem.RunArm(m_speed);
+    followPathCommand = m_DriveSubsystem.followPathCommand(path);
+    NetworkTableInstance.getDefault().getTable("Pathplanning").getEntry("Path name").setString(path);
+
+    // schedule the autonomous command (example)
+    if (followPathCommand != null) {
+      followPathCommand.schedule();
+    }
 
   }
 
@@ -37,8 +45,8 @@ public class RunArmCommand extends Command {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-
-    m_ArmSubsystem.RunArm(0);
+    
+    followPathCommand.cancel();
 
   }
 

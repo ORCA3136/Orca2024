@@ -8,7 +8,12 @@ import com.revrobotics.CANSparkBase.IdleMode;
 //import com.pathplanner.lib.*;
 import com.pathplanner.lib.path.PathConstraints;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
@@ -151,6 +156,30 @@ public final class Constants {
 
   public static final class NeoMotorConstants {
     public static final double kFreeSpeedRpm = 5676;
+  }
+
+  public static final class PathPlanningConstants {
+    public static final Transform3d CAMERA_A_LOCATION = new Transform3d(
+      new Translation3d(0.0, 0.0, 0.0),
+      new Rotation3d(0.0, 0.0, 0.0)
+    );
+
+    public static final HolonomicPathFollowerConfig HoloConfig = new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
+      new PIDConstants(ModuleConstants.kDrivingP, ModuleConstants.kDrivingI, ModuleConstants.kDrivingD), // Translation PID constants
+      new PIDConstants(ModuleConstants.kTurningP, ModuleConstants.kTurningI, ModuleConstants.kTurningD), // Rotation PID constants
+      1, // Max module speed, in m/s
+      0.37, // Drive base radius in meters. Distance from robot center to furthest module.
+      new ReplanningConfig() // Default path replanning config. See the API for the options here
+    );
+  }
+
+  public static class Field {
+    public static final double FIELD_WIDTH = 8.21;
+    public static final double FIELD_LENGTH = 16.54;
+
+    public static final Translation2d CENTER = new Translation2d(FIELD_LENGTH / 2, FIELD_WIDTH / 2);
+    public static final Translation2d BLUE_SPEAKER = new Translation2d(0.00, 5.55);
+    public static final Translation2d RED_SPEAKER = new Translation2d(15.64, 5.55);
   }
 }
  
