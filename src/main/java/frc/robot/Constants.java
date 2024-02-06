@@ -73,7 +73,7 @@ public final class Constants {
     public static final int kRearLeftTurningCanId = 6;
     public static final int kRearRightTurningCanId = 8;
 
-    public static final int kLeftArmCanId = 10;
+    public static final int kLeftArmCanId = 10; //Arm encoder
     public static final int kRightArmCanId = 11;
 
     public static final int kIntakeRightCanId = 13;
@@ -141,6 +141,14 @@ public final class Constants {
     public static final int kDriverControllerPort = 0;
     //public static final int kButtonControllerPort = 1;
     public static final double kDriveDeadband = 0.08;
+  }
+
+  public static final class ArmPIDConstants {
+    public static final double armkP = 0.15;
+    public static final double armkI = 0.05;
+    public static final double armkD = 0;
+    public static final double kPositionTolerance = 0.005;
+    public static final double pidThrottle = 0.125; // use this to cap speed for pid controller
   }
 
   public static final class AutoConstants {

@@ -7,6 +7,7 @@ package frc.robot.subsystems;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
@@ -28,10 +29,15 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.FollowPathHolonomic;
 import com.pathplanner.lib.commands.FollowPathWithEvents;
 import com.pathplanner.lib.commands.PathfindingCommand;
+import com.pathplanner.lib.path.GoalEndState;
+import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
+
+import java.util.List;
+
 import com.kauailabs.navx.frc.AHRS;
 
 public class DriveSubsystem extends SubsystemBase {
@@ -71,7 +77,7 @@ public class DriveSubsystem extends SubsystemBase {
   // Odometry class for tracking robot pose
   SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
       DriveConstants.kDriveKinematics,
-      Rotation2d.fromDegrees(m_gyro.getAngle()),
+      Rotation2d.fromDegrees(-m_gyro.getYaw()),
       new SwerveModulePosition[] {
           m_frontLeft.getPosition(),
           m_frontRight.getPosition(),
@@ -88,7 +94,7 @@ public class DriveSubsystem extends SubsystemBase {
   public void periodic() {
     // Update the odometry in the periodic block
     m_odometry.update(
-        Rotation2d.fromDegrees(m_gyro.getAngle()),
+        Rotation2d.fromDegrees(-m_gyro.getYaw()),
         new SwerveModulePosition[] {
             m_frontLeft.getPosition(),
             m_frontRight.getPosition(),
@@ -113,7 +119,7 @@ public class DriveSubsystem extends SubsystemBase {
    */
   public void resetOdometry(Pose2d pose) {
     m_odometry.resetPosition(
-        Rotation2d.fromDegrees(m_gyro.getAngle()),
+        Rotation2d.fromDegrees(-m_gyro.getYaw()),
         new SwerveModulePosition[] {
             m_frontLeft.getPosition(),
             m_frontRight.getPosition(),
@@ -193,7 +199,7 @@ public class DriveSubsystem extends SubsystemBase {
 
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(
         fieldRelative
-            ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, Rotation2d.fromDegrees(m_gyro.getAngle()))
+            ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, Rotation2d.fromDegrees(-m_gyro.getYaw()))
             : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
@@ -261,7 +267,8 @@ public class DriveSubsystem extends SubsystemBase {
    * @return the robot's heading in degrees, from -180 to 180
    */
   public double getHeading() {
-    return Rotation2d.fromDegrees(m_gyro.getAngle()).getDegrees();
+
+    return Rotation2d.fromDegrees(-m_gyro.getYaw()).getDegrees();
   }
 
   /**
@@ -291,10 +298,28 @@ public class DriveSubsystem extends SubsystemBase {
     );
   }
 
-  public Command followPathCommand(String pathName) {
-    PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
+  public void followPathCommand(String pathName) {
+    //PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
 
-    return AutoBuilder.followPath(path);
+    //return AutoBuilder.followPath(path);
+
+    Pose2d currentPose = getPose();
+      
+    // The rotation component in these poses represents the direction of travel
+    Pose2d startPos = new Pose2d(currentPose.getTranslation(), currentPose.getRotation().plus(new Rotation2d(0, 0)));
+    Pose2d endPos = new Pose2d(currentPose.getTranslation().plus(new Translation2d(2.0, 0.0)), currentPose.getRotation().plus(new Rotation2d(0, 0)));
+
+    List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(startPos, endPos);
+    PathPlannerPath path = new PathPlannerPath(
+      bezierPoints, 
+      Constants.PathPlanningConstants.slowConstraints,  
+      new GoalEndState(0.0, currentPose.getRotation())
+    );
+
+    // Prevent this path from being flipped on the red alliance, since the given positions are already correct
+    path.preventFlipping = true;
+
+    AutoBuilder.followPath(path).schedule();
   }
 
   public Command pathfindThenFollowPathCommand(String pathName) {

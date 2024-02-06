@@ -27,12 +27,7 @@ public class FollowPathCommand extends Command {
   @Override
   public void initialize() {
 
-    followPathCommand = m_DriveSubsystem.followPathCommand(path);
-
-    // schedule the autonomous command (example)
-    if (followPathCommand != null) {
-      followPathCommand.schedule();
-    }
+    m_DriveSubsystem.followPathCommand(path);
 
   }
 
@@ -44,7 +39,7 @@ public class FollowPathCommand extends Command {
   @Override
   public void end(boolean interrupted) {
     
-    followPathCommand.cancel();
+    
 
   }
 
