@@ -1,22 +1,17 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.DriveSubsystem;
 
 import frc.robot.LimelightHelpers;
 
 public class AprilTagFollowCommand extends Command {
   /** Creates a new AprilTagFollowCommand. */
 
-  DriveSubsystem m_robotDrive;
   String limelightName = "limelight";
 
-  public AprilTagFollowCommand(DriveSubsystem robotDrive) {
+  public AprilTagFollowCommand() {
     // Use addRequirements() here to declare subsystem dependencies.
 
-    m_robotDrive = robotDrive;
-
-    addRequirements(robotDrive);
   }
 
   // Called when the command is initially scheduled.
@@ -47,18 +42,7 @@ public class AprilTagFollowCommand extends Command {
     }
 
 
-    m_robotDrive.drive(xSpeed, 0, rot, false, true);
-
-     /**
-   * Method to drive the robot using joystick info.
-   *
-   * @param xSpeed        Speed of the robot in the x direction (forward).
-   * @param ySpeed        Speed of the robot in the y direction (sideways).
-   * @param rot           Angular rate of the robot.
-   * @param fieldRelative Whether the provided x and y speeds are relative to the
-   *                      field.
-   * @param rateLimit     Whether to enable rate limiting for smoother control.
-   */
+    
   }
 
   // Called once the command ends or is interrupted.

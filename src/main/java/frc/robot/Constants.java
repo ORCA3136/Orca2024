@@ -5,8 +5,7 @@
 package frc.robot;
 
 import com.revrobotics.CANSparkBase.IdleMode;
-//import com.pathplanner.lib.*;
-import com.pathplanner.lib.path.PathConstraints;
+//import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -54,6 +53,8 @@ public final class Constants {
     public static final double kBackRightChassisAngularOffset = Math.PI / 2;
 
     // SPARK MAX CAN IDs
+    public static final int kTestSparkCanId = 1;
+
     public static final int kFrontLeftDrivingCanId = 6;
     public static final int kRearLeftDrivingCanId = 2;
     public static final int kFrontRightDrivingCanId = 9;
