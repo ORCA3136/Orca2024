@@ -14,9 +14,12 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructArrayPublisher;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.PathPlanningConstants;
@@ -65,6 +68,16 @@ public class DriveSubsystem extends SubsystemBase {
   // The NavX
   private final AHRS m_gyro = new AHRS(SPI.Port.kMXP);
 
+
+  // For AdvantageScope
+  //Pose2d poseA = new Pose2d();
+  //Pose2d poseB = new Pose2d();
+
+  //StructPublisher<Pose2d> publisher = NetworkTableInstance.getDefault()
+    //.getStructTopic("MyPose", Pose2d.struct).publish();
+  //StructArrayPublisher<Pose2d> arrayPublisher = NetworkTableInstance.getDefault()
+    //.getStructArrayTopic("MyPoseArray", Pose2d.struct).publish();
+
   // Slew rate filter variables for controlling lateral acceleration
   private double m_currentRotation = 0.0;
   private double m_currentTranslationDir = 0.0;
@@ -101,6 +114,16 @@ public class DriveSubsystem extends SubsystemBase {
             m_rearLeft.getPosition(),
             m_rearRight.getPosition()
         });
+    SmartDashboard.putNumber("Robot X", this.getPose().getX());
+    SmartDashboard.putNumber("Robot Y", this.getPose().getY());
+    SmartDashboard.putNumber("Rotation", this.getPose().getRotation().getDegrees());
+
+    NetworkTableInstance.getDefault().getTable("Robot Pose").getEntry("Robot X").setDouble(this.getPose().getX());
+    NetworkTableInstance.getDefault().getTable("Robot Pose").getEntry("Robot Y").setDouble(this.getPose().getY());
+    NetworkTableInstance.getDefault().getTable("Robot Pose").getEntry("Rotation").setDouble(this.getPose().getRotation().getDegrees());
+
+    //publisher.set(poseA);
+    //arrayPublisher.set(new Pose2d[] {poseA, poseB});
   }
 
   /**
@@ -259,6 +282,7 @@ public class DriveSubsystem extends SubsystemBase {
   /** Zeroes the heading of the robot. */
   public void zeroHeading() {
     m_gyro.reset();
+    resetOdometry(new Pose2d(new Translation2d(0.0, 0.0), new Rotation2d(0)));
   }
 
   /**
@@ -308,8 +332,8 @@ public class DriveSubsystem extends SubsystemBase {
     Pose2d currentPose = getPose();
       
     // The rotation component in these poses represents the direction of travel
-    Pose2d startPos = new Pose2d(currentPose.getTranslation(), currentPose.getRotation().plus(new Rotation2d(0, 0)));
-    Pose2d endPos = new Pose2d(currentPose.getTranslation().plus(new Translation2d(2.0, 0.0)), currentPose.getRotation().plus(new Rotation2d(0, 0)));
+    Pose2d startPos = new Pose2d(currentPose.getTranslation(), currentPose.getRotation().plus(new Rotation2d(0)));
+    Pose2d endPos = new Pose2d(currentPose.getTranslation().plus(new Translation2d(2.0, 0.0)), currentPose.getRotation().plus(new Rotation2d(0)));
 
     List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(startPos, endPos);
     PathPlannerPath path = new PathPlannerPath(
@@ -322,6 +346,14 @@ public class DriveSubsystem extends SubsystemBase {
     path.preventFlipping = true;
 
     AutoBuilder.followPath(path).schedule();
+  }
+
+  public Command followPathCommand2(String pathName) {
+    PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
+
+    resetOdometry(new Pose2d(new Translation2d(2.38, 4.99), this.getPose().getRotation()));
+
+    return AutoBuilder.followPath(path);
   }
 
   public Command pathfindThenFollowPathCommand(String pathName) {

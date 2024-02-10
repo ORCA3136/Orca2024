@@ -48,7 +48,7 @@ public class SensorSubsystem extends SubsystemBase {
     NetworkTableInstance.getDefault().getTable("Sensors").getEntry("DIO_0").setBoolean(output0);
     
     if (LimelightHelpers.getTV("limelight")) {
-      robotDrive.resetOdometry(LimelightHelpers.getBotPose2d_wpiBlue("limelight"));
+      robotDrive.resetOdometry(LimelightHelpers.getBotPose2d("limelight"));
     }
 
   }

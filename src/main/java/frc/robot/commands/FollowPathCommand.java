@@ -20,7 +20,6 @@ public class FollowPathCommand extends Command {
     m_DriveSubsystem = driveSubsystem;
     path = pathName;
 
-    System.out.println("Path: " + path);
     addRequirements(driveSubsystem);
   }
 
@@ -29,7 +28,6 @@ public class FollowPathCommand extends Command {
   public void initialize() {
 
     m_DriveSubsystem.followPathCommand(path);
-    NetworkTableInstance.getDefault().getTable("Pathplanning").getEntry("Path name").setString(path);
 
   }
 

@@ -55,10 +55,11 @@ public class RunShooterCommand extends Command {
  *    Auto paths
  *    Teleop paths
  * Update limelight pose
+ * 
  * PID shooter - RPM
  * Improve FRC web components dashboard
  * Limelight calibration
- * Data logs
+ * Data logs 
  * Rio configurable brownout levels
  * 
  * Intake routine
@@ -80,7 +81,4 @@ public class RunShooterCommand extends Command {
  * 
  * Arm encoder
  * PID arm positions
- * 
- * git config --global user.email "you@example.com"
-  git config --global user.name "Your Name"
  */

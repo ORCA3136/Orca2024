@@ -152,8 +152,8 @@ public final class Constants {
   }
 
   public static final class AutoConstants {
-    public static final double kMaxSpeedMetersPerSecond = 3;
-    public static final double kMaxAccelerationMetersPerSecondSquared = 3;
+    public static final double kMaxSpeedMetersPerSecond = 0.25;
+    public static final double kMaxAccelerationMetersPerSecondSquared = 0.25;
     public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;
     public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI;
 
@@ -184,7 +184,7 @@ public final class Constants {
       new PIDConstants(ModuleConstants.kDrivingP, ModuleConstants.kDrivingI, ModuleConstants.kDrivingD), // Translation PID constants
       new PIDConstants(ModuleConstants.kTurningP, ModuleConstants.kTurningI, ModuleConstants.kTurningD), // Rotation PID constants
       4.5, // Max module speed, in m/s
-      0.37, // Drive base radius in meters. Distance from robot center to furthest module.
+      0.386, // Drive base radius in meters. Distance from robot center to furthest module.
       new ReplanningConfig() // Default path replanning config. See the API for the options here
     );
   }

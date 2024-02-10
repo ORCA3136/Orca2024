@@ -4,11 +4,23 @@
 
 package frc.robot;
 
+import java.util.List;
+
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.trajectory.TrajectoryConfig;
+import edu.wpi.first.math.trajectory.TrajectoryGenerator;
+import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.PS4Controller.Button;
-import edu.wpi.first.wpilibj.event.EventLoop;
+import frc.robot.Constants.AutoConstants;
+import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.commands.RunIntakeCommand;
 import frc.robot.commands.RunShooterCommand;
@@ -27,17 +39,11 @@ import frc.robot.subsystems.PlaceholderSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.pathplanner.lib.path.PathConstraints;
-import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.path.PathPlannerTrajectory;
-
 import edu.wpi.first.wpilibj.DataLogManager;
-import edu.wpi.first.wpilibj.DriverStation;
 
 /*
  * This class is where the bulk of the robot should be declared.  Since Command-based is a
@@ -52,7 +58,42 @@ public class RobotContainer {
   private final ShooterSubsystem m_ShooterSubsystem = new ShooterSubsystem();
   private final ArmSubsystem m_ArmSubsystem = new ArmSubsystem(this);
   private final SensorSubsystem m_SensorSubsystem = new SensorSubsystem(m_robotDrive);
-  private final PlaceholderSubsystem m_PlaceholderSubsystem = new PlaceholderSubsystem();
+
+  // Configure trajectory stuff
+    // For forwards
+  TrajectoryConfig config = new TrajectoryConfig(
+      AutoConstants.kMaxSpeedMetersPerSecond,
+      AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+      // Add kinematics to ensure max speed is actually obeyed
+      .setKinematics(DriveConstants.kDriveKinematics)
+      .setReversed(false);
+
+    // For backwards
+  TrajectoryConfig configReversed = new TrajectoryConfig(
+      AutoConstants.kMaxSpeedMetersPerSecond,
+      AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+      // Add kinematics to ensure max speed is actually obeyed
+      .setKinematics(DriveConstants.kDriveKinematics)
+      .setReversed(true);
+
+  // Trajectories
+  Trajectory driveStraightForward = TrajectoryGenerator.generateTrajectory(
+      // Start at the origin facing the +X direction
+      new Pose2d(0, 0, new Rotation2d(0)),
+      // Pass through these two interior waypoints, making an 's' curve path
+      List.of(new Translation2d(0.5, 0)),
+      // End 3 meters straight ahead of where we started, facing forward
+      new Pose2d(1, 0, new Rotation2d(0)),
+      config);
+
+  Trajectory driveStraightBackward = TrajectoryGenerator.generateTrajectory(
+      // Start at the origin facing the +X direction
+      new Pose2d(0, 0, new Rotation2d(0)),
+      // Pass through these two interior waypoints, making an 's' curve path
+      List.of(new Translation2d(-0.5, 0)),
+      // End 3 meters straight ahead of where we started, facing forward
+      new Pose2d(-1, 0, new Rotation2d(0)),
+      configReversed);
 
   // The driver's controller
   XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
@@ -101,9 +142,9 @@ public class RobotContainer {
     new JoystickButton(m_driverController, 2).whileTrue(RunIntakeCommand(-0.3));
     new JoystickButton(m_driverController, 3).whileTrue(RunArmCommand(0.4));
     new JoystickButton(m_driverController, 4).whileTrue(RunArmCommand(-0.25));
-    //new JoystickButton(m_driverController, 5).whileTrue(RunShooterCommand(-0.5));
+    new JoystickButton(m_driverController, 5).whileTrue(RunShooterCommand(-0.5));
     //new JoystickButton(m_driverController, 6).whileTrue(RunShooterCommand(1));
-    new JoystickButton(m_driverController, 6).whileTrue(RunShooterCommand(0.2));
+    //new JoystickButton(m_driverController, 6).whileTrue(RunShooterCommand(0.2));
     new JoystickButton(m_driverController, 8).whileTrue(ZeroHeading());
     
     //PID buttons
@@ -115,7 +156,7 @@ public class RobotContainer {
     //0.52 Amp --- Intake level 0.3 --- Intake low 0.15 --- 0.01 Floor
 
     //Pathfinding buttons
-    //new JoystickButton(m_driverController, 6).whileTrue(FollowPathCommand("Drive"));
+    new JoystickButton(m_driverController, 6).whileTrue(GenerateTrajectoryCommand(driveStraightForward));
     //new JoystickButton(m_driverController, ).whileTrue(PathfindThenFollowPathCommand("ApproachAmp"));
   }
 
@@ -184,4 +225,30 @@ public class RobotContainer {
     return new ZeroHeading(m_robotDrive);
 
   }
+
+  private Command GenerateTrajectoryCommand(Trajectory trajectory) {
+    ProfiledPIDController thetaController = new ProfiledPIDController(
+        AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
+    thetaController.enableContinuousInput(-Math.PI, Math.PI);
+
+    SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
+        trajectory,
+        m_robotDrive::getPose, // Functional interface to feed supplier
+        DriveConstants.kDriveKinematics,
+
+        // Position controllers
+        new PIDController(AutoConstants.kPXController, 0, 0),
+        new PIDController(AutoConstants.kPYController, 0, 0),
+        thetaController,
+        m_robotDrive::setModuleStates,
+        m_robotDrive);
+
+    // Reset odometry to the starting pose of the trajectory.
+    m_robotDrive.resetOdometry(trajectory.getInitialPose());
+
+    // Run path following command, then stop at the end.
+    return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, true, true));
+  }
+
+  //private Trajectory 
 }

@@ -13,7 +13,6 @@ import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.CANSparkBase;
 import com.revrobotics.SparkPIDController;
 
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -47,6 +46,8 @@ public class ArmSubsystem extends SubsystemBase {
     m_RightArm.setIdleMode(IdleMode.kBrake);
 
     m_RightArm.follow(m_LeftArm, true);
+
+    //double LeftIntakeVoltage = LeftIntake.getBusVoltage();
 
     encoder = m_LeftArm.getAbsoluteEncoder(Type.kDutyCycle);
   }
@@ -92,10 +93,3 @@ public class ArmSubsystem extends SubsystemBase {
     PIDinUse = false;
   }
 }
-
-/**
- * Floor is 0.01 (min)
- * Arm is level 0.035
- * Shooter is level 0.3
- * Upright is 0.55 (max)
-*/
