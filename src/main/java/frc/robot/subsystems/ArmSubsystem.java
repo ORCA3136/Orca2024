@@ -14,6 +14,7 @@ import com.revrobotics.CANSparkBase;
 import com.revrobotics.SparkPIDController;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -25,6 +26,8 @@ public class ArmSubsystem extends SubsystemBase {
 
   RobotContainer robotContainer;
 
+  ParallelCommandGroup shootNote;
+
   CANSparkMax m_LeftArm;
   CANSparkMax m_RightArm;
 
@@ -33,6 +36,7 @@ public class ArmSubsystem extends SubsystemBase {
   double targetPosition;
   boolean useTrigger = true;
   boolean PIDinUse = false;
+  boolean shootNoteInUse = false;
 
   public ArmSubsystem(RobotContainer robot) {
 
@@ -50,6 +54,8 @@ public class ArmSubsystem extends SubsystemBase {
     //double LeftIntakeVoltage = LeftIntake.getBusVoltage();
 
     encoder = m_LeftArm.getAbsoluteEncoder(Type.kDutyCycle);
+
+    shootNote = robotContainer.getShootNote();
   }
 
   @Override
@@ -70,11 +76,18 @@ public class ArmSubsystem extends SubsystemBase {
 
   public double getTargetPosition() {
     
+    if (shootNote == null) { shootNote = robotContainer.getShootNote(); }
+
+    NetworkTableInstance.getDefault().getTable("Controller").getEntry("AbsoluteEncoderVelocity").setDouble(encoder.getVelocity());
+    NetworkTableInstance.getDefault().getTable("Controller").getEntry("GetPOV").setDouble(robotContainer.getPOV());
+
     if (robotContainer.getPOV() != -1 && !PIDinUse) { robotContainer.StartPID(); PIDinUse = true; }
 
     if (robotContainer.getPOV() == 0) { targetPosition = 0.48; }
-    else if (robotContainer.getPOV() == 180) { targetPosition = 0.03; }
-    else if (robotContainer.getPOV() == 90 || robotContainer.getPOV() == -90) { targetPosition = 0.10; }
+    else if (robotContainer.getPOV() == 180) { targetPosition = 0.015; }
+    else if (shootNoteInUse && robotContainer.getPOV() == 90) { shootNote.cancel(); shootNoteInUse = false; }
+    else if (robotContainer.getPOV() == 90) { targetPosition = 0.05; }
+    else if (!shootNoteInUse && robotContainer.getPOV() == 270) { shootNote.schedule(); shootNoteInUse = true; }
     else if (targetPosition == 0) { targetPosition = 0.10; }
 
     //0.48 Amp --- Intake level 0.3 --- Intake low 0.15 --- 0.03 Floor

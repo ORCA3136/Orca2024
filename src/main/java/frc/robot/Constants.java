@@ -144,11 +144,11 @@ public final class Constants {
   }
 
   public static final class ArmPIDConstants {
-    public static final double armkP = 0.15;
-    public static final double armkI = 0.05;
+    public static final double armkP = 0.1;
+    public static final double armkI = 0.1;
     public static final double armkD = 0;
     public static final double kPositionTolerance = 0.005;
-    public static final double pidThrottle = 0.125; // use this to cap speed for pid controller
+    public static final double pidThrottle = 0.2; // use this to cap speed for pid controller
   }
 
   public static final class AutoConstants {
@@ -197,5 +197,12 @@ public final class Constants {
     public static final Translation2d BLUE_SPEAKER = new Translation2d(0.00, 5.55);
     public static final Translation2d RED_SPEAKER = new Translation2d(16.54, 5.55);
   }
+
+  public final static class ShooterConstants{
+    public static final double stop = 0.00;
+    public static final double reverse = -500.00;
+    public static final double shoot = 5000.00;
+    public static final double amp = 500.00;
+}
 }
  

@@ -25,18 +25,21 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 public class SensorSubsystem extends SubsystemBase {
 
   private static DigitalInput DIO_0;
+  private static DigitalInput DIO_1;
 
   //private final ADIS16470_IMU m_gyro = new ADIS16470_IMU();
 
   private Pose2d robotPose2d;
   private DriverStation.Alliance alliance = DriverStation.getAlliance().get();
   private boolean output0;
+  private boolean output1;
   private DriveSubsystem robotDrive;
 
   /** Creates a new SensorSubsystem. */
   public SensorSubsystem(DriveSubsystem drive) {
 
     DIO_0 = new DigitalInput(0);
+    DIO_1 = new DigitalInput(1);
     robotDrive = drive;
 
   }
@@ -46,6 +49,8 @@ public class SensorSubsystem extends SubsystemBase {
     
     output0 = DIO_0.get();
     NetworkTableInstance.getDefault().getTable("Sensors").getEntry("DIO_0").setBoolean(output0);
+    output1 = DIO_1.get();
+    NetworkTableInstance.getDefault().getTable("Sensors").getEntry("DIO_1").setBoolean(output1);
     
     if (LimelightHelpers.getTV("limelight")) {
       robotDrive.resetOdometry(LimelightHelpers.getBotPose2d("limelight"));
