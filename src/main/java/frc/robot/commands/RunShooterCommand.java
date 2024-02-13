@@ -54,19 +54,24 @@ public class RunShooterCommand extends Command {
  * Continue learning pathplanning
  *    Auto paths
  *    Teleop paths
- * Update limelight pose
+ * Update limelight pose -- Improve
  * 
- * PID shooter - RPM
  * Improve FRC web components dashboard
- * Limelight calibration
  * Data logs 
  * Rio configurable brownout levels
  * 
  * Intake routine
+ * Sensor calls subroutine (prevent flickers) -> intake all the way in -> shooter and intake slow out until sensor something
+ * 
  * Shooter routine
+ * Ramp up until max speed or consistent -> intake in
+ * 
  * Centering routine
+ * (Maybe use sensor to run when near speaker and we have a note) Use apriltags to determine distance to speaker -> do math to determine angle and rotation
+ * 
  * Arm up and down
- * Turning around
+ * PID without buttons -- Have a resting level -- Note and button for amp -- Note and button/near speaker
+ * Down when near stage -- Have a level for player station -- All the way down for intake
  * 
  * Limit switch
  * YAGSL

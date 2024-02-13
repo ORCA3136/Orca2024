@@ -74,11 +74,11 @@ public class ShooterSubsystem extends SubsystemBase {
     return m_ShooterRight.getEncoder().getVelocity();
   }
 
-  private double getError(){
+  private double getError() {
     return setPoint-getSpeed();
   }
 
-  private boolean atSpeed(){
+  private boolean atSpeed() {
     return Math.abs(getError()) < 100;
   }
 

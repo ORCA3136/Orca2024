@@ -81,9 +81,12 @@ public final class Constants {
 
     public static final int kShooterRightCanId = 12;
     public static final int kShooterLeftCanId = 14;
+
+    public static final int kClimberRightCanId = 16;
+    public static final int kClimberLeftCanId = 17;
     
 
-    public static final boolean kGyroReversed = false;
+    public static final boolean kGyroReversed = true;
   }
 
   public static final class ModuleConstants {
@@ -201,7 +204,7 @@ public final class Constants {
   public final static class ShooterConstants{
     public static final double stop = 0.00;
     public static final double reverse = -500.00;
-    public static final double shoot = 5000.00;
+    public static final double shoot = 5680.00;
     public static final double amp = 500.00;
 }
 }

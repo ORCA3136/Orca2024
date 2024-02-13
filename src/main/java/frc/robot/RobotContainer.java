@@ -6,6 +6,8 @@ package frc.robot;
 
 import java.util.List;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -125,11 +127,7 @@ public class RobotContainer {
 
     m_robotDrive.configureAutoBuilder();
 
-    // Starts recording to data log
-    //DataLogManager.start();
-
-    // Record both DS control and joystick data
-    //DriverStation.startDataLog(DataLogManager.getLog());
+    
   }
 
   /**
@@ -147,11 +145,11 @@ public class RobotContainer {
     new JoystickButton(m_driverController, 1).whileTrue(RunIntakeCommand(0.6));
     new JoystickButton(m_driverController, 2).whileTrue(RunIntakeCommand(-0.3));
     new JoystickButton(m_driverController, 3).whileTrue(RunArmCommand(0.4));
-    new JoystickButton(m_driverController, 4).whileTrue(RunArmCommand(-0.25));
+    new JoystickButton(m_driverController, 4).onTrue(RunArmCommand(-0.25));
     new JoystickButton(m_driverController, 5).toggleOnTrue(m_ShooterSubsystem.reverseShootNote());
     new JoystickButton(m_driverController, 6).toggleOnTrue(m_ShooterSubsystem.shootNote());
     new JoystickButton(m_driverController, 7).whileTrue(RunShooterCommand(1));
-    new JoystickButton(m_driverController, 8).whileTrue(ZeroHeading());
+    new JoystickButton(m_driverController, 8).onTrue(ZeroHeading());
     
     //PID buttons
     //new JoystickButton(m_driverController, 5).onTrue(new ArmPID(100 * 0.04, m_ArmSubsystem));
