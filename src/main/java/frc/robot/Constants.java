@@ -63,27 +63,34 @@ public final class Constants {
     public static final double kBackRightChassisAngularOffset = Math.PI / 2;
 
     // SPARK MAX CAN IDs
+
+    // Drive Neos
     public static final int kFrontLeftDrivingCanId = 1;
     public static final int kFrontRightDrivingCanId = 3;
     public static final int kRearLeftDrivingCanId = 5;
     public static final int kRearRightDrivingCanId = 7;
 
+    //Drive 550s
     public static final int kFrontLeftTurningCanId = 2;
     public static final int kFrontRightTurningCanId = 4;
     public static final int kRearLeftTurningCanId = 6;
     public static final int kRearRightTurningCanId = 8;
 
-    public static final int kLeftArmCanId = 10; //Arm encoder
+    // Arm
+    public static final int kLeftArmCanId = 10; //Absolute encoder
     public static final int kRightArmCanId = 11;
 
+    // Intake
+    public static final int kIntakeLeftCanId = 12;
     public static final int kIntakeRightCanId = 13;
-    public static final int kIntakeLeftCanId = 15;
 
-    public static final int kShooterRightCanId = 12;
+    // Shooter
     public static final int kShooterLeftCanId = 14;
+    public static final int kShooterRightCanId = 15;
 
-    public static final int kClimberRightCanId = 16;
-    public static final int kClimberLeftCanId = 17;
+    // Climber
+    public static final int kClimberLeftCanId = 16;
+    public static final int kClimberRightCanId = 17;
     
 
     public static final boolean kGyroReversed = true;
@@ -147,11 +154,13 @@ public final class Constants {
   }
 
   public static final class ArmPIDConstants {
-    public static final double armkP = 0.1;
-    public static final double armkI = 0.1;
-    public static final double armkD = 0;
+    public static final double armkP = 0.2;
+    public static final double armkI = 0.05;
+    public static final double armkD = 0.01;
     public static final double kPositionTolerance = 0.005;
     public static final double pidThrottle = 0.2; // use this to cap speed for pid controller
+    public static final double armVelocity = 0.1;
+    public static final double armAcceleration = 0.1;
   }
 
   public static final class AutoConstants {
@@ -186,7 +195,7 @@ public final class Constants {
     public static final HolonomicPathFollowerConfig HoloConfig = new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
       new PIDConstants(ModuleConstants.kDrivingP, ModuleConstants.kDrivingI, ModuleConstants.kDrivingD), // Translation PID constants
       new PIDConstants(ModuleConstants.kTurningP, ModuleConstants.kTurningI, ModuleConstants.kTurningD), // Rotation PID constants
-      4.5, // Max module speed, in m/s
+      DriveConstants.kMaxSpeedMetersPerSecond, // Max module speed, in m/s
       0.386, // Drive base radius in meters. Distance from robot center to furthest module.
       new ReplanningConfig() // Default path replanning config. See the API for the options here
     );
@@ -204,7 +213,7 @@ public final class Constants {
   public final static class ShooterConstants{
     public static final double stop = 0.00;
     public static final double reverse = -500.00;
-    public static final double shoot = 5680.00;
+    public static final double shoot = 5676.00;
     public static final double amp = 500.00;
 }
 }

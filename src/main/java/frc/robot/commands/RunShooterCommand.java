@@ -60,10 +60,11 @@ public class RunShooterCommand extends Command {
  * Data logs 
  * Rio configurable brownout levels
  * 
- * Intake routine
+ * 
+ *   NoteOffIntake ----- Intake routine
  * Sensor calls subroutine (prevent flickers) -> intake all the way in -> shooter and intake slow out until sensor something
  * 
- * Shooter routine
+ *   ShootSpeaker ----- Shooter routine
  * Ramp up until max speed or consistent -> intake in
  * 
  * Centering routine
@@ -72,6 +73,7 @@ public class RunShooterCommand extends Command {
  * Arm up and down
  * PID without buttons -- Have a resting level -- Note and button for amp -- Note and button/near speaker
  * Down when near stage -- Have a level for player station -- All the way down for intake
+ * 
  * 
  * Limit switch
  * YAGSL

@@ -13,6 +13,9 @@ import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.CANSparkBase;
 import com.revrobotics.SparkPIDController;
 
+import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -20,6 +23,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import frc.robot.commands.ArmPID;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 
 public class ArmSubsystem extends SubsystemBase {
   /** Creates a new IntakeSubsystem. */
@@ -35,8 +40,17 @@ public class ArmSubsystem extends SubsystemBase {
 
   double targetPosition;
   boolean useTrigger = true;
-  boolean PIDinUse = false;
   boolean shootNoteInUse = false;
+
+  double kS = 0;
+  double kG = 0;
+  double kV = 0;
+  double kA = 0;
+
+  ArmFeedforward feedforward = new ArmFeedforward(kS, kG, kV, kA);
+  PIDController pidController = new PIDController(Constants.ArmPIDConstants.armkP, Constants.ArmPIDConstants.armkI, Constants.ArmPIDConstants.armkD);
+
+  double setpoint = -1;
 
   public ArmSubsystem(RobotContainer robot) {
 
@@ -63,6 +77,15 @@ public class ArmSubsystem extends SubsystemBase {
     // This method will be called once per scheduler run
     NetworkTableInstance.getDefault().getTable("Sensors").getEntry("AbsoluteEncoderPosition").setDouble(encoder.getPosition());
     NetworkTableInstance.getDefault().getTable("Sensors").getEntry("AbsoluteEncoderVelocity").setDouble(encoder.getVelocity());
+    
+    if (setpoint != -1)
+    m_LeftArm.setVoltage(pidController.calculate(getDistance(), setpoint) 
+    //+ feedforward.calculate(setpoint, Constants.ArmPIDConstants.armVelocity, Constants.ArmPIDConstants.armAcceleration)
+    );
+  }
+
+  public Command RunArmPID(double setpoint) {
+    return runOnce(() -> { this.setpoint = setpoint; if (setpoint == -1) m_LeftArm.set(0);});
   }
 
   public void RunArm(double speed) {
@@ -71,38 +94,15 @@ public class ArmSubsystem extends SubsystemBase {
 
   public double getDistance()
   {
-    return encoder.getPosition() * 50;
+    return encoder.getPosition() * 10;
   }
 
   public double getTargetPosition() {
-    
-    if (shootNote == null) { shootNote = robotContainer.getShootNote(); }
-
-    NetworkTableInstance.getDefault().getTable("Controller").getEntry("AbsoluteEncoderVelocity").setDouble(encoder.getVelocity());
-    NetworkTableInstance.getDefault().getTable("Controller").getEntry("GetPOV").setDouble(robotContainer.getPOV());
-
-    if (robotContainer.getPOV() != -1 && !PIDinUse) { robotContainer.StartPID(); PIDinUse = true; }
-
-    if (robotContainer.getPOV() == 0) { targetPosition = 0.48; }
-    else if (robotContainer.getPOV() == 180) { targetPosition = 0.015; }
-    else if (shootNoteInUse && robotContainer.getPOV() == 90) { shootNote.cancel(); shootNoteInUse = false; }
-    else if (robotContainer.getPOV() == 90) { targetPosition = 0.05; }
-    else if (!shootNoteInUse && robotContainer.getPOV() == 270) { shootNote.schedule(); shootNoteInUse = true; }
-    else if (targetPosition == 0) { targetPosition = 0.10; }
-
-    //0.48 Amp --- Intake level 0.3 --- Intake low 0.15 --- 0.03 Floor
-
-    NetworkTableInstance.getDefault().getTable("Sensors").getEntry("TargetPosition").setDouble(targetPosition);
-
-    return targetPosition * 50;
-  }
-
-  public void setTargetPosition(double position) 
-  { 
-    targetPosition = position; 
-  }
-
-  public void setInUse() {
-    PIDinUse = false;
+    return 0.0;
   }
 }
+
+// Calculates the feedforward for a position of 1 units, a velocity of 2 units/second, and
+// an acceleration of 3 units/second^2
+// Units are determined by the units of the gains passed in at construction.
+////////feedforward.calculate(1, 2, 3);

@@ -21,8 +21,16 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.units.Time;
 
 public class SensorSubsystem extends SubsystemBase {
+
+  private double distanceToSpeaker;
+  // Positive means cursor is right/left of speaker
+  private double angleToSpeaker;
+
+  private double angleForArm;
+  private double speedForShooter;
 
   private static DigitalInput DIO_0;
   private static DigitalInput DIO_1;
@@ -32,15 +40,19 @@ public class SensorSubsystem extends SubsystemBase {
   private Pose2d robotPose2d;
   private DriverStation.Alliance alliance = DriverStation.getAlliance().get();
   private boolean output0;
-  private boolean output1;
+  private boolean[] sensorValues;
   private DriveSubsystem robotDrive;
+
+  // True means note is in correct position
+  private boolean IntakeState = false;
 
   /** Creates a new SensorSubsystem. */
   public SensorSubsystem(DriveSubsystem drive) {
 
     DIO_0 = new DigitalInput(0);
-    DIO_1 = new DigitalInput(1);
     robotDrive = drive;
+
+    sensorValues = new boolean[1];
 
   }
 
@@ -48,13 +60,23 @@ public class SensorSubsystem extends SubsystemBase {
   public void periodic() {
     
     output0 = DIO_0.get();
+    sensorValues[0] = output0;
     NetworkTableInstance.getDefault().getTable("Sensors").getEntry("DIO_0").setBoolean(output0);
-    output1 = DIO_1.get();
-    NetworkTableInstance.getDefault().getTable("Sensors").getEntry("DIO_1").setBoolean(output1);
     
     if (LimelightHelpers.getTV("limelight")) {
-      robotDrive.resetOdometry(LimelightHelpers.getBotPose2d("limelight"));
+      robotDrive.visionPose(LimelightHelpers.getBotPose2d("limelight"), Timer.getFPGATimestamp());
     }
+  }
 
+  public void changeIntakeState() {
+
+  }
+
+  public boolean getIntakeSensor(int sensorNum) {
+
+    if (sensorNum > -1 && sensorNum < sensorValues.length) 
+      return sensorValues[sensorNum];
+
+    return false;
   }
 }

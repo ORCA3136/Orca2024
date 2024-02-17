@@ -78,7 +78,7 @@ public class ShooterSubsystem extends SubsystemBase {
     return setPoint-getSpeed();
   }
 
-  private boolean atSpeed() {
+  public boolean atSpeed() {
     return Math.abs(getError()) < 100;
   }
 
@@ -96,7 +96,7 @@ public class ShooterSubsystem extends SubsystemBase {
       );
   }
 
-  private void setNewTarget(double setPoint) {
+  public void setNewTarget(double setPoint) {
     if (setPoint > 0) {
       rightPid.setOutputRange(-1.0, 0.0);
       leftPid.setOutputRange(0.0, 1.0);
@@ -107,11 +107,16 @@ public class ShooterSubsystem extends SubsystemBase {
       leftPid.setOutputRange(-1.0, 0.0);
       this.setPoint = setPoint;
     }
+    else setStopTarget();
   }
 
   private void setStopTarget() {
     rightPid.setOutputRange(0.0, 0.0);
     leftPid.setOutputRange(0.0, 0.0);
     this.setPoint = 0;
+  }
+
+  public double getTargetSpeed() {
+    return setPoint;
   }
 }
