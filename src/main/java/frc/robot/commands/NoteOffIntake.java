@@ -18,14 +18,17 @@ public class NoteOffIntake extends Command {
   boolean finished = false;
   boolean finishedIntake = false;
 
-  Command intakeCommand = new RunIntakeCommand(0.5, m_IntakeSubsystem).withTimeout(0.5);
-  Command parallelCommand = new ParallelCommandGroup(new RunIntakeCommand(-0.05, m_IntakeSubsystem), new RunShooterCommand(-0.05, m_ShooterSubsystem)).withTimeout(0.5);
+  Command intakeCommand;
+  Command parallelCommand;
 
   public NoteOffIntake(ShooterSubsystem ShooterSubsystem, IntakeSubsystem IntakeSubsystem, SensorSubsystem SensorSubsystem) {
     // Use addRequirements() here to declare subsystem dependencies.
     m_IntakeSubsystem = IntakeSubsystem;
     m_ShooterSubsystem = ShooterSubsystem;
     m_SensorSubsystem = SensorSubsystem;
+
+    intakeCommand = new RunIntakeCommand(0.5, m_IntakeSubsystem).withTimeout(0.5);
+    parallelCommand = new ParallelCommandGroup(new RunIntakeCommand(-0.05, m_IntakeSubsystem), new RunShooterCommand(-0.05, m_ShooterSubsystem)).withTimeout(0.5);
 
     addRequirements(IntakeSubsystem, ShooterSubsystem, SensorSubsystem);
 

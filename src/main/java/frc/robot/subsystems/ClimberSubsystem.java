@@ -8,6 +8,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
@@ -33,8 +34,7 @@ public class ClimberSubsystem extends SubsystemBase {
     // This method will be called once per scheduler run
   }
 
-  public void RunClimber(double speed) {
-    m_ClimberRight.set(speed);
-    m_ClimberLeft.set(speed);
+  public Command RunClimber(double speed) {
+    return runOnce(() -> { m_ClimberRight.set(speed); m_ClimberLeft.set(speed); });
   }
 }

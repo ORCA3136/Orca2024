@@ -40,6 +40,7 @@ import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.SensorSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.ArmSubsystem;
+import frc.robot.subsystems.ClimberSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
@@ -66,6 +67,7 @@ public class RobotContainer {
   private final ShooterSubsystem m_ShooterSubsystem = new ShooterSubsystem();
   private final ArmSubsystem m_ArmSubsystem = new ArmSubsystem(this);
   private final SensorSubsystem m_SensorSubsystem = new SensorSubsystem(m_robotDrive);
+  private final ClimberSubsystem m_ClimberSubsystem = new ClimberSubsystem();
   private final SendableChooser<Command> autoChooser;
 
   /*
@@ -166,15 +168,21 @@ public class RobotContainer {
     //m_secondaryController.button(5).onTrue(new ArmPID(m_ArmSubsystem));
 
     //0.52 Amp --- Intake level 0.3 --- Intake low 0.15 --- 0.01 Floor
-
+//26.09
     //Pathfinding buttons
     //new JoystickButton(m_driverController, 6).whileTrue(GenerateTrajectoryCommand(driveStraightForward));
     //new JoystickButton(m_driverController, ).whileTrue(PathfindThenFollowPathCommand("ApproachAmp"));
     //m_secondaryController.button(6).onTrue(new ArmPID(m_ArmSubsystem));
     //m_secondaryController.button(7).onTrue(new ArmPID(m_ArmSubsystem));
 
-    m_secondaryController.button(3).toggleOnTrue(new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem));
-    m_secondaryController.button(4).toggleOnTrue(new ShootSpeaker(m_ShooterSubsystem, m_IntakeSubsystem));
+    m_secondaryController.button(1).toggleOnTrue(m_robotDrive.toggleSpeakerCentering(m_driverController, m_SensorSubsystem));
+
+    m_secondaryController.button(3).onTrue(new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem));
+    m_secondaryController.button(4).onTrue(new ShootSpeaker(m_ShooterSubsystem, m_IntakeSubsystem));
+
+    m_secondaryController.button(5).whileTrue(SetSwerveXCommand());
+    m_secondaryController.button(7).onTrue(m_ClimberSubsystem.RunClimber(0.1)).onFalse(m_ClimberSubsystem.RunClimber(0));
+    m_secondaryController.button(8).onTrue(m_ClimberSubsystem.RunClimber(-0.1)).onFalse(m_ClimberSubsystem.RunClimber(0));
 
     m_secondaryController.button(9).onTrue(m_ArmSubsystem.RunArmPID(0.1));
     m_secondaryController.button(10).onTrue(m_ArmSubsystem.RunArmPID(0.15));

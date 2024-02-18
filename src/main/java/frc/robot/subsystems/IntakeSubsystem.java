@@ -24,10 +24,10 @@ public class IntakeSubsystem extends SubsystemBase {
   public IntakeSubsystem() {
 
     m_IntakeLeft = new CANSparkMax(Constants.DriveConstants.kIntakeLeftCanId, MotorType.kBrushless);
-    m_IntakeLeft.setIdleMode(IdleMode.kBrake);
+    m_IntakeLeft.setIdleMode(IdleMode.kCoast);
 
     m_IntakeRight = new CANSparkMax(Constants.DriveConstants.kIntakeRightCanId, MotorType.kBrushless);
-    m_IntakeRight.setIdleMode(IdleMode.kBrake);
+    m_IntakeRight.setIdleMode(IdleMode.kCoast);
 
     m_IntakeLeft.setInverted(true);
 

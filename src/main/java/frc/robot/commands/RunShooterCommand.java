@@ -67,10 +67,10 @@ public class RunShooterCommand extends Command {
  *   ShootSpeaker ----- Shooter routine
  * Ramp up until max speed or consistent -> intake in
  * 
- * Centering routine
+ *   toggleSpeakerCentering ----- Centering routine
  * (Maybe use sensor to run when near speaker and we have a note) Use apriltags to determine distance to speaker -> do math to determine angle and rotation
  * 
- * Arm up and down
+ *   Arm up and down PID
  * PID without buttons -- Have a resting level -- Note and button for amp -- Note and button/near speaker
  * Down when near stage -- Have a level for player station -- All the way down for intake
  * 
@@ -81,11 +81,4 @@ public class RunShooterCommand extends Command {
  * Beambreak sensor
  * 
  * Gyro value vs Locked value
- */
-
-
-/* Done
- * 
- * Arm encoder
- * PID arm positions
  */

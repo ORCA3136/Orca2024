@@ -65,16 +65,16 @@ public final class Constants {
     // SPARK MAX CAN IDs
 
     // Drive Neos
-    public static final int kFrontLeftDrivingCanId = 1;
-    public static final int kFrontRightDrivingCanId = 3;
-    public static final int kRearLeftDrivingCanId = 5;
-    public static final int kRearRightDrivingCanId = 7;
+    public static final int kFrontLeftDrivingCanId = 2;
+    public static final int kFrontRightDrivingCanId = 4;
+    public static final int kRearLeftDrivingCanId = 6;
+    public static final int kRearRightDrivingCanId = 8;
 
     //Drive 550s
-    public static final int kFrontLeftTurningCanId = 2;
-    public static final int kFrontRightTurningCanId = 4;
-    public static final int kRearLeftTurningCanId = 6;
-    public static final int kRearRightTurningCanId = 8;
+    public static final int kFrontLeftTurningCanId = 1;
+    public static final int kFrontRightTurningCanId = 3;
+    public static final int kRearLeftTurningCanId = 5;
+    public static final int kRearRightTurningCanId = 7;
 
     // Arm
     public static final int kLeftArmCanId = 10; //Absolute encoder
@@ -213,7 +213,7 @@ public final class Constants {
   public final static class ShooterConstants{
     public static final double stop = 0.00;
     public static final double reverse = -500.00;
-    public static final double shoot = 5676.00;
+    public static final double shoot = 4900.00;
     public static final double amp = 500.00;
 }
 }

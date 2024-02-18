@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -20,13 +21,16 @@ import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.OIConstants;
 import frc.robot.Constants.PathPlanningConstants;
 import frc.robot.commands.FollowPathCommand;
 import frc.utils.SwerveUtils;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -373,4 +377,25 @@ public class DriveSubsystem extends SubsystemBase {
         0.25 // Distance before attempting to rotate
         );
   }
+
+public Command toggleSpeakerCentering(XboxController xboxController, SensorSubsystem sensorSubsystem) {
+  return startEnd(
+    () -> this.setDefaultCommand(
+      new RunCommand(
+          () -> this.drive(
+              -MathUtil.applyDeadband(xboxController.getLeftY(), OIConstants.kDriveDeadband),
+              -MathUtil.applyDeadband(xboxController.getLeftX(), OIConstants.kDriveDeadband),
+              sensorSubsystem.GetSpeakerRotation(),
+              true, true),
+          this)),
+    () -> this.setDefaultCommand(
+      new RunCommand(
+          () -> this.drive(
+              -MathUtil.applyDeadband(xboxController.getLeftY(), OIConstants.kDriveDeadband),
+              -MathUtil.applyDeadband(xboxController.getLeftX(), OIConstants.kDriveDeadband),
+              -MathUtil.applyDeadband(xboxController.getRightX(), OIConstants.kDriveDeadband),
+              true, true),
+          this))
+    );
+}
 }

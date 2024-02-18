@@ -24,7 +24,7 @@ public class ShooterSubsystem extends SubsystemBase {
   SparkPIDController leftPid;
 
   private double setPoint = 0;
-  private boolean usePID = false;
+  private boolean usePID = true;
 
   public ShooterSubsystem() {
 
@@ -53,24 +53,25 @@ public class ShooterSubsystem extends SubsystemBase {
     leftPid.setIZone(100);
     leftPid.setOutputRange(0.0, 0.0);
     m_ShooterLeft.burnFlash();
-
   }
 
   @Override
   public void periodic() {
     if (usePID) {
       leftPid.setReference(setPoint, ControlType.kVelocity);
-      rightPid.setReference(-setPoint, ControlType.kVelocity);
+      rightPid.setReference(setPoint, ControlType.kVelocity);
     }
     NetworkTableInstance.getDefault().getTable("Shooter").getEntry("RPM").setDouble(getSpeed());
+    NetworkTableInstance.getDefault().getTable("Shooter").getEntry("Target RPM").setDouble(setPoint);
+    NetworkTableInstance.getDefault().getTable("Shooter").getEntry("RPM Error").setDouble(getError());
   }
 
   public void RunShooter(double speed) {
-    m_ShooterRight.set(speed);
+    m_ShooterRight.set(-speed);
     m_ShooterLeft.set(-speed);
   }
 
-  private double getSpeed() {
+  public double getSpeed() {
     return m_ShooterRight.getEncoder().getVelocity();
   }
 
@@ -98,12 +99,12 @@ public class ShooterSubsystem extends SubsystemBase {
 
   public void setNewTarget(double setPoint) {
     if (setPoint > 0) {
-      rightPid.setOutputRange(-1.0, 0.0);
+      rightPid.setOutputRange(0.0, 1.0);
       leftPid.setOutputRange(0.0, 1.0);
       this.setPoint = setPoint;
     }
     else if (setPoint < 0) {
-      rightPid.setOutputRange(0.0, 1.0);
+      rightPid.setOutputRange(-1.0, 0.0);
       leftPid.setOutputRange(-1.0, 0.0);
       this.setPoint = setPoint;
     }

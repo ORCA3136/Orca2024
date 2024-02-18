@@ -18,6 +18,8 @@ import frc.robot.LimelightHelpers;
 //import edu.wpi.first.util.datalog.StringLogEntry;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -38,7 +40,7 @@ public class SensorSubsystem extends SubsystemBase {
   //private final ADIS16470_IMU m_gyro = new ADIS16470_IMU();
 
   private Pose2d robotPose2d;
-  private DriverStation.Alliance alliance = DriverStation.getAlliance().get();
+  //private DriverStation.Alliance alliance = DriverStation.getAlliance().get();
   private boolean output0;
   private boolean[] sensorValues;
   private DriveSubsystem robotDrive;
@@ -48,12 +50,10 @@ public class SensorSubsystem extends SubsystemBase {
 
   /** Creates a new SensorSubsystem. */
   public SensorSubsystem(DriveSubsystem drive) {
-
     DIO_0 = new DigitalInput(0);
     robotDrive = drive;
 
     sensorValues = new boolean[1];
-
   }
 
   @Override
@@ -78,5 +78,20 @@ public class SensorSubsystem extends SubsystemBase {
       return sensorValues[sensorNum];
 
     return false;
+  }
+
+  public double GetSpeakerRotation() {
+    
+    Pose2d pose = robotDrive.getPose();
+    Rotation2d angle = robotDrive.getHeading();
+    Translation2d speaker = new Translation2d(16.54, 5.55);
+    // Z in inches 78.00 - 83.50
+    // Z in meters 1.981 - 2.121
+    double xDistance = pose.getX() - speaker.getX();
+    double yDistance = pose.getY() - speaker.getY();
+    double distanceToSpeaker = Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
+    double angleToSpeaker = Math.atan2(yDistance, xDistance);
+    
+    return 0.0;
   }
 }

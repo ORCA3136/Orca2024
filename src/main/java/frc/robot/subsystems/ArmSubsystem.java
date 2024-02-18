@@ -78,10 +78,10 @@ public class ArmSubsystem extends SubsystemBase {
     NetworkTableInstance.getDefault().getTable("Sensors").getEntry("AbsoluteEncoderPosition").setDouble(encoder.getPosition());
     NetworkTableInstance.getDefault().getTable("Sensors").getEntry("AbsoluteEncoderVelocity").setDouble(encoder.getVelocity());
     
-    if (setpoint != -1)
+    /*if (setpoint != -1)
     m_LeftArm.setVoltage(pidController.calculate(getDistance(), setpoint) 
-    //+ feedforward.calculate(setpoint, Constants.ArmPIDConstants.armVelocity, Constants.ArmPIDConstants.armAcceleration)
-    );
+    + feedforward.calculate(setpoint, Constants.ArmPIDConstants.armVelocity, Constants.ArmPIDConstants.armAcceleration)
+    );*/
   }
 
   public Command RunArmPID(double setpoint) {
