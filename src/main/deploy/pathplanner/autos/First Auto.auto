@@ -20,7 +20,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "MoveS"
+            "pathName": "Down"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Right"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Up"
           }
         }
       ]

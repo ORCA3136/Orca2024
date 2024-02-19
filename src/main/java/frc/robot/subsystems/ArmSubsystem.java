@@ -17,6 +17,7 @@ import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -31,28 +32,38 @@ public class ArmSubsystem extends SubsystemBase {
 
   RobotContainer robotContainer;
 
-  ParallelCommandGroup shootNote;
-
   CANSparkMax m_LeftArm;
   CANSparkMax m_RightArm;
 
   AbsoluteEncoder encoder;
 
   double targetPosition;
-  boolean useTrigger = true;
   boolean shootNoteInUse = false;
 
   double kS = 0;
-  double kG = 0;
-  double kV = 0;
-  double kA = 0;
+  double kG = 0.6;
+  double kV = 3.61;
+  double kA = 0.04;
 
-  ArmFeedforward feedforward = new ArmFeedforward(kS, kG, kV, kA);
-  PIDController pidController = new PIDController(Constants.ArmPIDConstants.armkP, Constants.ArmPIDConstants.armkI, Constants.ArmPIDConstants.armkD);
+  double kP = Constants.ArmPIDConstants.armkP;
+  double kI = Constants.ArmPIDConstants.armkI;
+  double kD = Constants.ArmPIDConstants.armkD;
+
+  ArmFeedforward feedforward = new ArmFeedforward(kS, kG, kV);
+  PIDController pidController = new PIDController(kP, kI, kD);
 
   double setpoint = -1;
 
   public ArmSubsystem(RobotContainer robot) {
+
+    SmartDashboard.putNumber("P Gain", kP);
+    SmartDashboard.putNumber("I Gain", kI);
+    SmartDashboard.putNumber("D Gain", kD);
+    SmartDashboard.putNumber("S Gain", kS);
+    SmartDashboard.putNumber("G Gain", kG);
+    SmartDashboard.putNumber("V Gain", kV);
+    SmartDashboard.putNumber("A Gain", kA);
+    SmartDashboard.putNumber("Arm Setpoint", setpoint);
 
     robotContainer = robot;
 
@@ -69,19 +80,44 @@ public class ArmSubsystem extends SubsystemBase {
 
     encoder = m_LeftArm.getAbsoluteEncoder(Type.kDutyCycle);
 
-    shootNote = robotContainer.getShootNote();
+    pidController.setTolerance(Constants.ArmPIDConstants.kPositionTolerance);
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    NetworkTableInstance.getDefault().getTable("Sensors").getEntry("AbsoluteEncoderPosition").setDouble(encoder.getPosition());
-    NetworkTableInstance.getDefault().getTable("Sensors").getEntry("AbsoluteEncoderVelocity").setDouble(encoder.getVelocity());
+    NetworkTableInstance.getDefault().getTable("Arm").getEntry("AbsoluteEncoderPosition").setDouble(getDistance());
+    NetworkTableInstance.getDefault().getTable("Arm").getEntry("TargetSetpoint").setDouble(setpoint);
+    NetworkTableInstance.getDefault().getTable("Arm").getEntry("AtSetpoint").setBoolean(pidController.atSetpoint());
+
+    double p = SmartDashboard.getNumber("P Gain", 0);
+    double i = SmartDashboard.getNumber("I Gain", 0);
+    double d = SmartDashboard.getNumber("D Gain", 0);
+    double s = SmartDashboard.getNumber("S Gain", 0);
+    double g = SmartDashboard.getNumber("G Gain", 0);
+    double v = SmartDashboard.getNumber("V Gain", 0);
+    double a = SmartDashboard.getNumber("A Gain", 0);
+    double set = SmartDashboard.getNumber("Arm Setpoint", 0);
+
+    /*
+    if (kP != p || kI != i || kD != d) {
+      kP = p; kI = i; kD = d;
+      pidController = new PIDController(kP, kI, kD);
+    }*/
+    if (kS != s || kG != g || kV != v || kA != a) {
+      kS = s; kG = g; kV = v; kA = a;
+      feedforward = new ArmFeedforward(kS, kG, kV);
+    }
     
-    /*if (setpoint != -1)
-    m_LeftArm.setVoltage(pidController.calculate(getDistance(), setpoint) 
-    + feedforward.calculate(setpoint, Constants.ArmPIDConstants.armVelocity, Constants.ArmPIDConstants.armAcceleration)
-    );*/
+    setpoint = robotContainer.getLeftTrigger() * 0.5;
+    
+    NetworkTableInstance.getDefault().getTable("Arm").getEntry("SetVoltage").setDouble(feedforward.calculate(setpoint, kV, 0));
+    //if (setpoint != -1)
+    m_LeftArm.setVoltage(
+    pidController.calculate(getDistance(), setpoint) 
+    //+ 
+    //feedforward.calculate(setpoint - 0.02, 0, 0)
+    );
   }
 
   public Command RunArmPID(double setpoint) {
@@ -94,7 +130,7 @@ public class ArmSubsystem extends SubsystemBase {
 
   public double getDistance()
   {
-    return encoder.getPosition() * 10;
+    return encoder.getPosition();
   }
 
   public double getTargetPosition() {

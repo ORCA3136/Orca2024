@@ -21,8 +21,6 @@ public class ShootSpeaker extends Command {
     m_IntakeSubsystem = IntakeSubsystem;
     m_ShooterSubsystem = ShooterSubsystem;
 
-    intakeCommand = new RunIntakeCommand(1, m_IntakeSubsystem).withTimeout(1);
-
     addRequirements(IntakeSubsystem, ShooterSubsystem);
 
   }
@@ -31,7 +29,7 @@ public class ShootSpeaker extends Command {
   @Override
   public void initialize() {
 
-    m_ShooterSubsystem.setNewTarget(Constants.ShooterConstants.shoot);
+    m_ShooterSubsystem.shootNote();
     startedIntake = false;
 
   }
@@ -53,9 +51,7 @@ public class ShootSpeaker extends Command {
    * with timeout
    */
 
-    if (!startedIntake && m_ShooterSubsystem.getSpeed() > 4650) intakeCommand.schedule();
-
-    if (intakeCommand.isScheduled()) startedIntake = true;
+    if (!startedIntake && m_ShooterSubsystem.getSpeed() > 4300) m_IntakeSubsystem.RunIntake(1);
 
   }
 
@@ -63,14 +59,14 @@ public class ShootSpeaker extends Command {
   @Override
   public void end(boolean interrupted) {
 
-    if (intakeCommand.isScheduled()) intakeCommand.cancel();
-    m_ShooterSubsystem.setNewTarget(Constants.ShooterConstants.stop);
+    m_IntakeSubsystem.RunIntake(0);
+    m_ShooterSubsystem.shootNote();
 
   }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return startedIntake && !intakeCommand.isScheduled();
+    return false;
   }
 }

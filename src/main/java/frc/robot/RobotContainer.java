@@ -178,11 +178,11 @@ public class RobotContainer {
     m_secondaryController.button(1).toggleOnTrue(m_robotDrive.toggleSpeakerCentering(m_driverController, m_SensorSubsystem));
 
     m_secondaryController.button(3).onTrue(new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem));
-    m_secondaryController.button(4).onTrue(new ShootSpeaker(m_ShooterSubsystem, m_IntakeSubsystem));
+    m_secondaryController.button(4).onTrue(new ShootSpeaker(m_ShooterSubsystem, m_IntakeSubsystem).withTimeout(5));
 
     m_secondaryController.button(5).whileTrue(SetSwerveXCommand());
-    m_secondaryController.button(7).onTrue(m_ClimberSubsystem.RunClimber(0.1)).onFalse(m_ClimberSubsystem.RunClimber(0));
-    m_secondaryController.button(8).onTrue(m_ClimberSubsystem.RunClimber(-0.1)).onFalse(m_ClimberSubsystem.RunClimber(0));
+    m_secondaryController.button(7).onTrue(m_ClimberSubsystem.RunClimber(0.6)).onFalse(m_ClimberSubsystem.RunClimber(0));
+    m_secondaryController.button(8).onTrue(m_ClimberSubsystem.RunClimber(-0.6)).onFalse(m_ClimberSubsystem.RunClimber(0));
 
     m_secondaryController.button(9).onTrue(m_ArmSubsystem.RunArmPID(0.1));
     m_secondaryController.button(10).onTrue(m_ArmSubsystem.RunArmPID(0.15));
