@@ -184,10 +184,10 @@ public class RobotContainer {
     m_secondaryController.button(7).onTrue(m_ClimberSubsystem.RunClimber(0.6)).onFalse(m_ClimberSubsystem.RunClimber(0));
     m_secondaryController.button(8).onTrue(m_ClimberSubsystem.RunClimber(-0.6)).onFalse(m_ClimberSubsystem.RunClimber(0));
 
-    m_secondaryController.button(9).onTrue(m_ArmSubsystem.RunArmPID(0.1));
-    m_secondaryController.button(10).onTrue(m_ArmSubsystem.RunArmPID(0.15));
-    m_secondaryController.button(11).onTrue(m_ArmSubsystem.RunArmPID(0.2));
-    m_secondaryController.button(12).onTrue(m_ArmSubsystem.RunArmPID(0.25));
+    m_secondaryController.button(9).onTrue(m_ArmSubsystem.SetPIDPosition(4));
+    m_secondaryController.button(10).onTrue(m_ArmSubsystem.SetPIDPosition(15));
+    m_secondaryController.button(11).onTrue(m_ArmSubsystem.SetPIDPosition(45));
+    m_secondaryController.button(12).onTrue(m_ArmSubsystem.SetPIDPosition(90));
   }
 
 

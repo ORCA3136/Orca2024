@@ -27,7 +27,7 @@ public class RunArmCommand extends Command {
   @Override
   public void initialize() {
 
-    m_ArmSubsystem.RunArmPID(-1);
+    m_ArmSubsystem.SetPIDPosition(30);
     m_ArmSubsystem.RunArm(m_speed);
 
   }

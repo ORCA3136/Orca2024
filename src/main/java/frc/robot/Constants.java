@@ -154,9 +154,9 @@ public final class Constants {
   }
 
   public static final class ArmPIDConstants {
-    public static final double armkP = 0.2;
+    public static final double armkP = 0.01;
     public static final double armkI = 0;
-    public static final double armkD = 0.01;
+    public static final double armkD = 0;
     public static final double kPositionTolerance = 0.5;
     public static final double pidThrottle = 0.4; // use this to cap speed for pid controller
     public static final double armVelocity = 0.2;

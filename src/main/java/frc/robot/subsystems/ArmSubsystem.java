@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.SparkAbsoluteEncoder.Type;
@@ -39,6 +40,7 @@ public class ArmSubsystem extends SubsystemBase {
 
   double targetPosition;
   boolean shootNoteInUse = false;
+  boolean useTrigger = false;
 
   double kS = 0;
   double kG = 0.6;
@@ -50,20 +52,11 @@ public class ArmSubsystem extends SubsystemBase {
   double kD = Constants.ArmPIDConstants.armkD;
 
   ArmFeedforward feedforward = new ArmFeedforward(kS, kG, kV);
-  PIDController pidController = new PIDController(kP, kI, kD);
+  SparkPIDController pidController;
 
   double setpoint = -1;
 
   public ArmSubsystem(RobotContainer robot) {
-
-    SmartDashboard.putNumber("P Gain", kP);
-    SmartDashboard.putNumber("I Gain", kI);
-    SmartDashboard.putNumber("D Gain", kD);
-    SmartDashboard.putNumber("S Gain", kS);
-    SmartDashboard.putNumber("G Gain", kG);
-    SmartDashboard.putNumber("V Gain", kV);
-    SmartDashboard.putNumber("A Gain", kA);
-    SmartDashboard.putNumber("Arm Setpoint", setpoint);
 
     robotContainer = robot;
 
@@ -78,9 +71,19 @@ public class ArmSubsystem extends SubsystemBase {
 
     //double LeftIntakeVoltage = LeftIntake.getBusVoltage();
 
-    encoder = m_LeftArm.getAbsoluteEncoder(Type.kDutyCycle);
+    pidController = m_LeftArm.getPIDController();
+    pidController.setP(kP);
+    pidController.setI(kI);
+    pidController.setD(kD);
 
-    pidController.setTolerance(Constants.ArmPIDConstants.kPositionTolerance);
+    pidController.setPositionPIDWrappingEnabled(true);
+    pidController.setPositionPIDWrappingMinInput(0.0);
+    pidController.setPositionPIDWrappingMaxInput(360);
+
+    encoder = m_LeftArm.getAbsoluteEncoder(Type.kDutyCycle);
+    encoder.setPositionConversionFactor(360);
+    pidController.setFeedbackDevice(encoder);
+    pidController.setOutputRange(-0.3, 0.5);
   }
 
   @Override
@@ -88,40 +91,22 @@ public class ArmSubsystem extends SubsystemBase {
     // This method will be called once per scheduler run
     NetworkTableInstance.getDefault().getTable("Arm").getEntry("AbsoluteEncoderPosition").setDouble(getDistance());
     NetworkTableInstance.getDefault().getTable("Arm").getEntry("TargetSetpoint").setDouble(setpoint);
-    NetworkTableInstance.getDefault().getTable("Arm").getEntry("AtSetpoint").setBoolean(pidController.atSetpoint());
+    
 
-    double p = SmartDashboard.getNumber("P Gain", 0);
-    double i = SmartDashboard.getNumber("I Gain", 0);
-    double d = SmartDashboard.getNumber("D Gain", 0);
-    double s = SmartDashboard.getNumber("S Gain", 0);
-    double g = SmartDashboard.getNumber("G Gain", 0);
-    double v = SmartDashboard.getNumber("V Gain", 0);
-    double a = SmartDashboard.getNumber("A Gain", 0);
-    double set = SmartDashboard.getNumber("Arm Setpoint", 0);
 
-    /*
-    if (kP != p || kI != i || kD != d) {
-      kP = p; kI = i; kD = d;
-      pidController = new PIDController(kP, kI, kD);
-    }*/
-    if (kS != s || kG != g || kV != v || kA != a) {
-      kS = s; kG = g; kV = v; kA = a;
-      feedforward = new ArmFeedforward(kS, kG, kV);
+    if (useTrigger) {
+      setpoint = robotContainer.getLeftTrigger() * 0.9 + 0.04;
+      setpoint *= 90;
     }
     
-    setpoint = robotContainer.getLeftTrigger() * 0.5;
-    
     NetworkTableInstance.getDefault().getTable("Arm").getEntry("SetVoltage").setDouble(feedforward.calculate(setpoint, kV, 0));
-    //if (setpoint != -1)
-    m_LeftArm.setVoltage(
-    pidController.calculate(getDistance(), setpoint) 
-    //+ 
-    //feedforward.calculate(setpoint - 0.02, 0, 0)
-    );
+    
+    
+    pidController.setReference(setpoint, ControlType.kPosition);
   }
 
-  public Command RunArmPID(double setpoint) {
-    return runOnce(() -> { this.setpoint = setpoint; if (setpoint == -1) m_LeftArm.set(0);});
+  public Command SetPIDPosition(double setpoint) {
+    return runOnce(() -> { this.setpoint = setpoint; });
   }
 
   public void RunArm(double speed) {
