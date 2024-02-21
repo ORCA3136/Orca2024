@@ -106,7 +106,15 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   public Command SetPIDPosition(double setpoint) {
-    return runOnce(() -> { this.setpoint = setpoint; });
+    return runOnce(() -> { 
+      this.setpoint = setpoint; 
+    });
+  }
+
+  public Command SetPIDNOTNOTSensor(SensorSubsystem sensor) {
+    return runOnce(() -> { 
+      this.setpoint = sensor.angleMap; 
+    });
   }
 
   public void RunArm(double speed) {

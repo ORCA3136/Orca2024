@@ -378,24 +378,25 @@ public class DriveSubsystem extends SubsystemBase {
         );
   }
 
-public Command toggleSpeakerCentering(XboxController xboxController, SensorSubsystem sensorSubsystem) {
-  return startEnd(
-    () -> this.setDefaultCommand(
+  public Command speakerCentering(XboxController xboxController, SensorSubsystem sensorSubsystem) {
+    return runOnce(() -> this.setDefaultCommand(
       new RunCommand(
           () -> this.drive(
               -MathUtil.applyDeadband(xboxController.getLeftY(), OIConstants.kDriveDeadband),
               -MathUtil.applyDeadband(xboxController.getLeftX(), OIConstants.kDriveDeadband),
-              sensorSubsystem.GetSpeakerRotation(),
+              -MathUtil.applyDeadband(sensorSubsystem.GetSpeakerRotation(), OIConstants.kCenteringDeadband),
               true, true),
-          this)),
-    () -> this.setDefaultCommand(
+            this)));
+  }
+
+  public Command regularDrive(XboxController xboxController) {
+    return runOnce(() -> this.setDefaultCommand(
       new RunCommand(
           () -> this.drive(
               -MathUtil.applyDeadband(xboxController.getLeftY(), OIConstants.kDriveDeadband),
               -MathUtil.applyDeadband(xboxController.getLeftX(), OIConstants.kDriveDeadband),
               -MathUtil.applyDeadband(xboxController.getRightX(), OIConstants.kDriveDeadband),
               true, true),
-          this))
-    );
-}
+          this)));
+  }
 }

@@ -155,8 +155,8 @@ public class RobotContainer {
     new JoystickButton(m_driverController, 2).whileTrue(RunIntakeCommand(-0.3));
     new JoystickButton(m_driverController, 3).whileTrue(RunArmCommand(0.4));
     new JoystickButton(m_driverController, 4).onTrue(RunArmCommand(-0.25)).onFalse(RunArmCommand(0));
-    new JoystickButton(m_driverController, 5).toggleOnTrue(m_ShooterSubsystem.reverseShootNote());
-    new JoystickButton(m_driverController, 6).toggleOnTrue(m_ShooterSubsystem.shootNote());
+    new JoystickButton(m_driverController, 5).onTrue(m_ShooterSubsystem.shootNote(Constants.ShooterConstants.reverse)).onFalse(m_ShooterSubsystem.shootNote(0));
+    new JoystickButton(m_driverController, 6).onTrue(m_ShooterSubsystem.shootNote(4500)).onFalse(m_ShooterSubsystem.shootNote(0));
     new JoystickButton(m_driverController, 7).whileTrue(RunShooterCommand(1));
     new JoystickButton(m_driverController, 8).whileTrue(ZeroHeading());
     
@@ -175,19 +175,20 @@ public class RobotContainer {
     //m_secondaryController.button(6).onTrue(new ArmPID(m_ArmSubsystem));
     //m_secondaryController.button(7).onTrue(new ArmPID(m_ArmSubsystem));
 
-    m_secondaryController.button(1).toggleOnTrue(m_robotDrive.toggleSpeakerCentering(m_driverController, m_SensorSubsystem));
+    m_secondaryController.button(1).onTrue(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem)).onFalse(m_robotDrive.regularDrive(m_driverController));
 
     m_secondaryController.button(3).onTrue(new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem));
     m_secondaryController.button(4).onTrue(new ShootSpeaker(m_ShooterSubsystem, m_IntakeSubsystem).withTimeout(5));
 
     m_secondaryController.button(5).whileTrue(SetSwerveXCommand());
+    m_secondaryController.button(6).onTrue(new ParallelCommandGroup(m_ArmSubsystem.SetPIDNOTNOTSensor(m_SensorSubsystem), m_ShooterSubsystem.shootNoteNOTNOTSensor(m_SensorSubsystem))).onFalse(m_ShooterSubsystem.shootNote(0));
     m_secondaryController.button(7).onTrue(m_ClimberSubsystem.RunClimber(0.6)).onFalse(m_ClimberSubsystem.RunClimber(0));
     m_secondaryController.button(8).onTrue(m_ClimberSubsystem.RunClimber(-0.6)).onFalse(m_ClimberSubsystem.RunClimber(0));
 
-    m_secondaryController.button(9).onTrue(m_ArmSubsystem.SetPIDPosition(4));
-    m_secondaryController.button(10).onTrue(m_ArmSubsystem.SetPIDPosition(15));
-    m_secondaryController.button(11).onTrue(m_ArmSubsystem.SetPIDPosition(45));
-    m_secondaryController.button(12).onTrue(m_ArmSubsystem.SetPIDPosition(90));
+    m_secondaryController.button(9).onTrue(m_ArmSubsystem.SetPIDPosition(3));
+    m_secondaryController.button(10).onTrue(m_ArmSubsystem.SetPIDPosition(11));
+    m_secondaryController.button(11).onTrue(m_ArmSubsystem.SetPIDPosition(13));
+    m_secondaryController.button(12).onTrue(m_ArmSubsystem.SetPIDPosition(15));
   }
 
 

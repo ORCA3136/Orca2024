@@ -61,6 +61,14 @@ public class ShooterSubsystem extends SubsystemBase {
       leftPid.setReference(setPoint, ControlType.kVelocity);
       rightPid.setReference(setPoint, ControlType.kVelocity);
     }
+
+    /*leftMotorPid.setReference(
+            target, 
+            CANSparkMax.ControlType.kPosition,
+            0, 
+            armFF 
+        );*/
+
     NetworkTableInstance.getDefault().getTable("Shooter").getEntry("RPM").setDouble(getSpeed());
     NetworkTableInstance.getDefault().getTable("Shooter").getEntry("Target RPM").setDouble(setPoint);
     NetworkTableInstance.getDefault().getTable("Shooter").getEntry("RPM Error").setDouble(getError());
@@ -83,17 +91,15 @@ public class ShooterSubsystem extends SubsystemBase {
     return Math.abs(getError()) < 100;
   }
 
-  public Command shootNote() {
-    return startEnd(
-      () -> setNewTarget(Constants.ShooterConstants.shoot),
-      () -> setStopTarget()
+  public Command shootNote(double target) {
+    return runOnce(
+      () -> setNewTarget(target)
       );
   }
 
-  public Command reverseShootNote() {
-    return startEnd(
-      () -> setNewTarget(Constants.ShooterConstants.reverse),
-      () -> setStopTarget()
+  public Command shootNoteNOTNOTSensor(SensorSubsystem sensor) {
+    return runOnce(
+      () -> setNewTarget(sensor.speedMap)
       );
   }
 

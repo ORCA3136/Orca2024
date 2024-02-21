@@ -29,7 +29,7 @@ public class ShootSpeaker extends Command {
   @Override
   public void initialize() {
 
-    m_ShooterSubsystem.shootNote();
+    m_ShooterSubsystem.shootNote(1000);
     startedIntake = false;
 
   }
@@ -60,7 +60,7 @@ public class ShootSpeaker extends Command {
   public void end(boolean interrupted) {
 
     m_IntakeSubsystem.RunIntake(0);
-    m_ShooterSubsystem.shootNote();
+    m_ShooterSubsystem.shootNote(0);
 
   }
 

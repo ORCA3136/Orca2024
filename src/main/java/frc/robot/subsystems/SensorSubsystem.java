@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+
 import edu.wpi.first.wpilibj.ADIS16470_IMU;
 //import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -20,16 +22,13 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.units.Time;
 
 public class SensorSubsystem extends SubsystemBase {
-
-  private double distanceToSpeaker;
-  // Positive means cursor is right/left of speaker
-  private double angleToSpeaker;
 
   private double angleForArm;
   private double speedForShooter;
@@ -45,8 +44,26 @@ public class SensorSubsystem extends SubsystemBase {
   private boolean[] sensorValues;
   private DriveSubsystem robotDrive;
 
+  private InterpolatingDoubleTreeMap shooterSpeedMap = new InterpolatingDoubleTreeMap();
+  private InterpolatingDoubleTreeMap shooterAngleMap = new InterpolatingDoubleTreeMap();
+
   // True means note is in correct position
   private boolean IntakeState = false;
+  
+
+
+    Pose2d pose;
+    Translation2d speaker = Constants.Field.BLUE_SPEAKER_FROM_CENTER;
+    double angle;
+    
+    double xDistance;
+    double yDistance;
+
+    double distanceToSpeaker;
+    double angleToSpeaker;
+
+    public double speedMap;
+    public double angleMap;
 
   /** Creates a new SensorSubsystem. */
   public SensorSubsystem(DriveSubsystem drive) {
@@ -54,6 +71,28 @@ public class SensorSubsystem extends SubsystemBase {
     robotDrive = drive;
 
     sensorValues = new boolean[1];
+
+    shooterSpeedMap.put(Double.valueOf(1.27), Double.valueOf(2600.0));
+    shooterSpeedMap.put(Double.valueOf(1.88), Double.valueOf(2850.0));
+    shooterSpeedMap.put(Double.valueOf(2.35), Double.valueOf(3800.0));
+
+    shooterAngleMap.put(Double.valueOf(1.27), Double.valueOf(1.0));
+    shooterAngleMap.put(Double.valueOf(1.88), Double.valueOf(7.0));
+    shooterAngleMap.put(Double.valueOf(2.35), Double.valueOf(10.0));
+
+    System.out.println(shooterAngleMap.get(Double.valueOf(2)));
+    System.out.println(shooterSpeedMap.get(Double.valueOf(2)));
+
+    
+    System.out.println(shooterSpeedMap.toString());
+    
+    System.out.println(shooterAngleMap.toString());
+
+    // 1.27m  2600rpm 0deg
+    // 1.88m  2850rpm 7deg
+    // 3400 8.5
+    // 2.35m  3800rpm 10deg
+    // +200rpm + 3.2deg
   }
 
   @Override
@@ -66,6 +105,35 @@ public class SensorSubsystem extends SubsystemBase {
     if (LimelightHelpers.getTV("limelight")) {
       robotDrive.visionPose(LimelightHelpers.getBotPose2d("limelight"), Timer.getFPGATimestamp());
     }
+
+    pose = robotDrive.getPose();
+    angle = pose.getRotation().getDegrees();
+    speaker = Constants.Field.BLUE_SPEAKER_FROM_CENTER;
+    xDistance = pose.getX() - speaker.getX();
+    yDistance = pose.getY() - speaker.getY();
+    distanceToSpeaker = Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
+    angleToSpeaker = Math.atan2(yDistance, xDistance) * (180/Math.PI);
+
+    speedMap = shooterSpeedMap.get(distanceToSpeaker) + 200;
+    angleMap = shooterAngleMap.get(Double.valueOf(distanceToSpeaker)) + 3.2;
+
+    NetworkTableInstance.getDefault().getTable("Centering").getEntry("xDistance").setDouble(xDistance);
+    NetworkTableInstance.getDefault().getTable("Centering").getEntry("yDistance").setDouble(yDistance);
+    NetworkTableInstance.getDefault().getTable("Centering").getEntry("DistanceToSpeaker").setDouble(distanceToSpeaker);
+    NetworkTableInstance.getDefault().getTable("Centering").getEntry("AngleToSpeaker").setDouble(angleToSpeaker);
+    NetworkTableInstance.getDefault().getTable("Centering").getEntry("AngleDifference").setDouble(angle - angleToSpeaker);
+
+    NetworkTableInstance.getDefault().getTable("Centering").getEntry("getShooterSpeedDistance").setDouble(distanceToSpeaker);
+    NetworkTableInstance.getDefault().getTable("Centering").getEntry("ShooterSpeedInterpolation").setDouble(shooterAngleMap.get(Double.valueOf(distanceToSpeaker)));
+
+    NetworkTableInstance.getDefault().getTable("Centering").getEntry("getShooterAngleDistance").setDouble(distanceToSpeaker);
+    NetworkTableInstance.getDefault().getTable("Centering").getEntry("getShooterAngleInterpolation").setDouble(shooterAngleMap.get(Double.valueOf(distanceToSpeaker)));
+    NetworkTableInstance.getDefault().getTable("Centering").getEntry("getShooterAngleInterpolationPlus").setDouble(shooterAngleMap.get(Double.valueOf(distanceToSpeaker)) + 3.2);
+
+    NetworkTableInstance.getDefault().getTable("Centering").getEntry("speedMap").setDouble(speedMap);
+    NetworkTableInstance.getDefault().getTable("Centering").getEntry("angleMap").setDouble(angleMap);
+
+    GetSpeakerRotation();
   }
 
   public void changeIntakeState() {
@@ -81,17 +149,14 @@ public class SensorSubsystem extends SubsystemBase {
   }
 
   public double GetSpeakerRotation() {
-    
-    Pose2d pose = robotDrive.getPose();
-    Rotation2d angle = robotDrive.getHeading();
-    Translation2d speaker = new Translation2d(16.54, 5.55);
-    // Z in inches 78.00 - 83.50
-    // Z in meters 1.981 - 2.121
-    double xDistance = pose.getX() - speaker.getX();
-    double yDistance = pose.getY() - speaker.getY();
-    double distanceToSpeaker = Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
-    double angleToSpeaker = Math.atan2(yDistance, xDistance);
-    
-    return 0.0;
+
+    double rotation = (angle - angleToSpeaker) * (0.02);
+
+    if (rotation > 0.4) rotation = 0.4;
+    if (rotation < -0.4) rotation = -0.4;
+
+    NetworkTableInstance.getDefault().getTable("Centering").getEntry("Rotation").setDouble(rotation);
+
+    return rotation;
   }
 }

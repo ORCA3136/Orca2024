@@ -151,10 +151,11 @@ public final class Constants {
     public static final int kDriverControllerPort = 0;
     //public static final int kButtonControllerPort = 1;
     public static final double kDriveDeadband = 0.08;
+    public static final double kCenteringDeadband = 0.02;
   }
 
   public static final class ArmPIDConstants {
-    public static final double armkP = 0.01;
+    public static final double armkP = 0.015;
     public static final double armkI = 0;
     public static final double armkD = 0;
     public static final double kPositionTolerance = 0.5;
@@ -202,18 +203,24 @@ public final class Constants {
   }
 
   public static class Field {
-    public static final double FIELD_WIDTH = 8.21;
-    public static final double FIELD_LENGTH = 16.54;
+    public static final double FIELD_WIDTH = 8.21;   // Half 4.105
+    public static final double FIELD_LENGTH = 16.54; // Half 8.27
 
     public static final Translation2d CENTER = new Translation2d(FIELD_LENGTH / 2, FIELD_WIDTH / 2);
-    public static final Translation2d BLUE_SPEAKER = new Translation2d(0.00, 5.55);
-    public static final Translation2d RED_SPEAKER = new Translation2d(16.54, 5.55);
+    public static final Translation2d BLUE_SPEAKER = new Translation2d(0.00, 5.55); // (-8.27, 1.445)
+    public static final Translation2d RED_SPEAKER = new Translation2d(16.54, 5.55); // (8.27, 1.445)
+
+    public static final Translation2d BLUE_SPEAKER_FROM_CENTER = new Translation2d(-8.27, 1.45);
+    public static final Translation2d RED_SPEAKER_FROM_CENTER = new Translation2d(8.27, 1.45);
   }
 
   public final static class ShooterConstants{
     public static final double stop = 0.00;
     public static final double reverse = -500.00;
-    public static final double shoot = 4900.00;
+    public static final double maxShot = 5650.00;
+    public static final double stageShot = 4000.00;
+    public static final double lineShot = 3000.00;
+    public static final double closeShot = 2750.00; // Shooter gets to around 2600
     public static final double amp = 500.00;
 }
 }
