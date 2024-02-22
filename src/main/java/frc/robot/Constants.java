@@ -223,5 +223,18 @@ public final class Constants {
     public static final double closeShot = 2750.00; // Shooter gets to around 2600
     public static final double amp = 500.00;
 }
+  
+  public final static class CurrentConstants
+  {
+  
+    public static final int AMP80 = 80;
+    public static final int AMP60 = 60;
+    public static final int AMP40 = 40;
+    public static final int AMP30 = 30;
+    public static final int AMP25 = 25;
+    public static final int AMP20 = 20;
+    public static final int AMP15 = 15;
+
+  }
 }
  

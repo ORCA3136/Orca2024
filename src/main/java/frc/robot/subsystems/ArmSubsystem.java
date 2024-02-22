@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
+import frc.robot.Constants.CurrentConstants;
 import frc.robot.commands.ArmPID;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -60,14 +61,24 @@ public class ArmSubsystem extends SubsystemBase {
 
     robotContainer = robot;
 
+    
+
     //Left arm spark has absolute encoder
     m_LeftArm = new CANSparkMax(Constants.DriveConstants.kLeftArmCanId, MotorType.kBrushless);
     m_RightArm = new CANSparkMax(Constants.DriveConstants.kRightArmCanId, MotorType.kBrushless);
+
+    m_LeftArm.restoreFactoryDefaults();
+    m_RightArm.restoreFactoryDefaults();
+    m_LeftArm.setSmartCurrentLimit(CurrentConstants.AMP30, CurrentConstants.AMP25);
+    m_RightArm.setSmartCurrentLimit(CurrentConstants.AMP30,CurrentConstants.AMP25);
 
     m_LeftArm.setIdleMode(IdleMode.kBrake);
     m_RightArm.setIdleMode(IdleMode.kBrake);
 
     m_RightArm.follow(m_LeftArm, true);
+
+    m_LeftArm.burnFlash();
+    m_RightArm.burnFlash();
 
     //double LeftIntakeVoltage = LeftIntake.getBusVoltage();
 

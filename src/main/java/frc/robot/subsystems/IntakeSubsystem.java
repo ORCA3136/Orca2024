@@ -11,6 +11,7 @@ import com.revrobotics.RelativeEncoder;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Constants.CurrentConstants;
 
 public class IntakeSubsystem extends SubsystemBase {
   /** Creates a new IntakeSubsystem. */
@@ -24,12 +25,18 @@ public class IntakeSubsystem extends SubsystemBase {
   public IntakeSubsystem() {
 
     m_IntakeLeft = new CANSparkMax(Constants.DriveConstants.kIntakeLeftCanId, MotorType.kBrushless);
+    m_IntakeLeft.restoreFactoryDefaults();
+    m_IntakeLeft.setSmartCurrentLimit(CurrentConstants.AMP20, CurrentConstants.AMP15);
     m_IntakeLeft.setIdleMode(IdleMode.kCoast);
+    m_IntakeLeft.setInverted(true);
+    m_IntakeLeft.burnFlash();
 
     m_IntakeRight = new CANSparkMax(Constants.DriveConstants.kIntakeRightCanId, MotorType.kBrushless);
+    m_IntakeRight.restoreFactoryDefaults();
+    m_IntakeRight.setSmartCurrentLimit(CurrentConstants.AMP20, CurrentConstants.AMP15);
     m_IntakeRight.setIdleMode(IdleMode.kCoast);
-
-    m_IntakeLeft.setInverted(true);
+    m_IntakeRight.burnFlash();
+    
 
     leftEncoder = m_IntakeLeft.getEncoder();
     rightEncoder = m_IntakeRight.getEncoder();

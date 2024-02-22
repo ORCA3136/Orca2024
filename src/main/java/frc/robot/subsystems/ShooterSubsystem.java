@@ -14,6 +14,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Constants.CurrentConstants;
 
 public class ShooterSubsystem extends SubsystemBase {
   
@@ -29,10 +30,14 @@ public class ShooterSubsystem extends SubsystemBase {
   public ShooterSubsystem() {
 
     m_ShooterRight = new CANSparkMax(Constants.DriveConstants.kShooterRightCanId, MotorType.kBrushless);
+    m_ShooterRight.restoreFactoryDefaults();
     m_ShooterRight.setIdleMode(IdleMode.kCoast);
+    m_ShooterRight.setSmartCurrentLimit(CurrentConstants.AMP60, CurrentConstants.AMP40);;
 
     m_ShooterLeft = new CANSparkMax(Constants.DriveConstants.kShooterLeftCanId, MotorType.kBrushless);
+    m_ShooterLeft.restoreFactoryDefaults();
     m_ShooterLeft.setIdleMode(IdleMode.kCoast);
+    m_ShooterLeft.setSmartCurrentLimit(CurrentConstants.AMP60, CurrentConstants.AMP40);
 
     // Negative is forward
     rightPid = m_ShooterRight.getPIDController();
