@@ -7,6 +7,7 @@ package frc.robot.subsystems;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 
 import edu.wpi.first.wpilibj.ADIS16470_IMU;
+import edu.wpi.first.wpilibj.DataLogManager;
 //import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -80,13 +81,10 @@ public class SensorSubsystem extends SubsystemBase {
     shooterAngleMap.put(Double.valueOf(1.88), Double.valueOf(7.0));
     shooterAngleMap.put(Double.valueOf(2.35), Double.valueOf(10.0));
 
-    System.out.println(shooterAngleMap.get(Double.valueOf(2)));
-    System.out.println(shooterSpeedMap.get(Double.valueOf(2)));
+    DataLogManager.log("ShooterAngleMap: "+shooterAngleMap.get(Double.valueOf(2)));
+    DataLogManager.log("ShooterSpeedMap: "+shooterSpeedMap.get(Double.valueOf(2)));
+    
 
-    
-    System.out.println(shooterSpeedMap.toString());
-    
-    System.out.println(shooterAngleMap.toString());
 
     // 1.27m  2600rpm 0deg
     // 1.88m  2850rpm 7deg
