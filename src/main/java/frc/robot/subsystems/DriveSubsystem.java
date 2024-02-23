@@ -19,6 +19,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.util.WPIUtilJNI;
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.XboxController;
@@ -127,6 +128,8 @@ public class DriveSubsystem extends SubsystemBase {
     NetworkTableInstance.getDefault().getTable("Robot Pose").getEntry("Robot X").setDouble(this.getPose().getX());
     NetworkTableInstance.getDefault().getTable("Robot Pose").getEntry("Robot Y").setDouble(this.getPose().getY());
     NetworkTableInstance.getDefault().getTable("Robot Pose").getEntry("Rotation").setDouble(this.getPose().getRotation().getDegrees());
+
+    DataLogManager.log("POSE: "+getPose());
 
     //publisher.set(poseA);
     //arrayPublisher.set(new Pose2d[] {poseA, poseB});
