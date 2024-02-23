@@ -36,6 +36,7 @@ public class IntakeSubsystem extends SubsystemBase {
     m_IntakeRight.setSmartCurrentLimit(CurrentConstants.AMP20, CurrentConstants.AMP15);
     m_IntakeRight.setIdleMode(IdleMode.kCoast);
     m_IntakeRight.setInverted(true);
+
     m_IntakeRight.burnFlash();
     
 

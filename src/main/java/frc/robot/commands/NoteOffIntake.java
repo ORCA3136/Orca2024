@@ -26,7 +26,6 @@ public class NoteOffIntake extends Command {
     m_IntakeSubsystem = IntakeSubsystem;
     m_ShooterSubsystem = ShooterSubsystem;
     m_SensorSubsystem = SensorSubsystem;
-
     addRequirements(IntakeSubsystem, ShooterSubsystem, SensorSubsystem);
   }
 
@@ -36,9 +35,9 @@ public class NoteOffIntake extends Command {
 
     m_IntakeSensorValue = m_SensorSubsystem.getIntakeSensor(0);
     if (m_IntakeSensorValue == true) finished = true;
-
     m_ShooterSubsystem.shootNote(-300);
     m_IntakeSubsystem.RunIntake(-0.1);
+
 
   }
 
@@ -75,6 +74,7 @@ public class NoteOffIntake extends Command {
 
     m_IntakeSubsystem.RunIntake(0);
     m_ShooterSubsystem.shootNote(0);
+
 
   }
 
