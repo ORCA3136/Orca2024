@@ -23,7 +23,7 @@ public class ClimberSubsystem extends SubsystemBase {
 
     m_ClimberLeft = new CANSparkMax(Constants.DriveConstants.kClimberLeftCanId, MotorType.kBrushless);
     m_ClimberLeft.restoreFactoryDefaults();
-    m_ClimberLeft.setSmartCurrentLimit(CurrentConstants.AMP30, CurrentConstants.AMP25);
+    m_ClimberLeft.setSmartCurrentLimit(CurrentConstants.AMP40, CurrentConstants.AMP30);
     m_ClimberLeft.setIdleMode(IdleMode.kBrake);
     m_ClimberLeft.setInverted(true);
     m_ClimberLeft.burnFlash();
@@ -31,7 +31,7 @@ public class ClimberSubsystem extends SubsystemBase {
     m_ClimberRight = new CANSparkMax(Constants.DriveConstants.kClimberRightCanId, MotorType.kBrushless);
     m_ClimberRight.restoreFactoryDefaults();
     m_ClimberRight.setIdleMode(IdleMode.kBrake);
-    m_ClimberRight.setSmartCurrentLimit(CurrentConstants.AMP30, CurrentConstants.AMP25);
+    m_ClimberRight.setSmartCurrentLimit(CurrentConstants.AMP40, CurrentConstants.AMP30);
     m_ClimberRight.burnFlash();
 
    
