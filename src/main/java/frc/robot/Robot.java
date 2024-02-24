@@ -8,8 +8,10 @@ import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.urcl.URCL;
 
 import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.subsystems.ArmSubsystem;
 
 
 /**
@@ -22,6 +24,7 @@ public class Robot extends LoggedRobot {
   private Command m_autonomousCommand;
 
   private RobotContainer m_robotContainer;
+  //private Command m_armStateCommand;
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -35,7 +38,6 @@ public class Robot extends LoggedRobot {
     URCL.start();
 
     m_robotContainer = new RobotContainer();
-   
 
   }
 
@@ -60,7 +62,9 @@ public class Robot extends LoggedRobot {
   public void disabledInit() {}
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+    //m_robotContainer.getArmSubsystem().setArmModeWhileDisabled();
+  }
 
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override

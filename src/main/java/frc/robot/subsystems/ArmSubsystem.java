@@ -18,6 +18,7 @@ import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -95,25 +96,18 @@ public class ArmSubsystem extends SubsystemBase {
     encoder.setPositionConversionFactor(360);
     pidController.setFeedbackDevice(encoder);
     pidController.setOutputRange(-0.3, 0.5);
+
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
     NetworkTableInstance.getDefault().getTable("Arm").getEntry("AbsoluteEncoderPosition").setDouble(getDistance());
-    NetworkTableInstance.getDefault().getTable("Arm").getEntry("TargetSetpoint").setDouble(setpoint);
+    NetworkTableInstance.getDefault().getTable("Arm").getEntry("TargetSetpoint").setDouble(setpoint);   
+    //NetworkTableInstance.getDefault().getTable("Arm").getEntry("SetVoltage").setDouble(feedforward.calculate(setpoint, kV, 0));
     
+    //pidController.setReference(setpoint, ControlType.kPosition);
 
-
-    if (useTrigger) {
-      setpoint = robotContainer.getLeftTrigger() * 0.9 + 0.04;
-      setpoint *= 90;
-    }
-    
-    NetworkTableInstance.getDefault().getTable("Arm").getEntry("SetVoltage").setDouble(feedforward.calculate(setpoint, kV, 0));
-    
-    
-    pidController.setReference(setpoint, ControlType.kPosition);
   }
 
   public Command SetPIDPosition(double setpoint) {
@@ -139,6 +133,22 @@ public class ArmSubsystem extends SubsystemBase {
 
   public double getTargetPosition() {
     return 0.0;
+  }
+
+  public boolean checkUserButton() {
+    return false;
+    //RobotController.getUserButton();
+  }
+
+  public void setArmModeWhileDisabled() {
+
+
+    m_LeftArm.setIdleMode(IdleMode.kCoast);
+    m_RightArm.setIdleMode(IdleMode.kCoast);
+
+
+    m_LeftArm.setIdleMode(IdleMode.kBrake);
+  m_RightArm.setIdleMode(IdleMode.kBrake);
   }
 }
 

@@ -161,4 +161,10 @@ public class MAXSwerveModule {
   public void resetEncoders() {
     m_drivingEncoder.setPosition(0);
   }
+
+  public void setPID(double p, int i, double d) {
+    m_drivingPIDController.setP(p);
+    m_drivingPIDController.setI(i);
+    m_drivingPIDController.setD(d);
+  }
 }

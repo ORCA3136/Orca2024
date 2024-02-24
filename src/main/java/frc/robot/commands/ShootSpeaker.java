@@ -2,6 +2,7 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.Constants;
 import frc.robot.subsystems.IntakeSubsystem;
@@ -15,11 +16,15 @@ public class ShootSpeaker extends Command {
   Command intakeCommand;
 
   boolean startedIntake = false;
+  double shooterSpeed;
 
-  public ShootSpeaker(ShooterSubsystem ShooterSubsystem, IntakeSubsystem IntakeSubsystem) {
+  boolean finished = false;
+
+  public ShootSpeaker(ShooterSubsystem ShooterSubsystem, IntakeSubsystem IntakeSubsystem, double speed) {
     // Use addRequirements() here to declare subsystem dependencies.
     m_IntakeSubsystem = IntakeSubsystem;
     m_ShooterSubsystem = ShooterSubsystem;
+    shooterSpeed = speed;
 
     addRequirements(IntakeSubsystem, ShooterSubsystem);
 
@@ -29,7 +34,7 @@ public class ShootSpeaker extends Command {
   @Override
   public void initialize() {
 
-    m_ShooterSubsystem.shootNote(1000);
+    m_ShooterSubsystem.shootNote(shooterSpeed);
     startedIntake = false;
 
   }
@@ -51,7 +56,18 @@ public class ShootSpeaker extends Command {
    * with timeout
    */
 
-    if (!startedIntake && m_ShooterSubsystem.getSpeed() > 4300) m_IntakeSubsystem.RunIntake(1);
+    new WaitCommand(3).andThen(() -> {
+      if (!startedIntake) {
+        m_IntakeSubsystem.RunIntake(1);
+        startedIntake = true;
+        new WaitCommand(0.5).andThen(() -> {finished = true;});
+      }
+    });
+
+    if (!startedIntake && m_ShooterSubsystem.getSpeed() > shooterSpeed * 0.9) {
+      m_IntakeSubsystem.RunIntake(1);
+      new WaitCommand(0.5).andThen(() -> {finished = true;}); 
+    }
 
   }
 
@@ -67,6 +83,6 @@ public class ShootSpeaker extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return false;
+    return finished;
   }
 }

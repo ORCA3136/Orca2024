@@ -22,7 +22,6 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.PS4Controller.Button;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
@@ -53,6 +52,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
 import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.RobotController;
 
 /*
  * This class is where the bulk of the robot should be declared.  Since Command-based is a
@@ -70,7 +70,7 @@ public class RobotContainer {
   private final ClimberSubsystem m_ClimberSubsystem = new ClimberSubsystem();
   private final SendableChooser<Command> autoChooser;
 
-  /*
+  
   // Configure trajectory stuff
     // For forwards
   TrajectoryConfig config = new TrajectoryConfig(
@@ -92,21 +92,17 @@ public class RobotContainer {
   Trajectory driveStraightForward = TrajectoryGenerator.generateTrajectory(
       // Start at the origin facing the +X direction
       new Pose2d(0, 0, new Rotation2d(0)),
-      // Pass through these two interior waypoints, making an 's' curve path
       List.of(new Translation2d(0.5, 0)),
-      // End 3 meters straight ahead of where we started, facing forward
       new Pose2d(1, 0, new Rotation2d(0)),
       config);
 
   Trajectory driveStraightBackward = TrajectoryGenerator.generateTrajectory(
       // Start at the origin facing the +X direction
       new Pose2d(0, 0, new Rotation2d(0)),
-      // Pass through these two interior waypoints, making an 's' curve path
       List.of(new Translation2d(-0.5, 0)),
-      // End 3 meters straight ahead of where we started, facing forward
       new Pose2d(-1, 0, new Rotation2d(0)),
       configReversed);
-      */
+      
 
   // Sequential Shoot Commands
   ParallelCommandGroup shootNote = new ParallelCommandGroup(RunShooterCommand(1), new SequentialCommandGroup(new WaitCommand(3), RunIntakeCommand(0.5)));
@@ -175,17 +171,15 @@ public class RobotContainer {
     //m_secondaryController.button(6).onTrue(new ArmPID(m_ArmSubsystem));
     //m_secondaryController.button(7).onTrue(new ArmPID(m_ArmSubsystem));
 
-    m_secondaryController.button(1).onTrue(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem)).onFalse(m_robotDrive.regularDrive(m_driverController));
-
-
+    m_secondaryController.button(1).onTrue(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem, m_ArmSubsystem, m_ShooterSubsystem)).onFalse(m_robotDrive.regularDrive(m_driverController));
+    //m_secondaryController.button(2).onTrue();
     m_secondaryController.button(3).whileTrue(new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem));
-    m_secondaryController.button(4).onTrue(new ShootSpeaker(m_ShooterSubsystem, m_IntakeSubsystem).withTimeout(5));
+    m_secondaryController.button(4).onTrue(new ShootSpeaker(m_ShooterSubsystem, m_IntakeSubsystem, 4000).withTimeout(5));
 
     m_secondaryController.button(5).whileTrue(SetSwerveXCommand());
-    m_secondaryController.button(6).onTrue(new ParallelCommandGroup(m_ArmSubsystem.SetPIDNOTNOTSensor(m_SensorSubsystem), m_ShooterSubsystem.shootNoteNOTNOTSensor(m_SensorSubsystem))).onFalse(m_ShooterSubsystem.shootNote(0));
+    //m_secondaryController.button(6).onTrue(new ParallelCommandGroup(m_ArmSubsystem.SetPIDNOTNOTSensor(m_SensorSubsystem), m_ShooterSubsystem.shootNoteNOTNOTSensor(m_SensorSubsystem))).onFalse(m_ShooterSubsystem.shootNote(0));
     m_secondaryController.button(7).onTrue(m_ClimberSubsystem.RunClimber(0.6)).onFalse(m_ClimberSubsystem.RunClimber(0));
     m_secondaryController.button(8).onTrue(m_ClimberSubsystem.RunClimber(-0.6)).onFalse(m_ClimberSubsystem.RunClimber(0));
-
 
     m_secondaryController.button(9).onTrue(m_ArmSubsystem.SetPIDPosition(2.5));
     m_secondaryController.button(10).onTrue(m_ArmSubsystem.SetPIDPosition(11));
@@ -202,7 +196,30 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
+    
     return autoChooser.getSelected();
+    
+    // var thetaController = new ProfiledPIDController(
+    //     AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
+    // thetaController.enableContinuousInput(-Math.PI, Math.PI);
+
+    // SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
+    //     driveStraightForward,
+    //     m_robotDrive::getPose, // Functional interface to feed supplier
+    //     DriveConstants.kDriveKinematics,
+
+    //     // Position controllers
+    //     new PIDController(AutoConstants.kPXController, 0, 0),
+    //     new PIDController(AutoConstants.kPYController, 0, 0),
+    //     thetaController,
+    //     m_robotDrive::setModuleStates,
+    //     m_robotDrive);
+
+    // // Reset odometry to the starting pose of the trajectory.
+    // m_robotDrive.resetOdometry(driveStraightForward.getInitialPose());
+
+    // // Run path following command, then stop at the end.
+    // return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, true, false));
   }
 
 
@@ -289,6 +306,10 @@ public class RobotContainer {
 
     // Run path following command, then stop at the end.
     return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, true, true));
+  }
+
+  public ArmSubsystem getArmSubsystem() {
+    return m_ArmSubsystem;
   }
 
 }
