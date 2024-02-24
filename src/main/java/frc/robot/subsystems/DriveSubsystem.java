@@ -93,6 +93,9 @@ public class DriveSubsystem extends SubsystemBase {
   private SlewRateLimiter m_rotLimiter = new SlewRateLimiter(DriveConstants.kRotationalSlewRate);
   private double m_prevTime = WPIUtilJNI.now() * 1e-6;
 
+  private double p = 0.04;
+  private double d = 0;
+
   // Odometry class for tracking robot pose
   SwerveDrivePoseEstimator m_poseEstimator = new SwerveDrivePoseEstimator(
             DriveConstants.kDriveKinematics,
@@ -108,6 +111,8 @@ public class DriveSubsystem extends SubsystemBase {
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
     configureAutoBuilder();
+    SmartDashboard.putNumber("P", p);
+    SmartDashboard.putNumber("D", d);
   }
 
   @Override
@@ -121,15 +126,22 @@ public class DriveSubsystem extends SubsystemBase {
             m_rearLeft.getPosition(),
             m_rearRight.getPosition()
         });
-    SmartDashboard.putNumber("Robot X", this.getPose().getX());
-    SmartDashboard.putNumber("Robot Y", this.getPose().getY());
-    SmartDashboard.putNumber("Rotation", this.getPose().getRotation().getDegrees());
 
-    NetworkTableInstance.getDefault().getTable("Robot Pose").getEntry("Robot X").setDouble(this.getPose().getX());
-    NetworkTableInstance.getDefault().getTable("Robot Pose").getEntry("Robot Y").setDouble(this.getPose().getY());
-    NetworkTableInstance.getDefault().getTable("Robot Pose").getEntry("Rotation").setDouble(this.getPose().getRotation().getDegrees());
+    NetworkTableInstance.getDefault().getTable("Robot Pose").getEntry("Robot X").setDouble(getPose().getX());
+    NetworkTableInstance.getDefault().getTable("Robot Pose").getEntry("Robot Y").setDouble(getPose().getY());
+    NetworkTableInstance.getDefault().getTable("Robot Pose").getEntry("Rotation").setDouble(getPose().getRotation().getDegrees());
+    NetworkTableInstance.getDefault().getTable("Robot Pose").getEntry("Heading").setDouble(getHeading().getDegrees());
 
-    DataLogManager.log("POSE: "+getPose());
+    
+
+    if (p != SmartDashboard.getNumber("P", 0.04) ||
+        d != SmartDashboard.getNumber("D", 0)) {
+      p = SmartDashboard.getNumber("P", 0.04);
+      d = SmartDashboard.getNumber("D", 0);
+      setModulePID(p, d);
+    }
+
+    //DataLogManager.log("POSE: "+getPose());
 
     //publisher.set(poseA);
     //arrayPublisher.set(new Pose2d[] {poseA, poseB});
@@ -381,13 +393,13 @@ public class DriveSubsystem extends SubsystemBase {
         );
   }
 
-  public Command speakerCentering(XboxController xboxController, SensorSubsystem sensorSubsystem) {
+  public Command speakerCentering(XboxController xboxController, SensorSubsystem sensor, ArmSubsystem arm, ShooterSubsystem shooter) {
     return runOnce(() -> this.setDefaultCommand(
       new RunCommand(
           () -> this.drive(
               -MathUtil.applyDeadband(xboxController.getLeftY(), OIConstants.kDriveDeadband),
               -MathUtil.applyDeadband(xboxController.getLeftX(), OIConstants.kDriveDeadband),
-              -MathUtil.applyDeadband(sensorSubsystem.GetSpeakerRotation(), OIConstants.kCenteringDeadband),
+              -MathUtil.applyDeadband(sensor.StartSpeakerRotation(sensor, arm, shooter), OIConstants.kCenteringDeadband),
               true, true),
             this)));
   }
@@ -401,5 +413,12 @@ public class DriveSubsystem extends SubsystemBase {
               -MathUtil.applyDeadband(xboxController.getRightX(), OIConstants.kDriveDeadband),
               true, true),
           this)));
+  }
+
+  public void setModulePID(double p, double d) {
+    m_frontLeft.setPID(p, 0, d);
+    m_frontRight.setPID(p, 0, d);
+    m_rearLeft.setPID(p, 0, d);
+    m_rearRight.setPID(p, 0, d);
   }
 }

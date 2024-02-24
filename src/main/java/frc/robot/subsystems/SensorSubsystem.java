@@ -130,8 +130,6 @@ public class SensorSubsystem extends SubsystemBase {
 
     NetworkTableInstance.getDefault().getTable("Centering").getEntry("speedMap").setDouble(speedMap);
     NetworkTableInstance.getDefault().getTable("Centering").getEntry("angleMap").setDouble(angleMap);
-
-    GetSpeakerRotation();
   }
 
   public void changeIntakeState() {
@@ -146,7 +144,7 @@ public class SensorSubsystem extends SubsystemBase {
     return false;
   }
 
-  public double GetSpeakerRotation() {
+  public double StartSpeakerRotation(SensorSubsystem sensor, ArmSubsystem arm, ShooterSubsystem shooter) {
 
     double rotation = (angle - angleToSpeaker) * (0.02);
 
@@ -154,6 +152,9 @@ public class SensorSubsystem extends SubsystemBase {
     if (rotation < -0.4) rotation = -0.4;
 
     NetworkTableInstance.getDefault().getTable("Centering").getEntry("Rotation").setDouble(rotation);
+
+    arm.SetPIDNOTNOTSensor(sensor);
+    shooter.shootNoteNOTNOTSensor(sensor);
 
     return rotation;
   }
