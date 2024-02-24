@@ -37,26 +37,11 @@ public class NoteOffIntake extends Command {
     m_ShooterSubsystem.setShootSpeed(-600);
     m_IntakeSubsystem.RunIntake(-0.1);
 
-
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-
-/**
- * Intake in with timeout
- * 
- * vvv
- * 
- * Shooter + Intake out slow
- * until
- * Sensor detects note
- * 
- * vvv
- * 
- * End command
- */
 
     m_IntakeSensorValue = m_SensorSubsystem.getIntakeSensor(0);
 

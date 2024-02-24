@@ -19,8 +19,6 @@ public class ShootSpeaker extends Command {
   boolean startedIntake = false;
   double shooterSpeed;
 
-  boolean finished = false;
-
   public ShootSpeaker(ShooterSubsystem ShooterSubsystem, IntakeSubsystem IntakeSubsystem, double speed) {
     // Use addRequirements() here to declare subsystem dependencies.
     m_IntakeSubsystem = IntakeSubsystem;
@@ -38,6 +36,13 @@ public class ShootSpeaker extends Command {
     m_ShooterSubsystem.setShootSpeed(shooterSpeed);
     startedIntake = false;
 
+    new WaitCommand(2).andThen(() -> {
+      if (!startedIntake) {
+        m_IntakeSubsystem.RunIntake(1);
+        startedIntake = true;
+        new WaitCommand(0.5).andThen(() -> {end(false);});
+      }
+    });
   }
 
 // ParallelCommandGroup shootNote = new ParallelCommandGroup(RunShooterCommand(1), new SequentialCommandGroup(new WaitCommand(3), RunIntakeCommand(0.5)));
@@ -46,30 +51,10 @@ public class ShootSpeaker extends Command {
   @Override
   public void execute() {
 
-  /**
-   * Start flywheel
-   * until
-   * Max/consistent speed
-   * 
-   * vvv
-   * 
-   * Keep flywheel at max speed and runIntake 
-   * with timeout
-   */
-
-    new WaitCommand(3).andThen(() -> {
-      if (!startedIntake) {
-        m_IntakeSubsystem.RunIntake(1);
-        startedIntake = true;
-        new WaitCommand(0.5).andThen(() -> {finished = true;});
-      }
-    });
-
-    if (!startedIntake && m_ShooterSubsystem.getSpeed() > shooterSpeed * 0.9) {
+    if (!startedIntake && m_ShooterSubsystem.getSpeed() > shooterSpeed) {
       m_IntakeSubsystem.RunIntake(1);
-      new WaitCommand(0.5).andThen(() -> {finished = true;}); 
+      new WaitCommand(0.5).andThen(() -> {end(false);}); 
     }
-
   }
 
   // Called once the command ends or is interrupted.
@@ -84,6 +69,6 @@ public class ShootSpeaker extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return finished;
+    return false;
   }
 }

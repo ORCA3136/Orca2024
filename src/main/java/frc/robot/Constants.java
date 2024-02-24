@@ -237,5 +237,13 @@ public final class Constants {
     public static final int AMP15 = 15;
 
   }
+
+  public final static class ArmStops 
+  {
+    public static final double StopPostion = 95;
+    public static final double StopSpeed = 0.0;
+    public static final double BackPostion = 105;
+    public static final double BackSpeed = -0.1;
+  }
 }
  

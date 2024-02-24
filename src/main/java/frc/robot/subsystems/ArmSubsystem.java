@@ -23,6 +23,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import frc.robot.Constants.CurrentConstants;
@@ -70,8 +71,8 @@ public class ArmSubsystem extends SubsystemBase {
 
     m_LeftArm.restoreFactoryDefaults();
     m_RightArm.restoreFactoryDefaults();
-    m_LeftArm.setSmartCurrentLimit(CurrentConstants.AMP30, CurrentConstants.AMP25);
-    m_RightArm.setSmartCurrentLimit(CurrentConstants.AMP30,CurrentConstants.AMP25);
+    m_LeftArm.setSmartCurrentLimit(CurrentConstants.AMP40, CurrentConstants.AMP25);
+    m_RightArm.setSmartCurrentLimit(CurrentConstants.AMP40,CurrentConstants.AMP25);
 
     m_LeftArm.setIdleMode(IdleMode.kBrake);
     m_RightArm.setIdleMode(IdleMode.kBrake);
@@ -114,7 +115,26 @@ public class ArmSubsystem extends SubsystemBase {
     // 71 Source - 69 actual position
     // 92 In line with edge of bumpers --- Amp
 
-    pidController.setReference(setpoint, ControlType.kPosition);
+    if (setpoint == -1) setpoint = -1;
+    else if (setpoint < 1) setpoint = 1;
+    else if (setpoint > 100) setpoint = 100;
+
+    if (setpoint != -1) {
+      var successful = pidController.setReference(setpoint, ControlType.kPosition);
+      NetworkTableInstance.getDefault().getTable("Arm").getEntry("PIDWorking?").setString("True" + RobotController.getFPGATime());
+      NetworkTableInstance.getDefault().getTable("Arm").getEntry("PIDSuccessful").setString(successful.toString());
+      // NetworkTableInstance.getDefault().getTable("ArmPID").getEntry("TargetSetpoint").setDouble(pidController.get); 
+      // NetworkTableInstance.getDefault().getTable("ArmPID").getEntry("TargetSetpoint").setDouble(setpoint); 
+      // NetworkTableInstance.getDefault().getTable("ArmPID").getEntry("TargetSetpoint").setDouble(setpoint);  
+    }
+    else {
+      NetworkTableInstance.getDefault().getTable("Arm").getEntry("PIDWorking?").setString("False" + RobotController.getFPGATime()); 
+    }
+
+    // Arm Code Hardstops
+    if (encoder.getPosition() > Constants.ArmStops.StopPostion) m_LeftArm.set(Constants.ArmStops.StopSpeed);
+
+    if (encoder.getPosition() > Constants.ArmStops.BackPostion) m_LeftArm.set(Constants.ArmStops.BackSpeed);
 
   }
 
@@ -130,8 +150,11 @@ public class ArmSubsystem extends SubsystemBase {
     });
   }
 
-  public void RunArm(double speed) {
-    m_LeftArm.set(speed);
+  public Command RunArm(double speed) {
+    return runOnce(() -> {
+      setpoint = -1;
+      m_LeftArm.set(speed);
+    });
   }
 
   public double getDistance()
