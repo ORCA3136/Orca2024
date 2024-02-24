@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 //import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+import com.pathplanner.lib.util.PathPlannerLogging;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
@@ -20,6 +21,7 @@ import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.AutoConstants;
@@ -69,6 +71,8 @@ public class RobotContainer {
   private final SensorSubsystem m_SensorSubsystem = new SensorSubsystem(m_robotDrive);
   private final ClimberSubsystem m_ClimberSubsystem = new ClimberSubsystem();
   private final SendableChooser<Command> autoChooser;
+  private final Field2d field;
+
 
   
   // Configure trajectory stuff
@@ -115,6 +119,30 @@ public class RobotContainer {
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
   public RobotContainer() {
+     //for pathplanner logging
+     field = new Field2d();
+     SmartDashboard.putData("Field", field);
+     PathPlannerLogging.setLogCurrentPoseCallback((pose) -> {
+            DataLogManager.log("CurrentPose"+pose);
+            // Do whatever you want with the pose here
+            field.setRobotPose(pose);
+        });
+
+        // Logging callback for target robot pose
+        PathPlannerLogging.setLogTargetPoseCallback((pose) -> {
+            // Do whatever you want with the pose here
+            DataLogManager.log("Target Pose"+pose);
+            field.getObject("target pose").setPose(pose);
+        });
+
+        // Logging callback for the active path, this is sent as a list of poses
+        PathPlannerLogging.setLogActivePathCallback((poses) -> {
+            // Do whatever you want with the poses here
+            DataLogManager.log("Path"+poses);
+            field.getObject("path").setPoses(poses);
+        });
+    //end pathplanner additional logging
+
     // Configure the button bindings
     configureButtonBindings();
 
