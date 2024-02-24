@@ -5,6 +5,7 @@
 package frc.robot.commands;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.DriveSubsystem;
 
@@ -26,11 +27,13 @@ public class PathfindThenFollowPathCommand extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
+  DataLogManager.log(">>PathfindThenFollowPathCommant:Initalize");
 
     pathCommand = m_DriveSubsystem.pathfindThenFollowPathCommand(path);
 
     // schedule the autonomous command (example)
     pathCommand.schedule();
+  DataLogManager.log("<<PathfindThenFollowPathCommant:Initalize");
 
   }
 

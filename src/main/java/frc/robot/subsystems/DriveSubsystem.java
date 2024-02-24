@@ -354,15 +354,21 @@ public class DriveSubsystem extends SubsystemBase {
 
   // May or may not work with inverted gyro
   public void followPathCommand(String pathName) {
+    DataLogManager.log(">>followPathCommand");
+    DataLogManager.log("PATHNAME:"+pathName);
     //PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
 
     //return AutoBuilder.followPath(path);
 
     Pose2d currentPose = getPose();
-      
+    DataLogManager.log("CURRENT POSE:"+currentPose);
+
     // The rotation component in these poses represents the direction of travel
     Pose2d startPos = new Pose2d(currentPose.getTranslation(), currentPose.getRotation().plus(new Rotation2d(0)));
+    DataLogManager.log("START POSE:"+startPos);
+
     Pose2d endPos = new Pose2d(currentPose.getTranslation().plus(new Translation2d(2.0, 0.0)), currentPose.getRotation().plus(new Rotation2d(0)));
+    DataLogManager.log("END POSE:"+endPos);
 
     List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(startPos, endPos);
     PathPlannerPath path = new PathPlannerPath(
@@ -375,19 +381,25 @@ public class DriveSubsystem extends SubsystemBase {
     path.preventFlipping = true;
 
     AutoBuilder.followPath(path).schedule();
+    DataLogManager.log("<<followPathCommand");
+
   }
 
   public Command followPathCommand2(String pathName) {
+    DataLogManager.log(">>followPathCommand2");
+
     PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
 
     //resetOdometry(new Pose2d(new Translation2d(2.38, 4.99), this.getPose().getRotation()));
+    DataLogManager.log("<<followPathCommand2");
 
     return AutoBuilder.followPath(path);
   }
 
   public Command pathfindThenFollowPathCommand(String pathName) {
+    DataLogManager.log(">>pathfindThenFollowPathCommand");
     PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
-
+    DataLogManager.log("<<pathfindThenFollowPathCommand");
     return AutoBuilder.pathfindThenFollowPath(path,
         Constants.PathPlanningConstants.slowConstraints,
         0.25 // Distance before attempting to rotate
