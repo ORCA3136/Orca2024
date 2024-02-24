@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.subsystems;
+package frc.robot.subsystems.Swerve;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -17,7 +17,7 @@ import com.revrobotics.RelativeEncoder;
 
 import frc.robot.Constants.ModuleConstants;
 
-public class MAXSwerveModule {
+public class MAXSwerveModule implements SwerveModuleIO{
   private final CANSparkMax m_drivingSparkMax;
   private final CANSparkMax m_turningSparkMax;
 
@@ -115,6 +115,7 @@ public class MAXSwerveModule {
    *
    * @return The current state of the module.
    */
+  @Override
   public SwerveModuleState getState() {
     // Apply chassis angular offset to the encoder position to get the position
     // relative to the chassis.
@@ -127,6 +128,7 @@ public class MAXSwerveModule {
    *
    * @return The current position of the module.
    */
+  @Override
   public SwerveModulePosition getPosition() {
     // Apply chassis angular offset to the encoder position to get the position
     // relative to the chassis.
@@ -140,6 +142,7 @@ public class MAXSwerveModule {
    *
    * @param desiredState Desired state with speed and angle.
    */
+  @Override
   public void setDesiredState(SwerveModuleState desiredState) {
     // Apply chassis angular offset to the desired state.
     SwerveModuleState correctedDesiredState = new SwerveModuleState();
@@ -158,11 +161,12 @@ public class MAXSwerveModule {
   }
 
   /** Zeroes all the SwerveModule encoders. */
+  @Override
   public void resetEncoders() {
     m_drivingEncoder.setPosition(0);
   }
-
-  public void setPID(double p, int i, double d) {
+  @Override
+  public void setPID(double p, double i, double d) {
     m_drivingPIDController.setP(p);
     m_drivingPIDController.setI(i);
     m_drivingPIDController.setD(d);
