@@ -25,7 +25,6 @@ public class ShooterSubsystem extends SubsystemBase {
   SparkPIDController leftPid;
 
   private double setPoint = 0;
-  private boolean usePID = true;
 
   public ShooterSubsystem() {
 
@@ -64,10 +63,8 @@ public class ShooterSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
-    if (usePID) {
-      leftPid.setReference(setPoint, ControlType.kVelocity);
-      rightPid.setReference(setPoint, ControlType.kVelocity);
-    }
+    leftPid.setReference(setPoint, ControlType.kVelocity);
+    rightPid.setReference(setPoint, ControlType.kVelocity);
 
     /*leftMotorPid.setReference(
             target, 
@@ -102,6 +99,10 @@ public class ShooterSubsystem extends SubsystemBase {
     return runOnce(
       () -> setNewTarget(target)
       );
+  }
+
+  public void setShootSpeed(double target) {
+    setNewTarget(target);
   }
 
   public Command shootNoteNOTNOTSensor(SensorSubsystem sensor) {

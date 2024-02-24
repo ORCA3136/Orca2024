@@ -28,7 +28,6 @@ import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.commands.RunIntakeCommand;
-import frc.robot.commands.RunShooterCommand;
 import frc.robot.commands.RunArmCommand;
 import frc.robot.commands.SetSwerveXCommand;
 import frc.robot.commands.FollowPathCommand;
@@ -108,9 +107,6 @@ public class RobotContainer {
       configReversed);
       
 
-  // Sequential Shoot Commands
-  ParallelCommandGroup shootNote = new ParallelCommandGroup(RunShooterCommand(1), new SequentialCommandGroup(new WaitCommand(3), RunIntakeCommand(0.5)));
-
   // The driver's controller
   XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
   CommandJoystick m_secondaryController = new CommandJoystick(1);
@@ -177,42 +173,28 @@ public class RobotContainer {
     //Main buttons
     new JoystickButton(m_driverController, 1).whileTrue(RunIntakeCommand(0.6));
     new JoystickButton(m_driverController, 2).whileTrue(RunIntakeCommand(-0.3));
-    new JoystickButton(m_driverController, 3).whileTrue(RunArmCommand(0.4));
-    new JoystickButton(m_driverController, 4).onTrue(RunArmCommand(-0.25)).onFalse(RunArmCommand(0));
+    //new JoystickButton(m_driverController, 3).whileTrue(RunArmCommand(0.4));
+    //new JoystickButton(m_driverController, 4).whileTrue(RunArmCommand(-0.25));
     new JoystickButton(m_driverController, 5).onTrue(m_ShooterSubsystem.shootNote(Constants.ShooterConstants.reverse)).onFalse(m_ShooterSubsystem.shootNote(0));
     new JoystickButton(m_driverController, 6).onTrue(m_ShooterSubsystem.shootNote(4500)).onFalse(m_ShooterSubsystem.shootNote(0));
-    new JoystickButton(m_driverController, 7).whileTrue(RunShooterCommand(1));
-    new JoystickButton(m_driverController, 8).whileTrue(ZeroHeading());
-    
-    //PID buttons
-    //new JoystickButton(m_driverController, 5).onTrue(new ArmPID(100 * 0.04, m_ArmSubsystem));
-    //new JoystickButton(m_driverController, 6).onTrue(new ArmPID(100 * 0.50, m_ArmSubsystem));
-    //////new JoystickButton(m_driverController, 7).onTrue(new ArmPID(m_ArmSubsystem));
-    //new JoystickButton(m_driverController, 8).onTrue(new ArmPID(100 * 0.30, m_ArmSubsystem));
-    //m_secondaryController.button(5).onTrue(new ArmPID(m_ArmSubsystem));
-
-    //0.52 Amp --- Intake level 0.3 --- Intake low 0.15 --- 0.01 Floor
-//26.09
-    //Pathfinding buttons
-    //new JoystickButton(m_driverController, 6).whileTrue(GenerateTrajectoryCommand(driveStraightForward));
-    //new JoystickButton(m_driverController, ).whileTrue(PathfindThenFollowPathCommand("ApproachAmp"));
-    //m_secondaryController.button(6).onTrue(new ArmPID(m_ArmSubsystem));
-    //m_secondaryController.button(7).onTrue(new ArmPID(m_ArmSubsystem));
+    new JoystickButton(m_driverController, 7).onTrue(m_ClimberSubsystem.RunClimber(0.6)).onFalse(m_ClimberSubsystem.RunClimber(0));
+    new JoystickButton(m_driverController, 8).onTrue(m_ClimberSubsystem.RunClimber(-0.6)).onFalse(m_ClimberSubsystem.RunClimber(0));
+    new JoystickButton(m_driverController, 10).whileTrue(ZeroHeading());
 
     m_secondaryController.button(1).onTrue(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem, m_ArmSubsystem, m_ShooterSubsystem)).onFalse(m_robotDrive.regularDrive(m_driverController));
     //m_secondaryController.button(2).onTrue();
-    m_secondaryController.button(3).whileTrue(new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem));
+    m_secondaryController.button(3).onTrue(new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(1.5));
     m_secondaryController.button(4).onTrue(new ShootSpeaker(m_ShooterSubsystem, m_IntakeSubsystem, 4000).withTimeout(5));
 
     m_secondaryController.button(5).whileTrue(SetSwerveXCommand());
-    //m_secondaryController.button(6).onTrue(new ParallelCommandGroup(m_ArmSubsystem.SetPIDNOTNOTSensor(m_SensorSubsystem), m_ShooterSubsystem.shootNoteNOTNOTSensor(m_SensorSubsystem))).onFalse(m_ShooterSubsystem.shootNote(0));
+    m_secondaryController.button(6).onTrue(new ParallelCommandGroup(m_ArmSubsystem.SetPIDNOTNOTSensor(m_SensorSubsystem), m_ShooterSubsystem.shootNoteNOTNOTSensor(m_SensorSubsystem))).onFalse(m_ShooterSubsystem.shootNote(0));
     m_secondaryController.button(7).onTrue(m_ClimberSubsystem.RunClimber(0.6)).onFalse(m_ClimberSubsystem.RunClimber(0));
     m_secondaryController.button(8).onTrue(m_ClimberSubsystem.RunClimber(-0.6)).onFalse(m_ClimberSubsystem.RunClimber(0));
 
     m_secondaryController.button(9).onTrue(m_ArmSubsystem.SetPIDPosition(2.5));
-    m_secondaryController.button(10).onTrue(m_ArmSubsystem.SetPIDPosition(11));
-    m_secondaryController.button(11).onTrue(m_ArmSubsystem.SetPIDPosition(25));
-    m_secondaryController.button(12).onTrue(m_ArmSubsystem.SetPIDPosition(40));
+    m_secondaryController.button(10).onTrue(m_ArmSubsystem.SetPIDPosition(30));
+    m_secondaryController.button(11).onTrue(m_ArmSubsystem.SetPIDPosition(55));
+    m_secondaryController.button(12).onTrue(m_ArmSubsystem.SetPIDPosition(71));
 
   }
 
@@ -225,29 +207,29 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     
-    return autoChooser.getSelected();
+    // return autoChooser.getSelected();
     
-    // var thetaController = new ProfiledPIDController(
-    //     AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
-    // thetaController.enableContinuousInput(-Math.PI, Math.PI);
+    var thetaController = new ProfiledPIDController(
+        AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
+    thetaController.enableContinuousInput(-Math.PI, Math.PI);
 
-    // SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
-    //     driveStraightForward,
-    //     m_robotDrive::getPose, // Functional interface to feed supplier
-    //     DriveConstants.kDriveKinematics,
+    SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
+        driveStraightForward,
+        m_robotDrive::getPose, // Functional interface to feed supplier
+        DriveConstants.kDriveKinematics,
 
-    //     // Position controllers
-    //     new PIDController(AutoConstants.kPXController, 0, 0),
-    //     new PIDController(AutoConstants.kPYController, 0, 0),
-    //     thetaController,
-    //     m_robotDrive::setModuleStates,
-    //     m_robotDrive);
+        // Position controllers
+        new PIDController(AutoConstants.kPXController, 0, 0),
+        new PIDController(AutoConstants.kPYController, 0, 0),
+        thetaController,
+        m_robotDrive::setModuleStates,
+        m_robotDrive);
 
-    // // Reset odometry to the starting pose of the trajectory.
-    // m_robotDrive.resetOdometry(driveStraightForward.getInitialPose());
+    // Reset odometry to the starting pose of the trajectory.
+    m_robotDrive.resetOdometry(driveStraightForward.getInitialPose());
 
-    // // Run path following command, then stop at the end.
-    // return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, true, false));
+    // Run path following command, then stop at the end.
+    return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, true, false));
   }
 
 
@@ -255,14 +237,6 @@ public class RobotContainer {
   public final int getPOV() {
     return m_driverController.getPOV();
   }
-
-  public final void StartPID() {
-    
-  }
-
-  public final ParallelCommandGroup getShootNote() {
-    return shootNote;
-  } 
 
   public final double getLeftTrigger() {
     return m_driverController.getLeftTriggerAxis();
@@ -276,17 +250,11 @@ public class RobotContainer {
 
   }
 
-  private final RunShooterCommand RunShooterCommand(double speed) {
+  // private final RunArmCommand RunArmCommand(double speed) {
 
-    return new RunShooterCommand(-speed, m_ShooterSubsystem);
+  //   return new RunArmCommand(speed, m_ArmSubsystem);
 
-  }
-
-  private final RunArmCommand RunArmCommand(double speed) {
-
-    return new RunArmCommand(speed, m_ArmSubsystem);
-
-  }
+  // }
 
   private final SetSwerveXCommand SetSwerveXCommand() {
 
@@ -294,17 +262,17 @@ public class RobotContainer {
 
   }
 
-  private final FollowPathCommand FollowPathCommand(String pathName) {
+  // private final FollowPathCommand FollowPathCommand(String pathName) {
 
-    return new FollowPathCommand(m_robotDrive, pathName);
+  //   return new FollowPathCommand(m_robotDrive, pathName);
 
-  }
+  // }
 
-  private final PathfindThenFollowPathCommand PathfindThenFollowPathCommand(String pathName) {
+  // private final PathfindThenFollowPathCommand PathfindThenFollowPathCommand(String pathName) {
 
-    return new PathfindThenFollowPathCommand(m_robotDrive, pathName);
+  //   return new PathfindThenFollowPathCommand(m_robotDrive, pathName);
 
-  }
+  // }
 
   private final ZeroHeading ZeroHeading() {
 
@@ -334,10 +302,6 @@ public class RobotContainer {
 
     // Run path following command, then stop at the end.
     return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, true, true));
-  }
-
-  public ArmSubsystem getArmSubsystem() {
-    return m_ArmSubsystem;
   }
 
 }

@@ -93,9 +93,6 @@ public class DriveSubsystem extends SubsystemBase {
   private SlewRateLimiter m_rotLimiter = new SlewRateLimiter(DriveConstants.kRotationalSlewRate);
   private double m_prevTime = WPIUtilJNI.now() * 1e-6;
 
-  private double p = 0.04;
-  private double d = 0;
-
   // Odometry class for tracking robot pose
   SwerveDrivePoseEstimator m_poseEstimator = new SwerveDrivePoseEstimator(
             DriveConstants.kDriveKinematics,
@@ -111,8 +108,6 @@ public class DriveSubsystem extends SubsystemBase {
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
     configureAutoBuilder();
-    SmartDashboard.putNumber("P", p);
-    SmartDashboard.putNumber("D", d);
   }
 
   @Override
@@ -132,15 +127,6 @@ public class DriveSubsystem extends SubsystemBase {
     NetworkTableInstance.getDefault().getTable("Robot Pose").getEntry("Rotation").setDouble(getPose().getRotation().getDegrees());
     NetworkTableInstance.getDefault().getTable("Robot Pose").getEntry("Heading").setDouble(getHeading().getDegrees());
 
-    
-
-
-    if (p != SmartDashboard.getNumber("P", 0.04) ||
-        d != SmartDashboard.getNumber("D", 0)) {
-      p = SmartDashboard.getNumber("P", 0.04);
-      d = SmartDashboard.getNumber("D", 0);
-      setModulePID(p, d);
-    }
 
     //DataLogManager.log("POSE: "+getPose());
 
@@ -412,7 +398,7 @@ public class DriveSubsystem extends SubsystemBase {
           () -> this.drive(
               -MathUtil.applyDeadband(xboxController.getLeftY(), OIConstants.kDriveDeadband),
               -MathUtil.applyDeadband(xboxController.getLeftX(), OIConstants.kDriveDeadband),
-              -MathUtil.applyDeadband(sensor.StartSpeakerRotation(sensor, arm, shooter), OIConstants.kCenteringDeadband),
+              -MathUtil.applyDeadband(sensor.SpeakerRotation(arm, shooter), OIConstants.kCenteringDeadband),
               true, true),
             this)));
   }
@@ -426,12 +412,5 @@ public class DriveSubsystem extends SubsystemBase {
               -MathUtil.applyDeadband(xboxController.getRightX(), OIConstants.kDriveDeadband),
               true, true),
           this)));
-  }
-
-  public void setModulePID(double p, double d) {
-    m_frontLeft.setPID(p, 0, d);
-    m_frontRight.setPID(p, 0, d);
-    m_rearLeft.setPID(p, 0, d);
-    m_rearRight.setPID(p, 0, d);
   }
 }

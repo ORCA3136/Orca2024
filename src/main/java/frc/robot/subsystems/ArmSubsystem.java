@@ -106,7 +106,15 @@ public class ArmSubsystem extends SubsystemBase {
     NetworkTableInstance.getDefault().getTable("Arm").getEntry("TargetSetpoint").setDouble(setpoint);   
     //NetworkTableInstance.getDefault().getTable("Arm").getEntry("SetVoltage").setDouble(feedforward.calculate(setpoint, kV, 0));
     
-    //pidController.setReference(setpoint, ControlType.kPosition);
+    //setpoint = robotContainer.getLeftTrigger() * 90 + 2.5;
+
+    // 2.5 Floor Pickup
+    // 29 Under Stage
+    // 55 Safe position
+    // 71 Source - 69 actual position
+    // 92 In line with edge of bumpers --- Amp
+
+    pidController.setReference(setpoint, ControlType.kPosition);
 
   }
 

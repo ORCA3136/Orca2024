@@ -1,5 +1,6 @@
 package frc.robot.commands;
 
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -34,7 +35,7 @@ public class ShootSpeaker extends Command {
   @Override
   public void initialize() {
 
-    m_ShooterSubsystem.shootNote(shooterSpeed);
+    m_ShooterSubsystem.setShootSpeed(shooterSpeed);
     startedIntake = false;
 
   }
@@ -76,7 +77,7 @@ public class ShootSpeaker extends Command {
   public void end(boolean interrupted) {
 
     m_IntakeSubsystem.RunIntake(0);
-    m_ShooterSubsystem.shootNote(0);
+    m_ShooterSubsystem.setShootSpeed(0);
 
   }
 
