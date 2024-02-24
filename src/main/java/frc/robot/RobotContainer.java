@@ -160,7 +160,7 @@ public class RobotContainer {
     
     autoChooser = AutoBuilder.buildAutoChooser(); // Default auto will be `Commands.none()`
     SmartDashboard.putData("Auto Mode", autoChooser);
-    autoChooser.addOption("First Auto", AutoBuilder.buildAuto("First Auto"));
+    autoChooser.addOption("First Auto", Commands.runOnce(()->AutoBuilder.buildAuto("First Auto").schedule()));
   }
 
   /**
