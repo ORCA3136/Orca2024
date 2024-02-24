@@ -2,13 +2,9 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-<<<<<<< HEAD
       "x": 2.5,
       "y": 5.0
-=======
-      "x": 2.38,
-      "y": 4.99
->>>>>>> master
+
     },
     "rotation": 0
   },
@@ -21,8 +17,7 @@
           "data": {
             "pathName": "Drive"
           }
-<<<<<<< HEAD
-=======
+
         },
         {
           "type": "path",
@@ -41,7 +36,6 @@
           "data": {
             "pathName": "Up"
           }
->>>>>>> master
         }
       ]
     }

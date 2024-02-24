@@ -129,7 +129,7 @@ public class DriveSubsystem extends SubsystemBase {
     NetworkTableInstance.getDefault().getTable("Robot Pose").getEntry("Robot Y").setDouble(this.getPose().getY());
     NetworkTableInstance.getDefault().getTable("Robot Pose").getEntry("Rotation").setDouble(this.getPose().getRotation().getDegrees());
 
-    DataLogManager.log("POSE: "+getPose());
+    //DataLogManager.log("POSE: "+getPose());
 
     //publisher.set(poseA);
     //arrayPublisher.set(new Pose2d[] {poseA, poseB});
