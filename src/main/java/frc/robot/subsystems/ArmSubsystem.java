@@ -44,26 +44,25 @@ public class ArmSubsystem extends SubsystemBase {
   double targetPosition;
   boolean shootNoteInUse = false;
   boolean useTrigger = false;
+  boolean secondInit = false;
 
   double kS = 0;
   double kG = 0.6;
-  double kV = 3.61;
+  double kV = 0.00;
   double kA = 0.04;
 
   double kP = Constants.ArmPIDConstants.armkP;
   double kI = Constants.ArmPIDConstants.armkI;
   double kD = Constants.ArmPIDConstants.armkD;
 
-  ArmFeedforward feedforward = new ArmFeedforward(kS, kG, kV);
-  SparkPIDController pidController;
+  ArmFeedforward feedforward = new ArmFeedforward(kS, kG, kV, kA);
+  PIDController pidController;
 
   double setpoint = -1;
 
   public ArmSubsystem(RobotContainer robot) {
 
     robotContainer = robot;
-
-    
 
     //Left arm spark has absolute encoder
     m_LeftArm = new CANSparkMax(Constants.DriveConstants.kLeftArmCanId, MotorType.kBrushless);
@@ -84,30 +83,21 @@ public class ArmSubsystem extends SubsystemBase {
 
     //double LeftIntakeVoltage = LeftIntake.getBusVoltage();
 
-    pidController = m_LeftArm.getPIDController();
-    pidController.setP(kP);
-    pidController.setI(kI);
-    pidController.setD(kD);
-
-    pidController.setPositionPIDWrappingEnabled(true);
-    pidController.setPositionPIDWrappingMinInput(0.0);
-    pidController.setPositionPIDWrappingMaxInput(360);
+    pidController = new PIDController(kP, kI, kD);
 
     encoder = m_LeftArm.getAbsoluteEncoder(Type.kDutyCycle);
     encoder.setPositionConversionFactor(360);
-    pidController.setFeedbackDevice(encoder);
-    pidController.setOutputRange(-0.3, 0.5);
 
   }
 
   @Override
   public void periodic() {
+
     // This method will be called once per scheduler run
     NetworkTableInstance.getDefault().getTable("Arm").getEntry("AbsoluteEncoderPosition").setDouble(getDistance());
     NetworkTableInstance.getDefault().getTable("Arm").getEntry("TargetSetpoint").setDouble(setpoint);   
-    //NetworkTableInstance.getDefault().getTable("Arm").getEntry("SetVoltage").setDouble(feedforward.calculate(setpoint, kV, 0));
     
-    //setpoint = robotContainer.getLeftTrigger() * 90 + 2.5;
+    setpoint = robotContainer.getLeftTrigger() * 100 + 2.5;
 
     // 2.5 Floor Pickup
     // 29 Under Stage
@@ -120,12 +110,10 @@ public class ArmSubsystem extends SubsystemBase {
     else if (setpoint > 100) setpoint = 100;
 
     if (setpoint != -1) {
-      var successful = pidController.setReference(setpoint, ControlType.kPosition);
-      NetworkTableInstance.getDefault().getTable("Arm").getEntry("PIDWorking?").setString("True" + RobotController.getFPGATime());
-      NetworkTableInstance.getDefault().getTable("Arm").getEntry("PIDSuccessful").setString(successful.toString());
-      // NetworkTableInstance.getDefault().getTable("ArmPID").getEntry("TargetSetpoint").setDouble(pidController.get); 
-      // NetworkTableInstance.getDefault().getTable("ArmPID").getEntry("TargetSetpoint").setDouble(setpoint); 
-      // NetworkTableInstance.getDefault().getTable("ArmPID").getEntry("TargetSetpoint").setDouble(setpoint);  
+      NetworkTableInstance.getDefault().getTable("Arm").getEntry("SetVoltageFeedForward").setDouble(feedforward.calculate(setpoint * (Math.PI/180), 0));
+      NetworkTableInstance.getDefault().getTable("Arm").getEntry("SetVoltagePID").setDouble(pidController.calculate(getDistance(), setpoint));
+      //    leftMotor.setVoltage(feedforward.calculate(leftVelocitySetpoint)
+      //    + leftPID.calculate(leftEncoder.getRate(), leftVelocitySetpoint));
     }
     else {
       NetworkTableInstance.getDefault().getTable("Arm").getEntry("PIDWorking?").setString("False" + RobotController.getFPGATime()); 
