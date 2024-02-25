@@ -5,9 +5,11 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -18,6 +20,9 @@ public class ClimberSubsystem extends SubsystemBase {
 
   CANSparkMax m_ClimberLeft;
   CANSparkMax m_ClimberRight;
+
+  RelativeEncoder m_RightEncoder;
+  RelativeEncoder m_LeftEncoder;
 
   public ClimberSubsystem() {
 
@@ -34,12 +39,23 @@ public class ClimberSubsystem extends SubsystemBase {
     m_ClimberRight.setSmartCurrentLimit(CurrentConstants.AMP40, CurrentConstants.AMP30);
     m_ClimberRight.burnFlash();
 
-   
+    m_RightEncoder = m_ClimberRight.getEncoder();
+    m_LeftEncoder = m_ClimberLeft.getEncoder();
+
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
+
+    NetworkTableInstance.getDefault().getTable("Climber").getEntry("LeftPos").setDouble(m_LeftEncoder.getPosition());
+    NetworkTableInstance.getDefault().getTable("Climber").getEntry("RightPos").setDouble(m_RightEncoder.getPosition());
+
+    // if (m_RightEncoder.getPosition() < -250) m_ClimberRight.set(0);
+    // else if (m_RightEncoder.getPosition() > 1) m_ClimberRight.set(0);
+
+    // if (m_LeftEncoder.getPosition() < -250) m_ClimberLeft.set(0);
+    // else if (m_LeftEncoder.getPosition() > 1) m_ClimberLeft.set(0);
   }
 
   public Command RunClimber(double speed) {

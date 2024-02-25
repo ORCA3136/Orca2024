@@ -207,29 +207,29 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     
-    // return autoChooser.getSelected();
+    return autoChooser.getSelected();
     
-    var thetaController = new ProfiledPIDController(
-        AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
-    thetaController.enableContinuousInput(-Math.PI, Math.PI);
+    // var thetaController = new ProfiledPIDController(
+    //     AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
+    // thetaController.enableContinuousInput(-Math.PI, Math.PI);
 
-    SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
-        driveStraightForward,
-        m_robotDrive::getPose, // Functional interface to feed supplier
-        DriveConstants.kDriveKinematics,
+    // SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
+    //     driveStraightForward,
+    //     m_robotDrive::getPose, // Functional interface to feed supplier
+    //     DriveConstants.kDriveKinematics,
 
-        // Position controllers
-        new PIDController(AutoConstants.kPXController, 0, 0),
-        new PIDController(AutoConstants.kPYController, 0, 0),
-        thetaController,
-        m_robotDrive::setModuleStates,
-        m_robotDrive);
+    //     // Position controllers
+    //     new PIDController(AutoConstants.kPXController, 0, 0),
+    //     new PIDController(AutoConstants.kPYController, 0, 0),
+    //     thetaController,
+    //     m_robotDrive::setModuleStates,
+    //     m_robotDrive);
 
-    // Reset odometry to the starting pose of the trajectory.
-    m_robotDrive.resetOdometry(driveStraightForward.getInitialPose());
+    // // Reset odometry to the starting pose of the trajectory.
+    // m_robotDrive.resetOdometry(driveStraightForward.getInitialPose());
 
-    // Run path following command, then stop at the end.
-    return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, true, false));
+    // // Run path following command, then stop at the end.
+    // return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, true, false));
   }
 
 

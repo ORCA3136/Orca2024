@@ -33,7 +33,6 @@ public class NoteOffIntake extends Command {
   public void initialize() {
 
     m_IntakeSensorValue = m_SensorSubsystem.getIntakeSensor(0);
-    if (m_IntakeSensorValue == true) finished = true;
     m_ShooterSubsystem.setShootSpeed(-600);
     m_IntakeSubsystem.RunIntake(-0.1);
 
@@ -46,10 +45,8 @@ public class NoteOffIntake extends Command {
     m_IntakeSensorValue = m_SensorSubsystem.getIntakeSensor(0);
 
     if (!m_IntakeSensorValue) {
-      m_IntakeSubsystem.RunIntake(0);
-      m_ShooterSubsystem.setShootSpeed(0);
+      end(false);
     }
-
   }
 
   // Called once the command ends or is interrupted.
@@ -59,12 +56,11 @@ public class NoteOffIntake extends Command {
     m_IntakeSubsystem.RunIntake(0);
     m_ShooterSubsystem.setShootSpeed(0);
 
-
   }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return !m_IntakeSensorValue;
+    return false;
   }
 }
