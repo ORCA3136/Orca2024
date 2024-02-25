@@ -27,17 +27,17 @@ public class ClimberSubsystem extends SubsystemBase {
   public ClimberSubsystem() {
 
     m_ClimberLeft = new CANSparkMax(Constants.DriveConstants.kClimberLeftCanId, MotorType.kBrushless);
-    m_ClimberLeft.restoreFactoryDefaults();
+    //m_ClimberLeft.restoreFactoryDefaults();
     m_ClimberLeft.setSmartCurrentLimit(CurrentConstants.AMP40, CurrentConstants.AMP30);
     m_ClimberLeft.setIdleMode(IdleMode.kBrake);
     m_ClimberLeft.setInverted(true);
-    m_ClimberLeft.burnFlash();
+    //m_ClimberLeft.burnFlash();
 
     m_ClimberRight = new CANSparkMax(Constants.DriveConstants.kClimberRightCanId, MotorType.kBrushless);
-    m_ClimberRight.restoreFactoryDefaults();
+    //m_ClimberRight.restoreFactoryDefaults();
     m_ClimberRight.setIdleMode(IdleMode.kBrake);
     m_ClimberRight.setSmartCurrentLimit(CurrentConstants.AMP40, CurrentConstants.AMP30);
-    m_ClimberRight.burnFlash();
+    //m_ClimberRight.burnFlash();
 
     m_RightEncoder = m_ClimberRight.getEncoder();
     m_LeftEncoder = m_ClimberLeft.getEncoder();

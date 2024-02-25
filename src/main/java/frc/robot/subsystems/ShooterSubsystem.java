@@ -29,14 +29,14 @@ public class ShooterSubsystem extends SubsystemBase {
   public ShooterSubsystem() {
 
     m_ShooterRight = new CANSparkMax(Constants.DriveConstants.kShooterRightCanId, MotorType.kBrushless);
-    m_ShooterRight.restoreFactoryDefaults();
+    //m_ShooterRight.restoreFactoryDefaults();
     m_ShooterRight.setIdleMode(IdleMode.kCoast);
     m_ShooterRight.setSmartCurrentLimit(CurrentConstants.AMP60, CurrentConstants.AMP40);
     m_ShooterRight.setInverted(true);
 
 
     m_ShooterLeft = new CANSparkMax(Constants.DriveConstants.kShooterLeftCanId, MotorType.kBrushless);
-    m_ShooterLeft.restoreFactoryDefaults();
+    //m_ShooterLeft.restoreFactoryDefaults();
     m_ShooterLeft.setIdleMode(IdleMode.kCoast);
     m_ShooterLeft.setSmartCurrentLimit(CurrentConstants.AMP60, CurrentConstants.AMP40);
 
@@ -48,7 +48,7 @@ public class ShooterSubsystem extends SubsystemBase {
     rightPid.setFF(0.0001875);
     rightPid.setIZone(100);
     rightPid.setOutputRange(0.0, 0.0);
-    m_ShooterRight.burnFlash();
+    //m_ShooterRight.burnFlash();
 
     // Positive is forward
     leftPid = m_ShooterLeft.getPIDController();
@@ -58,11 +58,13 @@ public class ShooterSubsystem extends SubsystemBase {
     leftPid.setFF(0.0001875);
     leftPid.setIZone(100);
     leftPid.setOutputRange(0.0, 0.0);
-    m_ShooterLeft.burnFlash();
+    //m_ShooterLeft.burnFlash();
   }
 
   @Override
   public void periodic() {
+
+
     leftPid.setReference(setPoint, ControlType.kVelocity);
     rightPid.setReference(setPoint, ControlType.kVelocity);
 

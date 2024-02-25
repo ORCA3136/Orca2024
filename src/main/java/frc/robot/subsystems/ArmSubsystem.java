@@ -46,7 +46,7 @@ public class ArmSubsystem extends SubsystemBase {
   boolean useTrigger = false;
 
   double kS = 0;
-  double kG = 0.6;
+  double kG = 0.0175;
   double kV = 3.61;
   double kA = 0.04;
 
@@ -54,23 +54,28 @@ public class ArmSubsystem extends SubsystemBase {
   double kI = Constants.ArmPIDConstants.armkI;
   double kD = Constants.ArmPIDConstants.armkD;
 
-  ArmFeedforward feedforward = new ArmFeedforward(kS, kG, kV);
   SparkPIDController pidController;
 
+  double feedforward = 0;
+  double feedForward = 0;
   double setpoint = -1;
+  double previousSetpoint = -1;
 
   public ArmSubsystem(RobotContainer robot) {
 
     robotContainer = robot;
 
-    
+    SmartDashboard.putNumber("kG", kG);
+    SmartDashboard.putNumber("kP", kP);
+    SmartDashboard.putNumber("kI", kI);
+    SmartDashboard.putNumber("kD", kD);
 
     //Left arm spark has absolute encoder
     m_LeftArm = new CANSparkMax(Constants.DriveConstants.kLeftArmCanId, MotorType.kBrushless);
     m_RightArm = new CANSparkMax(Constants.DriveConstants.kRightArmCanId, MotorType.kBrushless);
 
-    m_LeftArm.restoreFactoryDefaults();
-    m_RightArm.restoreFactoryDefaults();
+    //m_LeftArm.restoreFactoryDefaults();
+    //m_RightArm.restoreFactoryDefaults();
     m_LeftArm.setSmartCurrentLimit(CurrentConstants.AMP40, CurrentConstants.AMP25);
     m_RightArm.setSmartCurrentLimit(CurrentConstants.AMP40,CurrentConstants.AMP25);
 
@@ -79,8 +84,8 @@ public class ArmSubsystem extends SubsystemBase {
 
     m_RightArm.follow(m_LeftArm, true);
 
-    m_LeftArm.burnFlash();
-    m_RightArm.burnFlash();
+    //m_LeftArm.burnFlash();
+    //m_RightArm.burnFlash();
 
     //double LeftIntakeVoltage = LeftIntake.getBusVoltage();
 
@@ -96,7 +101,6 @@ public class ArmSubsystem extends SubsystemBase {
     encoder = m_LeftArm.getAbsoluteEncoder(Type.kDutyCycle);
     encoder.setPositionConversionFactor(360);
     pidController.setFeedbackDevice(encoder);
-    pidController.setOutputRange(-0.3, 0.5);
 
   }
 
@@ -104,10 +108,7 @@ public class ArmSubsystem extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
     NetworkTableInstance.getDefault().getTable("Arm").getEntry("AbsoluteEncoderPosition").setDouble(getDistance());
-    NetworkTableInstance.getDefault().getTable("Arm").getEntry("TargetSetpoint").setDouble(setpoint);   
-    //NetworkTableInstance.getDefault().getTable("Arm").getEntry("SetVoltage").setDouble(feedforward.calculate(setpoint, kV, 0));
-    
-    //setpoint = robotContainer.getLeftTrigger() * 90 + 2.5;
+    NetworkTableInstance.getDefault().getTable("Arm").getEntry("TargetSetpoint").setDouble(setpoint);
 
     // 2.5 Floor Pickup
     // 29 Under Stage
@@ -115,14 +116,32 @@ public class ArmSubsystem extends SubsystemBase {
     // 71 Source - 69 actual position
     // 92 In line with edge of bumpers --- Amp
 
+
+    kG = SmartDashboard.getNumber("kG", kG);
+    feedForward = kG * Math.cos((getDistance() + 5) * (Math.PI/180));
+
+
+    if (kP != SmartDashboard.getNumber("kP", kP) || kI != SmartDashboard.getNumber("kI", kI) || kD != SmartDashboard.getNumber("kD", kD)) {
+      kP = SmartDashboard.getNumber("kP", kP);
+      kI = SmartDashboard.getNumber("kI", kI);
+      kD = SmartDashboard.getNumber("kD", kD);
+      pidController.setP(kP);
+      pidController.setI(kI);
+      pidController.setD(kD);
+    }
     if (setpoint == -1) setpoint = -1;
     else if (setpoint < 1) setpoint = 1;
     else if (setpoint > 100) setpoint = 100;
 
+    // Horizontal angle 5
+    // Vertical angle 95
     if (setpoint != -1) {
-      var successful = pidController.setReference(setpoint, ControlType.kPosition);
+      if (setpoint != previousSetpoint) {
+        feedforward = kG * ((getDistance() + 5) * (Math.PI/180));
+        pidController.setReference(setpoint, ControlType.kPosition, 0, feedForward);
+        previousSetpoint = setpoint;
+      }
       NetworkTableInstance.getDefault().getTable("Arm").getEntry("PIDWorking?").setString("True" + RobotController.getFPGATime());
-      NetworkTableInstance.getDefault().getTable("Arm").getEntry("PIDSuccessful").setString(successful.toString());
       // NetworkTableInstance.getDefault().getTable("ArmPID").getEntry("TargetSetpoint").setDouble(pidController.get); 
       // NetworkTableInstance.getDefault().getTable("ArmPID").getEntry("TargetSetpoint").setDouble(setpoint); 
       // NetworkTableInstance.getDefault().getTable("ArmPID").getEntry("TargetSetpoint").setDouble(setpoint);  
@@ -179,7 +198,14 @@ public class ArmSubsystem extends SubsystemBase {
 
 
     m_LeftArm.setIdleMode(IdleMode.kBrake);
-  m_RightArm.setIdleMode(IdleMode.kBrake);
+    m_RightArm.setIdleMode(IdleMode.kBrake);
+  }
+
+  public Command RunkG() {
+    return runOnce(() -> {
+      setpoint = -1;
+      m_LeftArm.set(feedForward);
+    });
   }
 }
 

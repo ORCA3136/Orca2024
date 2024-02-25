@@ -35,6 +35,7 @@ import frc.robot.commands.PathfindThenFollowPathCommand;
 import frc.robot.commands.ZeroHeading;
 import frc.robot.commands.NoteOffIntake;
 import frc.robot.commands.ShootSpeaker;
+import frc.robot.commands.VerticalCentering;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.SensorSubsystem;
@@ -186,15 +187,15 @@ public class RobotContainer {
     m_secondaryController.button(3).onTrue(new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(1.5));
     m_secondaryController.button(4).onTrue(new ShootSpeaker(m_ShooterSubsystem, m_IntakeSubsystem, 4000).withTimeout(3.5));
 
-    m_secondaryController.button(5).onTrue(new ParallelCommandGroup(m_ArmSubsystem.SetPIDNOTNOTSensor(m_SensorSubsystem), m_ShooterSubsystem.shootNoteNOTNOTSensor(m_SensorSubsystem))).onFalse(m_ShooterSubsystem.shootNote(0));
+    m_secondaryController.button(5).onTrue(new ParallelCommandGroup(m_ShooterSubsystem.shootNoteNOTNOTSensor(m_SensorSubsystem), m_ArmSubsystem.SetPIDNOTNOTSensor(m_SensorSubsystem))).onFalse(m_ShooterSubsystem.shootNote(0));
     //m_secondaryController.button(6).onTrue();
     //m_secondaryController.button(7).onTrue(); //climber sequence
     m_secondaryController.button(8).onTrue(m_ArmSubsystem.SetPIDPosition(90));
 
     m_secondaryController.button(9).onTrue(m_ArmSubsystem.SetPIDPosition(2.5));
-    m_secondaryController.button(10).onTrue(m_ArmSubsystem.SetPIDPosition(30));
-    m_secondaryController.button(11).onTrue(m_ArmSubsystem.SetPIDPosition(55));
-    m_secondaryController.button(12).onTrue(m_ArmSubsystem.SetPIDPosition(71));
+    m_secondaryController.button(10).onTrue(m_ArmSubsystem.SetPIDPosition(25));
+    m_secondaryController.button(11).onTrue(m_ArmSubsystem.SetPIDPosition(48));
+    m_secondaryController.button(12).onTrue(m_ArmSubsystem.SetPIDPosition(69));
 
   }
 
