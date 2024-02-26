@@ -95,16 +95,16 @@ public class RobotContainer {
   // Trajectories
   Trajectory driveStraightForward = TrajectoryGenerator.generateTrajectory(
       // Start at the origin facing the +X direction
-      new Pose2d(0, 0, new Rotation2d(0)),
-      List.of(new Translation2d(0.5, 0)),
-      new Pose2d(1, 0, new Rotation2d(0)),
+      m_robotDrive.getPose(),
+      List.of(new Translation2d(m_robotDrive.getPose().getX() + 0.5, m_robotDrive.getPose().getY())),
+      new Pose2d(m_robotDrive.getPose().getX() + 1, m_robotDrive.getPose().getY(), m_robotDrive.getPose().getRotation()),
       config);
 
   Trajectory driveStraightBackward = TrajectoryGenerator.generateTrajectory(
       // Start at the origin facing the +X direction
-      new Pose2d(0, 0, new Rotation2d(0)),
-      List.of(new Translation2d(-0.5, 0)),
-      new Pose2d(-1, 0, new Rotation2d(0)),
+      m_robotDrive.getPose(),
+      List.of(new Translation2d(m_robotDrive.getPose().getX() - 0.5, m_robotDrive.getPose().getY())),
+      new Pose2d(m_robotDrive.getPose().getX() - 1, m_robotDrive.getPose().getY(), m_robotDrive.getPose().getRotation()),
       configReversed);
       
 
@@ -155,9 +155,24 @@ public class RobotContainer {
                 true, true),
             m_robotDrive));
     
-    autoChooser = AutoBuilder.buildAutoChooser(); // Default auto will be `Commands.none()`
+    autoChooser = new SendableChooser<>(); // Default auto will be `Commands.none()`
     SmartDashboard.putData("Auto Mode", autoChooser);
-    autoChooser.addOption("First Auto", Commands.runOnce(()->AutoBuilder.buildAuto("First Auto").schedule()));
+    autoChooser.addOption("Shoot then drive", new SequentialCommandGroup(
+      // Set robot side
+      // Set heading??????
+    
+      m_robotDrive.zeroHeadingCommand(),
+      m_ArmSubsystem.SetPIDPosition(25),
+
+      GenerateTrajectoryCommand(driveStraightForward)
+
+      // ShootSpeaker - need new wait command
+      //265
+
+
+
+
+    ));
   }
 
   /**
@@ -208,29 +223,9 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     
-    return autoChooser.getSelected();
+    //return autoChooser.getSelected();
     
-    // var thetaController = new ProfiledPIDController(
-    //     AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
-    // thetaController.enableContinuousInput(-Math.PI, Math.PI);
-
-    // SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
-    //     driveStraightForward,
-    //     m_robotDrive::getPose, // Functional interface to feed supplier
-    //     DriveConstants.kDriveKinematics,
-
-    //     // Position controllers
-    //     new PIDController(AutoConstants.kPXController, 0, 0),
-    //     new PIDController(AutoConstants.kPYController, 0, 0),
-    //     thetaController,
-    //     m_robotDrive::setModuleStates,
-    //     m_robotDrive);
-
-    // // Reset odometry to the starting pose of the trajectory.
-    // m_robotDrive.resetOdometry(driveStraightForward.getInitialPose());
-
-    // // Run path following command, then stop at the end.
-    // return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, true, false));
+    return GenerateTrajectoryCommand(driveStraightForward);
   }
 
 
@@ -298,11 +293,7 @@ public class RobotContainer {
         m_robotDrive::setModuleStates,
         m_robotDrive);
 
-    // Reset odometry to the starting pose of the trajectory.
-    m_robotDrive.resetOdometry(trajectory.getInitialPose());
-
     // Run path following command, then stop at the end.
-    return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, true, true));
+    return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, false, false));
   }
-
 }
