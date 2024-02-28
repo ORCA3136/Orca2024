@@ -45,6 +45,8 @@ import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 
+import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain;
+
 import java.util.List;
 
 import com.kauailabs.navx.frc.AHRS;

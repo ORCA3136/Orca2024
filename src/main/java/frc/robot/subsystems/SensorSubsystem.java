@@ -112,7 +112,7 @@ public class SensorSubsystem extends SubsystemBase {
     distanceToSpeaker = Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
     angleToSpeaker = Math.atan2(yDistance, xDistance) * (180/Math.PI);
 
-    speedMap = shooterSpeedMap.get(distanceToSpeaker) + 1500;
+    speedMap = shooterSpeedMap.get(distanceToSpeaker) + 2000;
     angleMap = shooterAngleMap.get(Double.valueOf(distanceToSpeaker)) + 1.5;
 
     NetworkTableInstance.getDefault().getTable("Centering").getEntry("xDistance").setDouble(xDistance);

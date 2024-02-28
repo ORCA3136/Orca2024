@@ -5,7 +5,10 @@
 package frc.robot;
 
 import java.util.List;
+import java.util.Optional;
 
+import com.choreo.lib.Choreo;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 //import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import com.pathplanner.lib.util.PathPlannerLogging;
@@ -16,6 +19,7 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
@@ -26,6 +30,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.ModuleConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.commands.RunIntakeCommand;
 import frc.robot.commands.RunArmCommand;
@@ -54,6 +59,8 @@ import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
 import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.RobotController;
 
 /*
@@ -95,9 +102,11 @@ public class RobotContainer {
   // Trajectories
   Trajectory driveStraightForward = TrajectoryGenerator.generateTrajectory(
       // Start at the origin facing the +X direction
-      m_robotDrive.getPose(),
-      List.of(new Translation2d(m_robotDrive.getPose().getX() + 0.5, m_robotDrive.getPose().getY())),
-      new Pose2d(m_robotDrive.getPose().getX() + 1, m_robotDrive.getPose().getY(), m_robotDrive.getPose().getRotation()),
+      new Pose2d(0, 0, new Rotation2d(0)),
+      // Pass through these two interior waypoints, making an 's' curve path
+      List.of(new Translation2d(0.5, 0)),
+      // End 3 meters straight ahead of where we started, facing forward
+      new Pose2d(1, 0, new Rotation2d(0)),
       config);
 
   Trajectory driveStraightBackward = TrajectoryGenerator.generateTrajectory(
@@ -107,6 +116,11 @@ public class RobotContainer {
       new Pose2d(m_robotDrive.getPose().getX() - 1, m_robotDrive.getPose().getY(), m_robotDrive.getPose().getRotation()),
       configReversed);
       
+  Command forwardTrajectory;
+  Command backwardTrajectory;
+
+  private PIDController AutoDrivePID;
+  private PIDController AutoTurnPID;
 
   // The driver's controller
   XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
@@ -117,6 +131,13 @@ public class RobotContainer {
    */
   public RobotContainer() {
      //for pathplanner logging
+     
+     AutoDrivePID = new PIDController(ModuleConstants.kDrivingP, ModuleConstants.kDrivingI, ModuleConstants.kDrivingD);
+     AutoTurnPID = new PIDController(ModuleConstants.kTurningP, ModuleConstants.kTurningI, ModuleConstants.kTurningD);
+
+     forwardTrajectory = GenerateTrajectoryCommand(driveStraightForward);
+     backwardTrajectory = GenerateTrajectoryCommand(driveStraightBackward);
+     
      field = new Field2d();
      SmartDashboard.putData("Field", field);
      PathPlannerLogging.setLogCurrentPoseCallback((pose) -> {
@@ -156,7 +177,6 @@ public class RobotContainer {
             m_robotDrive));
     
     autoChooser = new SendableChooser<>(); // Default auto will be `Commands.none()`
-    SmartDashboard.putData("Auto Mode", autoChooser);
     autoChooser.addOption("Shoot then drive", new SequentialCommandGroup(
       // Set robot side
       // Set heading??????
@@ -164,15 +184,15 @@ public class RobotContainer {
       m_robotDrive.zeroHeadingCommand(),
       m_ArmSubsystem.SetPIDPosition(25),
 
-      GenerateTrajectoryCommand(driveStraightForward)
+      Commands.waitSeconds(1),
+
+      forwardTrajectory
 
       // ShootSpeaker - need new wait command
       //265
 
-
-
-
-    ));
+    ));    
+    SmartDashboard.putData("Auto Mode", autoChooser);
   }
 
   /**
@@ -187,7 +207,7 @@ public class RobotContainer {
   private void configureButtonBindings() {
     
     //Main buttons
-    new JoystickButton(m_driverController, 1).whileTrue(RunIntakeCommand(1));
+    new JoystickButton(m_driverController, 1).whileTrue(RunIntakeCommand(0.6));
     new JoystickButton(m_driverController, 2).whileTrue(RunIntakeCommand(-0.3));
     new JoystickButton(m_driverController, 3).onTrue(m_ArmSubsystem.RunArm(0.2)).onFalse(m_ArmSubsystem.RunArm(0));
     new JoystickButton(m_driverController, 4).onTrue(m_ArmSubsystem.RunArm(-0.2)).onFalse(m_ArmSubsystem.RunArm(0));
@@ -203,11 +223,11 @@ public class RobotContainer {
     m_secondaryController.button(4).onTrue(new ShootSpeaker(m_ShooterSubsystem, m_IntakeSubsystem, 4000).withTimeout(3.5));
 
     m_secondaryController.button(5).onTrue(new ParallelCommandGroup(m_ShooterSubsystem.shootNoteNOTNOTSensor(m_SensorSubsystem), m_ArmSubsystem.SetPIDNOTNOTSensor(m_SensorSubsystem))).onFalse(m_ShooterSubsystem.shootNote(0));
-    //m_secondaryController.button(6).onTrue();
-    //m_secondaryController.button(7).onTrue(); //climber sequence
+    m_secondaryController.button(6).onTrue(Commands.waitSeconds(0.5).andThen(RunIntakeCommand(0.3)));
+    //m_secondaryController.button(7).onTrue();
     m_secondaryController.button(8).onTrue(m_ArmSubsystem.SetPIDPosition(90));
 
-    m_secondaryController.button(9).onTrue(m_ArmSubsystem.SetPIDPosition(2.5));
+    m_secondaryController.button(9).onTrue(m_ArmSubsystem.SetPIDPosition(3));
     m_secondaryController.button(10).onTrue(m_ArmSubsystem.SetPIDPosition(25));
     m_secondaryController.button(11).onTrue(m_ArmSubsystem.SetPIDPosition(48));
     m_secondaryController.button(12).onTrue(m_ArmSubsystem.SetPIDPosition(69));
@@ -223,9 +243,7 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     
-    //return autoChooser.getSelected();
-    
-    return GenerateTrajectoryCommand(driveStraightForward);
+    return autoChooser.getSelected();
   }
 
 
@@ -245,12 +263,6 @@ public class RobotContainer {
     return new RunIntakeCommand(speed, m_IntakeSubsystem);
 
   }
-
-  // private final RunArmCommand RunArmCommand(double speed) {
-
-  //   return new RunArmCommand(speed, m_ArmSubsystem);
-
-  // }
 
   private final SetSwerveXCommand SetSwerveXCommand() {
 
@@ -296,4 +308,34 @@ public class RobotContainer {
     // Run path following command, then stop at the end.
     return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, false, false));
   }
+
+  // Trajectory command generator
+  public Command DriveTrajectory(String Trajectory) {
+
+    Optional<Alliance> RobotAlliance;
+    RobotAlliance = DriverStation.getAlliance();
+
+    return Choreo.choreoSwerveCommand(
+      Choreo.getTrajectory("DriveForward"), 
+      () -> (m_robotDrive.getPose()), 
+      AutoDrivePID, AutoDrivePID, AutoTurnPID, 
+      (ChassisSpeeds speeds) -> m_robotDrive.driveRobotRelative(speeds),
+      () -> RobotAlliance.get() == Alliance.Red, 
+      m_robotDrive
+      );
+
+  }
 }
+
+
+/*
+ * import edu.wpi.first.math.trajectory.TrajectoryGenerator;
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ */

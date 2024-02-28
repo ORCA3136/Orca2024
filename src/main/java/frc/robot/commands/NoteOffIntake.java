@@ -2,6 +2,7 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.SensorSubsystem;
@@ -16,9 +17,6 @@ public class NoteOffIntake extends Command {
   boolean m_IntakeSensorValue = true;
   boolean finished = false;
   boolean finishedIntake = false;
-
-  Command intakeCommand;
-  Command parallelCommand;
 
   public NoteOffIntake(ShooterSubsystem ShooterSubsystem, IntakeSubsystem IntakeSubsystem, SensorSubsystem SensorSubsystem) {
     // Use addRequirements() here to declare subsystem dependencies.
@@ -36,6 +34,7 @@ public class NoteOffIntake extends Command {
     m_ShooterSubsystem.setShootSpeed(-600);
     m_IntakeSubsystem.RunIntake(-0.1);
 
+    Commands.waitSeconds(0.5).andThen(Commands.runOnce(() -> {end(false);}));
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -45,7 +44,7 @@ public class NoteOffIntake extends Command {
     m_IntakeSensorValue = m_SensorSubsystem.getIntakeSensor(0);
 
     if (!m_IntakeSensorValue) {
-      end(false);
+      //end(false);
     }
   }
 

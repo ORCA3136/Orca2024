@@ -137,14 +137,22 @@ public class ArmSubsystem extends SubsystemBase {
     // Vertical angle 95
     if (setpoint != -1) {
       if (setpoint != previousSetpoint) {
+
+        // P increases when setpoint is low
+        double p = kP * 0.4 + kP * 0.6 * Math.abs(Math.cos((getDistance() + 5) * (Math.PI/180)));
+        // P increases when going up
+        if (setpoint > previousSetpoint) p += kP * 0.2;
+        // P decreases when difference in setpoints is large
+        double j = Math.abs(setpoint - previousSetpoint);
+        if (j > 60 && setpoint > 50) p *= 0.5;
+        else if (j > 30) p *= 0.8;
+        pidController.setP(p);
+
         feedforward = kG * ((getDistance() + 5) * (Math.PI/180));
         pidController.setReference(setpoint, ControlType.kPosition, 0, feedForward);
         previousSetpoint = setpoint;
       }
       NetworkTableInstance.getDefault().getTable("Arm").getEntry("PIDWorking?").setString("True" + RobotController.getFPGATime());
-      // NetworkTableInstance.getDefault().getTable("ArmPID").getEntry("TargetSetpoint").setDouble(pidController.get); 
-      // NetworkTableInstance.getDefault().getTable("ArmPID").getEntry("TargetSetpoint").setDouble(setpoint); 
-      // NetworkTableInstance.getDefault().getTable("ArmPID").getEntry("TargetSetpoint").setDouble(setpoint);  
     }
     else {
       NetworkTableInstance.getDefault().getTable("Arm").getEntry("PIDWorking?").setString("False" + RobotController.getFPGATime()); 
