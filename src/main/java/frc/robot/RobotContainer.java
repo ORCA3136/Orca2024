@@ -97,7 +97,7 @@ public class RobotContainer {
       // Start at the origin facing the +X direction
       new Pose2d(1.45, 5.4, new Rotation2d(0)),
       // Pass through these two interior waypoints, making an 's' curve path
-      List.of(new Translation2d(2, 5.4)),
+      List.of(new Translation2d(2, 5.5)),
       // End 3 meters straight ahead of where we started, facing forward
       new Pose2d(2.6, 5.4, new Rotation2d(0)),
       config);
@@ -106,9 +106,18 @@ public class RobotContainer {
       // Start at the origin facing the +X direction
       new Pose2d(2.6, 5.4, new Rotation2d(0)),
       // Pass through these two interior waypoints, making an 's' curve path
-      List.of(new Translation2d(2, 5.4)),
+      List.of(new Translation2d(2, 5.3)),
       // End 3 meters straight ahead of where we started, facing forward
       new Pose2d(1.45, 5.4, new Rotation2d(0)),
+      config);
+
+  Trajectory driveFartherForward = TrajectoryGenerator.generateTrajectory(
+      // Start at the origin facing the +X direction
+      new Pose2d(1.45, 5.4, new Rotation2d(0)),
+      // Pass through these two interior waypoints, making an 's' curve path
+      List.of(new Translation2d(2.4, 5.5)),
+      // End 3 meters straight ahead of where we started, facing forward
+      new Pose2d(3.6, 5.4, new Rotation2d(0)),
       config);
 
   Trajectory driveToAmp = TrajectoryGenerator.generateTrajectory(
@@ -174,7 +183,7 @@ public class RobotContainer {
      AutoTurnPID = new PIDController(ModuleConstants.kTurningP, ModuleConstants.kTurningI, ModuleConstants.kTurningD);
 
      forwardTrajectory = GenerateTrajectoryCommand(driveForward);
-     forwardTrajectory2 = GenerateTrajectoryCommand(driveForward);
+     forwardTrajectory2 = GenerateTrajectoryCommand(driveFartherForward);
      backwardTrajectory = GenerateTrajectoryCommand(driveBackward);
      ampTrajectory = GenerateTrajectoryCommand(driveToAmp);
      ampNoteTrajectory = GenerateTrajectoryCommand(driveToAmpNote);
@@ -238,9 +247,11 @@ public class RobotContainer {
       m_ShooterSubsystem.shootNote(0),
       forwardTrajectory,
       m_IntakeSubsystem.RunIntakeCommand(0),
+      m_ArmSubsystem.SetPIDPosition(10),
+      new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(0.5),
 
-      // backwardTrajectory,
-      // new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem),
+      m_ArmSubsystem.SetPIDPosition(2.5),
+      backwardTrajectory,
 
       Commands.waitSeconds(0.5),
 
@@ -250,8 +261,8 @@ public class RobotContainer {
 
       Commands.waitSeconds(0.5),
       m_ShooterSubsystem.shootNote(0),
-      m_IntakeSubsystem.RunIntakeCommand(0)
-      // forwardTrajectory2
+      m_IntakeSubsystem.RunIntakeCommand(0),
+      forwardTrajectory2
 
     ));    
     autoChooser.addOption("Amp score", new SequentialCommandGroup(
@@ -268,10 +279,9 @@ public class RobotContainer {
       Commands.waitSeconds(0.5),
       m_ArmSubsystem.SetPIDPosition(3),
       Commands.waitSeconds(1),
-      m_IntakeSubsystem.RunIntakeCommand(0.6),
+      m_IntakeSubsystem.RunIntakeCommand(0.3),
 
       ampNoteTrajectory,
-      m_IntakeSubsystem.RunIntakeCommand(0),
       m_ArmSubsystem.SetPIDPosition(40),
       
       noteAmpTrajectory,
@@ -282,6 +292,7 @@ public class RobotContainer {
       
       m_ShooterSubsystem.shootNote(0),
       m_ArmSubsystem.SetPIDPosition(60),
+      m_IntakeSubsystem.RunIntakeCommand(0),
       Commands.waitSeconds(0.5),
       m_ArmSubsystem.SetPIDPosition(25),
       Commands.waitSeconds(1),
@@ -319,14 +330,14 @@ public class RobotContainer {
     m_secondaryController.button(4).onTrue(new ShootSpeaker(m_ShooterSubsystem, m_IntakeSubsystem, 4000).withTimeout(3.5));
 
     m_secondaryController.button(5).onTrue(new ParallelCommandGroup(m_ShooterSubsystem.shootNoteNOTNOTSensor(m_SensorSubsystem), m_ArmSubsystem.SetPIDNOTNOTSensor(m_SensorSubsystem))).onFalse(m_ShooterSubsystem.shootNote(0));
-    m_secondaryController.button(6).onTrue(Commands.waitSeconds(0.5).andThen(RunIntakeCommand(0.3)));
-    m_secondaryController.button(7).onTrue(m_ArmSubsystem.SetSetpoint2());
-    m_secondaryController.button(8).onTrue(m_ArmSubsystem.IncreaseSetpoint2(1));
+    // m_secondaryController.button(6).onTrue(Commands.waitSeconds(0.5).andThen(RunIntakeCommand(0.3)));
+    // m_secondaryController.button(7).onTrue(m_ArmSubsystem.SetSetpoint2());
+    // m_secondaryController.button(8).onTrue();
 
     m_secondaryController.button(9).onTrue(m_ArmSubsystem.SetPIDPosition(3));
     m_secondaryController.button(10).onTrue(m_ArmSubsystem.SetPIDPosition(25));
-    m_secondaryController.button(11).onTrue(m_ArmSubsystem.SetPIDPosition(48));
-    m_secondaryController.button(12).onTrue(m_ArmSubsystem.IncreaseSetpoint2(-1));
+    m_secondaryController.button(11).onTrue(m_ArmSubsystem.SetPIDPosition(70));
+    m_secondaryController.button(12).onTrue(m_ArmSubsystem.SetPIDPosition(90));
 
 
 
