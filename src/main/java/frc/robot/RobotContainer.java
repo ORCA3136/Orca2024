@@ -6,10 +6,9 @@ package frc.robot;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
 
 import com.choreo.lib.Choreo;
-import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
-import com.pathplanner.lib.auto.AutoBuilder;
 //import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import com.pathplanner.lib.util.PathPlannerLogging;
 
@@ -32,6 +31,7 @@ import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.ModuleConstants;
 import frc.robot.Constants.OIConstants;
+import frc.robot.commands.NOTNOTNoteSuck;
 import frc.robot.commands.RunIntakeCommand;
 import frc.robot.commands.RunArmCommand;
 import frc.robot.commands.SetSwerveXCommand;
@@ -57,10 +57,11 @@ import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.RobotController;
 
 /*
@@ -91,33 +92,70 @@ public class RobotContainer {
       .setKinematics(DriveConstants.kDriveKinematics)
       .setReversed(false);
 
-    // For backwards
-  TrajectoryConfig configReversed = new TrajectoryConfig(
-      AutoConstants.kMaxSpeedMetersPerSecond,
-      AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-      // Add kinematics to ensure max speed is actually obeyed
-      .setKinematics(DriveConstants.kDriveKinematics)
-      .setReversed(true);
-
   // Trajectories
-  Trajectory driveStraightForward = TrajectoryGenerator.generateTrajectory(
+  Trajectory driveForward = TrajectoryGenerator.generateTrajectory(
       // Start at the origin facing the +X direction
-      new Pose2d(0, 0, new Rotation2d(0)),
+      new Pose2d(1.45, 5.4, new Rotation2d(0)),
       // Pass through these two interior waypoints, making an 's' curve path
-      List.of(new Translation2d(0.5, 0)),
+      List.of(new Translation2d(2, 5.4)),
       // End 3 meters straight ahead of where we started, facing forward
-      new Pose2d(1, 0, new Rotation2d(0)),
+      new Pose2d(2.6, 5.4, new Rotation2d(0)),
       config);
 
-  Trajectory driveStraightBackward = TrajectoryGenerator.generateTrajectory(
+  Trajectory driveBackward = TrajectoryGenerator.generateTrajectory(
       // Start at the origin facing the +X direction
-      m_robotDrive.getPose(),
-      List.of(new Translation2d(m_robotDrive.getPose().getX() - 0.5, m_robotDrive.getPose().getY())),
-      new Pose2d(m_robotDrive.getPose().getX() - 1, m_robotDrive.getPose().getY(), m_robotDrive.getPose().getRotation()),
-      configReversed);
+      new Pose2d(2.6, 5.4, new Rotation2d(0)),
+      // Pass through these two interior waypoints, making an 's' curve path
+      List.of(new Translation2d(2, 5.4)),
+      // End 3 meters straight ahead of where we started, facing forward
+      new Pose2d(1.45, 5.4, new Rotation2d(0)),
+      config);
+
+  Trajectory driveToAmp = TrajectoryGenerator.generateTrajectory(
+      // Start at the origin facing the +X direction
+      new Pose2d(1.45, 7.0, new Rotation2d(-Math.PI/2)),
+      // Pass through these two interior waypoints, making an 's' curve path
+      List.of(new Translation2d(1.7, 7.5)),
+      // End 3 meters straight ahead of where we started, facing forward
+      new Pose2d(1.75, 7.7, new Rotation2d(-Math.PI/2)),
+      config);
+
+  Trajectory driveToAmpNote = TrajectoryGenerator.generateTrajectory(
+      // Start at the origin facing the +X direction
+      new Pose2d(1.75, 7.7, new Rotation2d(-Math.PI/2)),
+      // Pass through these two interior waypoints, making an 's' curve path
+      List.of(new Translation2d(2.0, 7.5)),
+      // End 3 meters straight ahead of where we started, facing forward
+      new Pose2d(2.7, 7.05, new Rotation2d(0)),
+      config);
+
+  Trajectory driveToAmpFromNote = TrajectoryGenerator.generateTrajectory(
+      // Start at the origin facing the +X direction
+      new Pose2d(2.5, 7.25, new Rotation2d(0)),
+      // Pass through these two interior waypoints, making an 's' curve path
+      List.of(new Translation2d(2.0, 7.5)),
+      // End 3 meters straight ahead of where we started, facing forward
+      new Pose2d(1.75, 7.7, new Rotation2d(-Math.PI/2)),
+      config);
+
+  Trajectory driveAcrossLine = TrajectoryGenerator.generateTrajectory(
+      // Start at the origin facing the +X direction
+      new Pose2d(1.75, 7.7, new Rotation2d(-Math.PI/2)),
+      // Pass through these two interior waypoints, making an 's' curve path
+      List.of(new Translation2d(2.2, 7.4)),
+      // End 3 meters straight ahead of where we started, facing forward
+      new Pose2d(7, 6.5, new Rotation2d(0)),
+      config);
       
   Command forwardTrajectory;
+  Command forwardTrajectory2;
   Command backwardTrajectory;
+  Command ampTrajectory;
+  Command ampNoteTrajectory;
+  Command noteAmpTrajectory;
+  Command ampDriveTrajectory;
+
+  Command autoSpeakerCentering;
 
   private PIDController AutoDrivePID;
   private PIDController AutoTurnPID;
@@ -135,8 +173,15 @@ public class RobotContainer {
      AutoDrivePID = new PIDController(ModuleConstants.kDrivingP, ModuleConstants.kDrivingI, ModuleConstants.kDrivingD);
      AutoTurnPID = new PIDController(ModuleConstants.kTurningP, ModuleConstants.kTurningI, ModuleConstants.kTurningD);
 
-     forwardTrajectory = GenerateTrajectoryCommand(driveStraightForward);
-     backwardTrajectory = GenerateTrajectoryCommand(driveStraightBackward);
+     forwardTrajectory = GenerateTrajectoryCommand(driveForward);
+     forwardTrajectory2 = GenerateTrajectoryCommand(driveForward);
+     backwardTrajectory = GenerateTrajectoryCommand(driveBackward);
+     ampTrajectory = GenerateTrajectoryCommand(driveToAmp);
+     ampNoteTrajectory = GenerateTrajectoryCommand(driveToAmpNote);
+     noteAmpTrajectory = GenerateTrajectoryCommand(driveToAmpFromNote);
+     ampDriveTrajectory = GenerateTrajectoryCommand(driveAcrossLine);
+
+     autoSpeakerCentering = m_robotDrive.autoSpeakerCentering(m_SensorSubsystem);
      
      field = new Field2d();
      SmartDashboard.putData("Field", field);
@@ -175,23 +220,74 @@ public class RobotContainer {
                 -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriveDeadband),
                 true, true),
             m_robotDrive));
-    
+
     autoChooser = new SendableChooser<>(); // Default auto will be `Commands.none()`
     autoChooser.addOption("Shoot then drive", new SequentialCommandGroup(
-      // Set robot side
-      // Set heading??????
-    
-      m_robotDrive.zeroHeadingCommand(),
-      m_ArmSubsystem.SetPIDPosition(25),
+      
+      m_ArmSubsystem.SetPIDPosition(35),
+      m_ShooterSubsystem.shootNote(4800),
+      Commands.waitSeconds(0.5),
 
-      Commands.waitSeconds(1),
+      m_ArmSubsystem.SetPIDPosition(2.5),
+      Commands.waitSeconds(2),
 
-      forwardTrajectory
 
-      // ShootSpeaker - need new wait command
-      //265
+      m_IntakeSubsystem.RunIntakeCommand(0.6),
+      Commands.waitSeconds(0.5),
+
+      m_ShooterSubsystem.shootNote(0),
+      forwardTrajectory,
+      m_IntakeSubsystem.RunIntakeCommand(0),
+
+      // backwardTrajectory,
+      // new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem),
+
+      Commands.waitSeconds(0.5),
+
+      m_ShooterSubsystem.shootNote(4800),
+      Commands.waitSeconds(2),
+      m_IntakeSubsystem.RunIntakeCommand(0.6),
+
+      Commands.waitSeconds(0.5),
+      m_ShooterSubsystem.shootNote(0),
+      m_IntakeSubsystem.RunIntakeCommand(0)
+      // forwardTrajectory2
 
     ));    
+    autoChooser.addOption("Amp score", new SequentialCommandGroup(
+      m_ArmSubsystem.SetPIDPosition(95),  
+      ampTrajectory,
+      
+      m_ShooterSubsystem.shootNote(700),
+
+      Commands.waitSeconds(0.5),
+
+      m_ShooterSubsystem.shootNote(0),
+      m_ArmSubsystem.SetPIDPosition(45),
+
+      Commands.waitSeconds(0.5),
+      m_ArmSubsystem.SetPIDPosition(3),
+      Commands.waitSeconds(1),
+      m_IntakeSubsystem.RunIntakeCommand(0.6),
+
+      ampNoteTrajectory,
+      m_IntakeSubsystem.RunIntakeCommand(0),
+      m_ArmSubsystem.SetPIDPosition(40),
+      
+      noteAmpTrajectory,
+      m_ArmSubsystem.SetPIDPosition(95),
+      Commands.waitSeconds(1),
+      m_ShooterSubsystem.shootNote(700),
+      Commands.waitSeconds(0.5),
+      
+      m_ShooterSubsystem.shootNote(0),
+      m_ArmSubsystem.SetPIDPosition(60),
+      Commands.waitSeconds(0.5),
+      m_ArmSubsystem.SetPIDPosition(25),
+      Commands.waitSeconds(1),
+
+      ampDriveTrajectory
+    )); 
     SmartDashboard.putData("Auto Mode", autoChooser);
   }
 
@@ -207,31 +303,43 @@ public class RobotContainer {
   private void configureButtonBindings() {
     
     //Main buttons
-    new JoystickButton(m_driverController, 1).whileTrue(RunIntakeCommand(0.6));
+    new JoystickButton(m_driverController, 1).whileTrue(RunIntakeCommand(1));
     new JoystickButton(m_driverController, 2).whileTrue(RunIntakeCommand(-0.3));
     new JoystickButton(m_driverController, 3).onTrue(m_ArmSubsystem.RunArm(0.2)).onFalse(m_ArmSubsystem.RunArm(0));
     new JoystickButton(m_driverController, 4).onTrue(m_ArmSubsystem.RunArm(-0.2)).onFalse(m_ArmSubsystem.RunArm(0));
     new JoystickButton(m_driverController, 5).onTrue(m_ShooterSubsystem.shootNote(Constants.ShooterConstants.reverse)).onFalse(m_ShooterSubsystem.shootNote(0));
-    new JoystickButton(m_driverController, 6).onTrue(m_ShooterSubsystem.shootNote(4500)).onFalse(m_ShooterSubsystem.shootNote(0));
+    new JoystickButton(m_driverController, 6).onTrue(m_ShooterSubsystem.shootNote(5000)).onFalse(m_ShooterSubsystem.shootNote(0));
     new JoystickButton(m_driverController, 7).onTrue(m_ClimberSubsystem.RunClimber(0.6)).onFalse(m_ClimberSubsystem.RunClimber(0));
     new JoystickButton(m_driverController, 8).onTrue(m_ClimberSubsystem.RunClimber(-0.6)).onFalse(m_ClimberSubsystem.RunClimber(0));
     new JoystickButton(m_driverController, 10).whileTrue(ZeroHeading());
 
-    m_secondaryController.button(1).onTrue(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem, m_ArmSubsystem, m_ShooterSubsystem)).onFalse(m_robotDrive.regularDrive(m_driverController));
+    m_secondaryController.button(1).onTrue(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem)).onFalse(m_robotDrive.regularDrive(m_driverController));
     //m_secondaryController.button(2).onTrue();
     m_secondaryController.button(3).onTrue(new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(1.5));
     m_secondaryController.button(4).onTrue(new ShootSpeaker(m_ShooterSubsystem, m_IntakeSubsystem, 4000).withTimeout(3.5));
 
     m_secondaryController.button(5).onTrue(new ParallelCommandGroup(m_ShooterSubsystem.shootNoteNOTNOTSensor(m_SensorSubsystem), m_ArmSubsystem.SetPIDNOTNOTSensor(m_SensorSubsystem))).onFalse(m_ShooterSubsystem.shootNote(0));
     m_secondaryController.button(6).onTrue(Commands.waitSeconds(0.5).andThen(RunIntakeCommand(0.3)));
-    //m_secondaryController.button(7).onTrue();
-    m_secondaryController.button(8).onTrue(m_ArmSubsystem.SetPIDPosition(90));
+    m_secondaryController.button(7).onTrue(m_ArmSubsystem.SetSetpoint2());
+    m_secondaryController.button(8).onTrue(m_ArmSubsystem.IncreaseSetpoint2(1));
 
     m_secondaryController.button(9).onTrue(m_ArmSubsystem.SetPIDPosition(3));
     m_secondaryController.button(10).onTrue(m_ArmSubsystem.SetPIDPosition(25));
     m_secondaryController.button(11).onTrue(m_ArmSubsystem.SetPIDPosition(48));
-    m_secondaryController.button(12).onTrue(m_ArmSubsystem.SetPIDPosition(69));
+    m_secondaryController.button(12).onTrue(m_ArmSubsystem.IncreaseSetpoint2(-1));
 
+
+
+    BooleanSupplier LeftTriggerSupplier = new BooleanSupplier() {
+      @Override
+      public boolean getAsBoolean() {
+        if (m_driverController.getLeftTriggerAxis() > 0.5) return true;
+        else return false;
+      }
+    };
+    Trigger LeftTrigger = new Trigger(LeftTriggerSupplier);
+
+    LeftTrigger.whileTrue(NOTNOTNoteSuck());
   }
 
 
@@ -264,23 +372,11 @@ public class RobotContainer {
 
   }
 
-  private final SetSwerveXCommand SetSwerveXCommand() {
+  private final NOTNOTNoteSuck NOTNOTNoteSuck() {
 
-    return new SetSwerveXCommand(m_robotDrive);
+    return new NOTNOTNoteSuck(m_robotDrive);
 
   }
-
-  // private final FollowPathCommand FollowPathCommand(String pathName) {
-
-  //   return new FollowPathCommand(m_robotDrive, pathName);
-
-  // }
-
-  // private final PathfindThenFollowPathCommand PathfindThenFollowPathCommand(String pathName) {
-
-  //   return new PathfindThenFollowPathCommand(m_robotDrive, pathName);
-
-  // }
 
   private final ZeroHeading ZeroHeading() {
 
@@ -306,36 +402,23 @@ public class RobotContainer {
         m_robotDrive);
 
     // Run path following command, then stop at the end.
-    return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, false, false));
+    return swerveControllerCommand;
   }
 
   // Trajectory command generator
-  public Command DriveTrajectory(String Trajectory) {
+  // public Command DriveTrajectory(String Trajectory) {
 
-    Optional<Alliance> RobotAlliance;
-    RobotAlliance = DriverStation.getAlliance();
+  //   Optional<Alliance> RobotAlliance;
+  //   RobotAlliance = DriverStation.getAlliance();
 
-    return Choreo.choreoSwerveCommand(
-      Choreo.getTrajectory("DriveForward"), 
-      () -> (m_robotDrive.getPose()), 
-      AutoDrivePID, AutoDrivePID, AutoTurnPID, 
-      (ChassisSpeeds speeds) -> m_robotDrive.driveRobotRelative(speeds),
-      () -> RobotAlliance.get() == Alliance.Red, 
-      m_robotDrive
-      );
+  //   return Choreo.choreoSwerveCommand(
+  //     Choreo.getTrajectory("DriveForward"), 
+  //     () -> (m_robotDrive.getPose()), 
+  //     AutoDrivePID, AutoDrivePID, AutoTurnPID, 
+  //     (ChassisSpeeds speeds) -> m_robotDrive.driveRobotRelative(speeds),
+  //     () -> RobotAlliance.get() == Alliance.Red, 
+  //     m_robotDrive
+  //     );
 
-  }
+  // }
 }
-
-
-/*
- * import edu.wpi.first.math.trajectory.TrajectoryGenerator;
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- */

@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
+import frc.robot.LimelightHelpers;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.Constants.PathPlanningConstants;
@@ -397,13 +398,13 @@ public class DriveSubsystem extends SubsystemBase {
         );
   }
 
-  public Command speakerCentering(XboxController xboxController, SensorSubsystem sensor, ArmSubsystem arm, ShooterSubsystem shooter) {
+  public Command speakerCentering(XboxController xboxController, SensorSubsystem sensor) {
     return runOnce(() -> this.setDefaultCommand(
       new RunCommand(
           () -> this.drive(
               -MathUtil.applyDeadband(xboxController.getLeftY(), OIConstants.kDriveDeadband),
               -MathUtil.applyDeadband(xboxController.getLeftX(), OIConstants.kDriveDeadband),
-              -MathUtil.applyDeadband(sensor.SpeakerRotation(arm, shooter), OIConstants.kCenteringDeadband),
+              -MathUtil.applyDeadband(sensor.SpeakerRotation(), OIConstants.kCenteringDeadband),
               true, true),
             this)));
   }
@@ -417,5 +418,15 @@ public class DriveSubsystem extends SubsystemBase {
               -MathUtil.applyDeadband(xboxController.getRightX(), OIConstants.kDriveDeadband),
               true, true),
           this)));
+  }
+
+  public Command autoSpeakerCentering(SensorSubsystem sensor) {
+    return new RunCommand(
+          () -> this.drive(
+              -MathUtil.applyDeadband(0, OIConstants.kDriveDeadband),
+              -MathUtil.applyDeadband(0, OIConstants.kDriveDeadband),
+              -MathUtil.applyDeadband(sensor.SpeakerRotation() * 0.1, OIConstants.kCenteringDeadband),
+              true, true),
+            this);
   }
 }

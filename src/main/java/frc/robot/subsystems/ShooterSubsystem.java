@@ -40,6 +40,13 @@ public class ShooterSubsystem extends SubsystemBase {
     m_ShooterLeft.setIdleMode(IdleMode.kCoast);
     m_ShooterLeft.setSmartCurrentLimit(CurrentConstants.AMP60, CurrentConstants.AMP40);
 
+
+    m_ShooterRight.getEncoder().setMeasurementPeriod(16);
+    m_ShooterLeft.getEncoder().setMeasurementPeriod(16);
+    m_ShooterRight.getEncoder().setAverageDepth(2);
+    m_ShooterLeft.getEncoder().setAverageDepth(2);
+
+
     // Negative is forward
     rightPid = m_ShooterRight.getPIDController();
     rightPid.setP(0.0003);

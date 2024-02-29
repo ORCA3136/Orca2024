@@ -172,10 +172,10 @@ public final class Constants {
   }
 
   public static final class AutoConstants {
-    public static final double kMaxSpeedMetersPerSecond = 0.01; // 2.5
-    public static final double kMaxAccelerationMetersPerSecondSquared = 0.01; // 2.5
-    public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;
-    public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI;
+    public static final double kMaxSpeedMetersPerSecond = 1.5; // 2.5
+    public static final double kMaxAccelerationMetersPerSecondSquared = 2; // 2.5
+    public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI * 2;
+    public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI * 2;
 
     public static final double kPXController = 1;
     public static final double kPYController = 1;
@@ -201,9 +201,9 @@ public final class Constants {
       Units.degreesToRadians(540), Units.degreesToRadians(720));
 
     public static final HolonomicPathFollowerConfig HoloConfig = new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
-      new PIDConstants(ModuleConstants.kDrivingP, ModuleConstants.kDrivingI, ModuleConstants.kDrivingD), // Translation PID constants
-      new PIDConstants(ModuleConstants.kTurningP, ModuleConstants.kTurningI, ModuleConstants.kTurningD), // Rotation PID constants
-      DriveConstants.kMaxSpeedMetersPerSecond, // Max module speed, in m/s
+      new PIDConstants(5, 0, 0), // Translation PID constants
+      new PIDConstants(5, 0, 0), // Rotation PID constants
+      AutoConstants.kMaxSpeedMetersPerSecond, // Max module speed, in m/s
       0.386, // Drive base radius in meters. Distance from robot center to furthest module.
       new ReplanningConfig() // Default path replanning config. See the API for the options here
     );

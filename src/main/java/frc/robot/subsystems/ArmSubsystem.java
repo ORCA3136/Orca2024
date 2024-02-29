@@ -61,6 +61,8 @@ public class ArmSubsystem extends SubsystemBase {
   double setpoint = -1;
   double previousSetpoint = -1;
 
+  double setpoint2 = 3;
+
   public ArmSubsystem(RobotContainer robot) {
 
     robotContainer = robot;
@@ -213,6 +215,18 @@ public class ArmSubsystem extends SubsystemBase {
     return runOnce(() -> {
       setpoint = -1;
       m_LeftArm.set(feedForward);
+    });
+  }
+
+  public Command IncreaseSetpoint2(int change) {
+    return runOnce(() -> {
+      setpoint2 += change;
+    });
+  }
+
+  public Command SetSetpoint2() {
+    return runOnce(() -> {
+      setpoint = setpoint2;
     });
   }
 }
