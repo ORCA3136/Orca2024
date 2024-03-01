@@ -101,12 +101,12 @@ public class SensorSubsystem extends SubsystemBase {
     NetworkTableInstance.getDefault().getTable("Sensors").getEntry("DIO_0").setBoolean(output0);
     
     if (LimelightHelpers.getTV("limelight-april")) {
-      robotDrive.visionPose(LimelightHelpers.getBotPose2d_wpiBlue("limelight-april"), Timer.getFPGATimestamp());
+      robotDrive.visionPose(LimelightHelpers.getBotPose2d("limelight-april"), Timer.getFPGATimestamp());
     }
 
     pose = robotDrive.getPose();
     angle = pose.getRotation().getDegrees();
-    speaker = Constants.Field.BLUE_SPEAKER;
+    speaker = Constants.Field.BLUE_SPEAKER_FROM_CENTER;
     xDistance = pose.getX() - speaker.getX();
     yDistance = pose.getY() - speaker.getY();
     distanceToSpeaker = Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));

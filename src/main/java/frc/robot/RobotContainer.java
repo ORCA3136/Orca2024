@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
@@ -45,6 +46,7 @@ import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.SensorSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
+import frc.robot.subsystems.Trajectories;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.ClimberSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -78,86 +80,14 @@ public class RobotContainer {
   private final ArmSubsystem m_ArmSubsystem = new ArmSubsystem(this);
   private final SensorSubsystem m_SensorSubsystem = new SensorSubsystem(m_robotDrive);
   private final ClimberSubsystem m_ClimberSubsystem = new ClimberSubsystem();
+  private final Trajectories m_trajectories = new Trajectories(m_robotDrive);
   private final SendableChooser<Command> autoChooser;
   private final Field2d field;
 
-
-  
-  // Configure trajectory stuff
-    // For forwards
-  TrajectoryConfig config = new TrajectoryConfig(
-      AutoConstants.kMaxSpeedMetersPerSecond,
-      AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-      // Add kinematics to ensure max speed is actually obeyed
-      .setKinematics(DriveConstants.kDriveKinematics)
-      .setReversed(false);
-
-  // Trajectories
-  Trajectory driveForward = TrajectoryGenerator.generateTrajectory(
-      // Start at the origin facing the +X direction
-      new Pose2d(1.45, 5.4, new Rotation2d(0)),
-      // Pass through these two interior waypoints, making an 's' curve path
-      List.of(new Translation2d(2, 5.5)),
-      // End 3 meters straight ahead of where we started, facing forward
-      new Pose2d(2.6, 5.4, new Rotation2d(0)),
-      config);
-
-  Trajectory driveBackward = TrajectoryGenerator.generateTrajectory(
-      // Start at the origin facing the +X direction
-      new Pose2d(2.6, 5.4, new Rotation2d(0)),
-      // Pass through these two interior waypoints, making an 's' curve path
-      List.of(new Translation2d(2, 5.3)),
-      // End 3 meters straight ahead of where we started, facing forward
-      new Pose2d(1.45, 5.4, new Rotation2d(0)),
-      config);
-
-  Trajectory driveFartherForward = TrajectoryGenerator.generateTrajectory(
-      // Start at the origin facing the +X direction
-      new Pose2d(1.45, 5.4, new Rotation2d(0)),
-      // Pass through these two interior waypoints, making an 's' curve path
-      List.of(new Translation2d(2.4, 5.5)),
-      // End 3 meters straight ahead of where we started, facing forward
-      new Pose2d(3.6, 5.4, new Rotation2d(0)),
-      config);
-
-  Trajectory driveToAmp = TrajectoryGenerator.generateTrajectory(
-      // Start at the origin facing the +X direction
-      new Pose2d(1.45, 7.0, new Rotation2d(-Math.PI/2)),
-      // Pass through these two interior waypoints, making an 's' curve path
-      List.of(new Translation2d(1.7, 7.5)),
-      // End 3 meters straight ahead of where we started, facing forward
-      new Pose2d(1.75, 7.7, new Rotation2d(-Math.PI/2)),
-      config);
-
-  Trajectory driveToAmpNote = TrajectoryGenerator.generateTrajectory(
-      // Start at the origin facing the +X direction
-      new Pose2d(1.75, 7.7, new Rotation2d(-Math.PI/2)),
-      // Pass through these two interior waypoints, making an 's' curve path
-      List.of(new Translation2d(2.0, 7.5)),
-      // End 3 meters straight ahead of where we started, facing forward
-      new Pose2d(2.7, 7.05, new Rotation2d(0)),
-      config);
-
-  Trajectory driveToAmpFromNote = TrajectoryGenerator.generateTrajectory(
-      // Start at the origin facing the +X direction
-      new Pose2d(2.5, 7.25, new Rotation2d(0)),
-      // Pass through these two interior waypoints, making an 's' curve path
-      List.of(new Translation2d(2.0, 7.5)),
-      // End 3 meters straight ahead of where we started, facing forward
-      new Pose2d(1.75, 7.7, new Rotation2d(-Math.PI/2)),
-      config);
-
-  Trajectory driveAcrossLine = TrajectoryGenerator.generateTrajectory(
-      // Start at the origin facing the +X direction
-      new Pose2d(1.75, 7.7, new Rotation2d(-Math.PI/2)),
-      // Pass through these two interior waypoints, making an 's' curve path
-      List.of(new Translation2d(2.2, 7.4)),
-      // End 3 meters straight ahead of where we started, facing forward
-      new Pose2d(7, 6.5, new Rotation2d(0)),
-      config);
       
   Command forwardTrajectory;
   Command forwardTrajectory2;
+  Command forwardTrajectory3;
   Command backwardTrajectory;
   Command ampTrajectory;
   Command ampNoteTrajectory;
@@ -182,13 +112,20 @@ public class RobotContainer {
      AutoDrivePID = new PIDController(ModuleConstants.kDrivingP, ModuleConstants.kDrivingI, ModuleConstants.kDrivingD);
      AutoTurnPID = new PIDController(ModuleConstants.kTurningP, ModuleConstants.kTurningI, ModuleConstants.kTurningD);
 
-     forwardTrajectory = GenerateTrajectoryCommand(driveForward);
-     forwardTrajectory2 = GenerateTrajectoryCommand(driveFartherForward);
-     backwardTrajectory = GenerateTrajectoryCommand(driveBackward);
-     ampTrajectory = GenerateTrajectoryCommand(driveToAmp);
-     ampNoteTrajectory = GenerateTrajectoryCommand(driveToAmpNote);
-     noteAmpTrajectory = GenerateTrajectoryCommand(driveToAmpFromNote);
-     ampDriveTrajectory = GenerateTrajectoryCommand(driveAcrossLine);
+     ArrayList<Trajectory> Auto1 = m_trajectories.getMiddleDoubleScore();
+     ArrayList<Trajectory> Auto2 = m_trajectories.getAmpDoubleScore();
+     ArrayList<Trajectory> Auto3 = m_trajectories.getDriveForward();
+
+     forwardTrajectory = GenerateTrajectoryCommand(Auto1.get(0));
+     backwardTrajectory = GenerateTrajectoryCommand(Auto1.get(1));
+     forwardTrajectory2 = GenerateTrajectoryCommand(Auto1.get(2));
+
+     ampTrajectory = GenerateTrajectoryCommand(Auto2.get(0));
+     ampNoteTrajectory = GenerateTrajectoryCommand(Auto2.get(1));
+     noteAmpTrajectory = GenerateTrajectoryCommand(Auto2.get(2));
+     ampDriveTrajectory = GenerateTrajectoryCommand(Auto2.get(3));
+
+     forwardTrajectory3 = GenerateTrajectoryCommand(Auto3.get(0));
 
      autoSpeakerCentering = m_robotDrive.autoSpeakerCentering(m_SensorSubsystem);
      
@@ -231,7 +168,7 @@ public class RobotContainer {
             m_robotDrive));
 
     autoChooser = new SendableChooser<>(); // Default auto will be `Commands.none()`
-    autoChooser.addOption("Shoot then drive", new SequentialCommandGroup(
+    autoChooser.addOption("Double speaker score", new SequentialCommandGroup(
       
       m_ArmSubsystem.SetPIDPosition(35),
       m_ShooterSubsystem.shootNote(4800),
@@ -264,8 +201,8 @@ public class RobotContainer {
       m_IntakeSubsystem.RunIntakeCommand(0),
       forwardTrajectory2
 
-    ));    
-    autoChooser.addOption("Amp score", new SequentialCommandGroup(
+    ));
+    autoChooser.addOption("Double amp score", new SequentialCommandGroup(
       m_ArmSubsystem.SetPIDPosition(95),  
       ampTrajectory,
       
@@ -299,6 +236,9 @@ public class RobotContainer {
 
       ampDriveTrajectory
     )); 
+    autoChooser.addOption("Drive forward", new SequentialCommandGroup(
+      forwardTrajectory3
+    ));
     SmartDashboard.putData("Auto Mode", autoChooser);
   }
 
