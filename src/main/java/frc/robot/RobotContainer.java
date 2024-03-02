@@ -85,14 +85,13 @@ public class RobotContainer {
   private final Field2d field;
 
       
-  Command forwardTrajectory;
-  Command forwardTrajectory2;
-  Command forwardTrajectory3;
-  Command backwardTrajectory;
-  Command ampTrajectory;
-  Command ampNoteTrajectory;
-  Command noteAmpTrajectory;
-  Command ampDriveTrajectory;
+  Command forwardTrajectoryBlue, forwardTrajectory2Blue, backwardTrajectoryBlue;
+  Command ampTrajectoryBlue, ampNoteTrajectoryBlue, noteAmpTrajectoryBlue, ampDriveTrajectoryBlue;
+  Command forwardTrajectory3Blue;
+
+  Command forwardTrajectoryRed, forwardTrajectory2Red, backwardTrajectoryRed;
+  Command ampTrajectoryRed, ampNoteTrajectoryRed, noteAmpTrajectoryRed, ampDriveTrajectoryRed;
+  Command forwardTrajectory3Red;
 
   Command autoSpeakerCentering;
 
@@ -112,22 +111,39 @@ public class RobotContainer {
      AutoDrivePID = new PIDController(ModuleConstants.kDrivingP, ModuleConstants.kDrivingI, ModuleConstants.kDrivingD);
      AutoTurnPID = new PIDController(ModuleConstants.kTurningP, ModuleConstants.kTurningI, ModuleConstants.kTurningD);
 
-     ArrayList<Trajectory> Auto1 = m_trajectories.getMiddleDoubleScore();
-     ArrayList<Trajectory> Auto2 = m_trajectories.getAmpDoubleScore();
-     ArrayList<Trajectory> Auto3 = m_trajectories.getDriveForward();
-
-     forwardTrajectory = GenerateTrajectoryCommand(Auto1.get(0));
-     backwardTrajectory = GenerateTrajectoryCommand(Auto1.get(1));
-     forwardTrajectory2 = GenerateTrajectoryCommand(Auto1.get(2));
-
-     ampTrajectory = GenerateTrajectoryCommand(Auto2.get(0));
-     ampNoteTrajectory = GenerateTrajectoryCommand(Auto2.get(1));
-     noteAmpTrajectory = GenerateTrajectoryCommand(Auto2.get(2));
-     ampDriveTrajectory = GenerateTrajectoryCommand(Auto2.get(3));
-
-     forwardTrajectory3 = GenerateTrajectoryCommand(Auto3.get(0));
-
      autoSpeakerCentering = m_robotDrive.autoSpeakerCentering(m_SensorSubsystem);
+
+     m_trajectories.CreateTrajectories(false);
+     ArrayList<Trajectory> Auto1Blue = m_trajectories.getMiddleDoubleScore();
+     ArrayList<Trajectory> Auto2Blue = m_trajectories.getAmpDoubleScore();
+     ArrayList<Trajectory> Auto3Blue = m_trajectories.getDriveForward();
+
+     forwardTrajectoryBlue = GenerateTrajectoryCommand(Auto1Blue.get(0));
+     backwardTrajectoryBlue = GenerateTrajectoryCommand(Auto1Blue.get(1));
+     forwardTrajectory2Blue = GenerateTrajectoryCommand(Auto1Blue.get(2));
+
+     ampTrajectoryBlue = GenerateTrajectoryCommand(Auto2Blue.get(0));
+     ampNoteTrajectoryBlue = GenerateTrajectoryCommand(Auto2Blue.get(1));
+     noteAmpTrajectoryBlue = GenerateTrajectoryCommand(Auto2Blue.get(2));
+     ampDriveTrajectoryBlue = GenerateTrajectoryCommand(Auto2Blue.get(3));
+
+     forwardTrajectory3Blue = GenerateTrajectoryCommand(Auto3Blue.get(0));
+
+     m_trajectories.CreateTrajectories(true);
+     ArrayList<Trajectory> Auto1Red = m_trajectories.getMiddleDoubleScore();
+     ArrayList<Trajectory> Auto2Red = m_trajectories.getAmpDoubleScore();
+     ArrayList<Trajectory> Auto3Red = m_trajectories.getDriveForward();
+
+     forwardTrajectoryRed = GenerateTrajectoryCommand(Auto1Red.get(0));
+     backwardTrajectoryRed = GenerateTrajectoryCommand(Auto1Red.get(1));
+     forwardTrajectory2Red = GenerateTrajectoryCommand(Auto1Red.get(2));
+
+     ampTrajectoryRed = GenerateTrajectoryCommand(Auto2Red.get(0));
+     ampNoteTrajectoryRed = GenerateTrajectoryCommand(Auto2Red.get(1));
+     noteAmpTrajectoryRed = GenerateTrajectoryCommand(Auto2Red.get(2));
+     ampDriveTrajectoryRed = GenerateTrajectoryCommand(Auto2Red.get(3));
+
+     forwardTrajectory3Red = GenerateTrajectoryCommand(Auto3Red.get(0));
      
      field = new Field2d();
      SmartDashboard.putData("Field", field);
@@ -168,7 +184,9 @@ public class RobotContainer {
             m_robotDrive));
 
     autoChooser = new SendableChooser<>(); // Default auto will be `Commands.none()`
-    autoChooser.addOption("Double speaker score", new SequentialCommandGroup(
+
+    // Blue autos
+    autoChooser.addOption("Blue - Double speaker score", new SequentialCommandGroup(
       
       m_ArmSubsystem.SetPIDPosition(35),
       m_ShooterSubsystem.shootNote(4800),
@@ -182,13 +200,13 @@ public class RobotContainer {
       Commands.waitSeconds(0.5),
 
       m_ShooterSubsystem.shootNote(0),
-      forwardTrajectory,
+      forwardTrajectoryBlue,
       m_IntakeSubsystem.RunIntakeCommand(0),
       m_ArmSubsystem.SetPIDPosition(10),
       new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(0.5),
 
       m_ArmSubsystem.SetPIDPosition(2.5),
-      backwardTrajectory,
+      backwardTrajectoryBlue,
 
       Commands.waitSeconds(0.5),
 
@@ -199,12 +217,12 @@ public class RobotContainer {
       Commands.waitSeconds(0.5),
       m_ShooterSubsystem.shootNote(0),
       m_IntakeSubsystem.RunIntakeCommand(0),
-      forwardTrajectory2
+      forwardTrajectory2Blue
 
     ));
-    autoChooser.addOption("Double amp score", new SequentialCommandGroup(
+    autoChooser.addOption("Blue - Double amp score", new SequentialCommandGroup(
       m_ArmSubsystem.SetPIDPosition(95),  
-      ampTrajectory,
+      ampTrajectoryBlue,
       
       m_ShooterSubsystem.shootNote(700),
 
@@ -218,10 +236,10 @@ public class RobotContainer {
       Commands.waitSeconds(1),
       m_IntakeSubsystem.RunIntakeCommand(0.3),
 
-      ampNoteTrajectory,
+      ampNoteTrajectoryBlue,
       m_ArmSubsystem.SetPIDPosition(40),
       
-      noteAmpTrajectory,
+      noteAmpTrajectoryBlue,
       m_ArmSubsystem.SetPIDPosition(95),
       Commands.waitSeconds(1),
       m_ShooterSubsystem.shootNote(700),
@@ -234,11 +252,115 @@ public class RobotContainer {
       m_ArmSubsystem.SetPIDPosition(25),
       Commands.waitSeconds(1),
 
-      ampDriveTrajectory
+      ampDriveTrajectoryBlue
     )); 
-    autoChooser.addOption("Drive forward", new SequentialCommandGroup(
-      forwardTrajectory3
+    autoChooser.addOption("Blue - Drive forward", new SequentialCommandGroup(
+      m_ArmSubsystem.SetPIDPosition(35),
+      m_ShooterSubsystem.shootNote(4800),
+      Commands.waitSeconds(0.5),
+
+      m_ArmSubsystem.SetPIDPosition(2.5),
+      Commands.waitSeconds(2),
+
+
+      m_IntakeSubsystem.RunIntakeCommand(0.6),
+      Commands.waitSeconds(0.5),
+
+      m_ShooterSubsystem.shootNote(0),
+      m_IntakeSubsystem.RunIntakeCommand(0),
+      m_ArmSubsystem.SetPIDPosition(25),
+    
+      forwardTrajectory3Blue
     ));
+
+    // Red autos
+    autoChooser.addOption("Red - Double speaker score", new SequentialCommandGroup(
+      
+      m_ArmSubsystem.SetPIDPosition(35),
+      m_ShooterSubsystem.shootNote(5200),
+      Commands.waitSeconds(0.5),
+
+      m_ArmSubsystem.SetPIDPosition(2.5),
+      Commands.waitSeconds(2),
+
+
+      m_IntakeSubsystem.RunIntakeCommand(0.6),
+      Commands.waitSeconds(0.5),
+
+      m_ShooterSubsystem.shootNote(0),
+      forwardTrajectoryRed,
+      m_IntakeSubsystem.RunIntakeCommand(0),
+      m_ArmSubsystem.SetPIDPosition(10),
+      new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(0.5),
+
+      m_ArmSubsystem.SetPIDPosition(2.5),
+      backwardTrajectoryRed,
+
+      Commands.waitSeconds(0.5),
+
+      m_ShooterSubsystem.shootNote(4800),
+      Commands.waitSeconds(2),
+      m_IntakeSubsystem.RunIntakeCommand(0.6),
+
+      Commands.waitSeconds(0.5),
+      m_ShooterSubsystem.shootNote(0),
+      m_IntakeSubsystem.RunIntakeCommand(0),
+      forwardTrajectory2Red
+
+    ));
+    autoChooser.addOption("Red - Double amp score", new SequentialCommandGroup(
+      m_ArmSubsystem.SetPIDPosition(95),  
+      ampTrajectoryRed,
+      
+      m_ShooterSubsystem.shootNote(700),
+
+      Commands.waitSeconds(0.5),
+
+      m_ShooterSubsystem.shootNote(0),
+      m_ArmSubsystem.SetPIDPosition(45),
+
+      Commands.waitSeconds(0.5),
+      m_ArmSubsystem.SetPIDPosition(3),
+      Commands.waitSeconds(1),
+      m_IntakeSubsystem.RunIntakeCommand(0.3),
+
+      ampNoteTrajectoryRed,
+      m_ArmSubsystem.SetPIDPosition(40),
+      
+      noteAmpTrajectoryRed,
+      m_ArmSubsystem.SetPIDPosition(95),
+      Commands.waitSeconds(1),
+      m_ShooterSubsystem.shootNote(700),
+      Commands.waitSeconds(0.5),
+      
+      m_ShooterSubsystem.shootNote(0),
+      m_ArmSubsystem.SetPIDPosition(60),
+      m_IntakeSubsystem.RunIntakeCommand(0),
+      Commands.waitSeconds(0.5),
+      m_ArmSubsystem.SetPIDPosition(25),
+      Commands.waitSeconds(1),
+
+      ampDriveTrajectoryRed
+    )); 
+    autoChooser.addOption("Red - Drive forward", new SequentialCommandGroup(
+      m_ArmSubsystem.SetPIDPosition(35),
+      m_ShooterSubsystem.shootNote(5200),
+      Commands.waitSeconds(0.5),
+
+      m_ArmSubsystem.SetPIDPosition(2.5),
+      Commands.waitSeconds(2),
+
+
+      m_IntakeSubsystem.RunIntakeCommand(0.6),
+      Commands.waitSeconds(0.5),
+
+      m_ShooterSubsystem.shootNote(0),
+      m_IntakeSubsystem.RunIntakeCommand(0),
+      m_ArmSubsystem.SetPIDPosition(25),
+    
+      forwardTrajectory3Red
+    ));
+
     SmartDashboard.putData("Auto Mode", autoChooser);
   }
 
@@ -267,7 +389,7 @@ public class RobotContainer {
     m_secondaryController.button(1).onTrue(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem)).onFalse(m_robotDrive.regularDrive(m_driverController));
     //m_secondaryController.button(2).onTrue();
     m_secondaryController.button(3).onTrue(new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(1.5));
-    m_secondaryController.button(4).onTrue(new ShootSpeaker(m_ShooterSubsystem, m_IntakeSubsystem, 4000).withTimeout(3.5));
+    //m_secondaryController.button(4).onTrue(new ShootSpeaker(m_ShooterSubsystem, m_IntakeSubsystem, 4000).withTimeout(3.5));
 
     m_secondaryController.button(5).onTrue(new ParallelCommandGroup(m_ShooterSubsystem.shootNoteNOTNOTSensor(m_SensorSubsystem), m_ArmSubsystem.SetPIDNOTNOTSensor(m_SensorSubsystem))).onFalse(m_ShooterSubsystem.shootNote(0));
     // m_secondaryController.button(6).onTrue(Commands.waitSeconds(0.5).andThen(RunIntakeCommand(0.3)));

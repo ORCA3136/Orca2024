@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
+import frc.robot.Constants;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.ModuleConstants;
@@ -37,8 +38,6 @@ public class Trajectories {
 
     public Trajectories(DriveSubsystem drive) {
         robotDrive = drive;
-
-        CreateTrajectories();
     }
 
     public Command DriveTrajectory(String Trajectory) {
@@ -68,40 +67,47 @@ public class Trajectories {
         return driveForwardAuto;
     }
 
-    private void CreateTrajectories() {
+    public void CreateTrajectories(boolean red) {
 
-        boolean isRed = true;
+        int j = middleDoubleScore.size();
+        for (int i = 0; i < j; i ++) {
+            middleDoubleScore.remove(0);
+        }
+        j = ampDoubleScore.size();
+        for (int i = 0; i < j; i ++) {
+            ampDoubleScore.remove(0);
+        }
+        j = driveForwardAuto.size();
+        for (int i = 0; i < j; i ++) {
+            driveForwardAuto.remove(0);
+        }
 
-        if (DriverStation.getAlliance().isPresent()) DataLogManager.log("Red: " + (DriverStation.getAlliance().get() == DriverStation.Alliance.Red));
-        else DataLogManager.log("No alliance");
+        boolean isRed = red;
 
         double a, b, c;
         a = 0;
         b = 1;
         c = 0;
 
-        if (isRed) b = -1;
-        if (isRed) c = Math.PI;
-
-        // if (DriverStation.getAlliance().isPresent()) {
-        //     if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
-        //         a = 16.54;
-        //         b = -1;
-        //     }
-        //     else {
-        //         a = 0;
-        //         b = 1;
-        //     }
-        // } else {
-        //     if (isRed) {
-        //         a = 16.54;
-        //         b = -1;
-        //     }
-        //     else {
-        //         a = 0;
-        //         b = 1;
-        //     }
-        // }
+        if (DriverStation.getAlliance().isPresent()) {
+            if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
+                b = -1;
+                c = Math.PI;
+            }
+            else {
+                b = 1;
+                c = 0;
+            }
+        } else {
+            if (isRed) {
+                b = -1;
+                c = Math.PI;
+            }
+            else {
+                b = 1;
+                c = 0;
+            }
+        }
 
         // Configure trajectory stuff
         // For forwards
@@ -136,11 +142,11 @@ public class Trajectories {
         Trajectory driveToAmp = TrajectoryGenerator.generateTrajectory(
             new Pose2d(b * -6.82, 2.895, new Rotation2d(-Math.PI/2)),
             List.of(new Translation2d(b * -6.4, 3.395)),
-            new Pose2d(b * -6.52, 3.595, new Rotation2d(-Math.PI/2)),
+            new Pose2d(b * -6.52, 3.65, new Rotation2d(-Math.PI/2)),
             config);
 
         Trajectory driveToAmpNote = TrajectoryGenerator.generateTrajectory(
-            new Pose2d(b * -6.52, 3.595, new Rotation2d(-Math.PI/2)),
+            new Pose2d(b * -6.52, 3.65, new Rotation2d(-Math.PI/2)),
             List.of(new Translation2d(b * -6.27, 3.395)),
             new Pose2d(b * -5.57, 2.945, new Rotation2d(c)),
             config);
@@ -148,19 +154,19 @@ public class Trajectories {
         Trajectory driveToAmpFromNote = TrajectoryGenerator.generateTrajectory(
             new Pose2d(b * -5.77, 3.145, new Rotation2d(c)),
             List.of(new Translation2d(b * -6.27, 3.395)),
-            new Pose2d(b * -6.52, 3.595, new Rotation2d(-Math.PI/2)),
+            new Pose2d(b * -6.52, 3.7, new Rotation2d(-Math.PI/2)),
             config);
 
         Trajectory driveAcrossLineAmp = TrajectoryGenerator.generateTrajectory(
-            new Pose2d(b * -6.52, 3.595, new Rotation2d(-Math.PI/2)),
+            new Pose2d(b * -6.52, 3.65, new Rotation2d(-Math.PI/2)),
             List.of(new Translation2d(b * -6.07, 3.295)),
             new Pose2d(b * -1.27, 2.395, new Rotation2d(c)),
             config);
 
-        Trajectory driveForward2 = TrajectoryGenerator.generateTrajectory(
-            new Pose2d(b * -6.8, 0, new Rotation2d(c)),
-            List.of(new Translation2d(b * -6.25, 0)),
-            new Pose2d(b * -5.7, 0, new Rotation2d(c)),
+        Trajectory driveForwardAndOut = TrajectoryGenerator.generateTrajectory(
+            new Pose2d(b * -7.42, 0.13, new Rotation2d(c)),
+            List.of(new Translation2d(b * -6.92, -1.8)),
+            new Pose2d(b * -5.17, -2.8, new Rotation2d(c)),
             config);
 
         middleDoubleScore.add(driveForward);
@@ -172,6 +178,6 @@ public class Trajectories {
         ampDoubleScore.add(driveToAmpFromNote);
         ampDoubleScore.add(driveAcrossLineAmp);
 
-        driveForwardAuto.add(driveForward2);
+        driveForwardAuto.add(driveForwardAndOut);
     }
 }

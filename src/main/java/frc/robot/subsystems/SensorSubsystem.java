@@ -52,7 +52,7 @@ public class SensorSubsystem extends SubsystemBase {
   private boolean IntakeState = false;
   
 
-
+    boolean red;
     Pose2d pose;
     Translation2d speaker = Constants.Field.BLUE_SPEAKER_FROM_CENTER;
     double angle;
@@ -83,8 +83,6 @@ public class SensorSubsystem extends SubsystemBase {
 
     DataLogManager.log("ShooterAngleMap: "+shooterAngleMap.get(Double.valueOf(2)));
     DataLogManager.log("ShooterSpeedMap: "+shooterSpeedMap.get(Double.valueOf(2)));
-    
-
 
     // 1.27m  2600rpm 0deg
     // 1.88m  2850rpm 7deg
@@ -106,9 +104,24 @@ public class SensorSubsystem extends SubsystemBase {
 
     pose = robotDrive.getPose();
     angle = pose.getRotation().getDegrees();
+
+    red = false;
+    if (pose.getX() > 0) red = true;
+
+    if (red) {
+      if (angle > 0) angle -= 180;
+      else angle += 180;
+      angle *= -1;
+    }
+
+    NetworkTableInstance.getDefault().getTable("Centering").getEntry("Red: ").setBoolean(red);
+
     speaker = Constants.Field.BLUE_SPEAKER_FROM_CENTER;
-    xDistance = pose.getX() - speaker.getX();
-    yDistance = pose.getY() - speaker.getY();
+    xDistance = Math.abs(pose.getX()) - Math.abs(speaker.getX());
+    yDistance = Math.abs(pose.getY()) - Math.abs(speaker.getY());
+
+    xDistance *= -1;
+
     distanceToSpeaker = Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
     angleToSpeaker = Math.atan2(yDistance, xDistance) * (180/Math.PI);
 
@@ -118,6 +131,7 @@ public class SensorSubsystem extends SubsystemBase {
     NetworkTableInstance.getDefault().getTable("Centering").getEntry("xDistance").setDouble(xDistance);
     NetworkTableInstance.getDefault().getTable("Centering").getEntry("yDistance").setDouble(yDistance);
     NetworkTableInstance.getDefault().getTable("Centering").getEntry("DistanceToSpeaker").setDouble(distanceToSpeaker);
+    NetworkTableInstance.getDefault().getTable("Centering").getEntry("Angle").setDouble(angle);
     NetworkTableInstance.getDefault().getTable("Centering").getEntry("AngleToSpeaker").setDouble(angleToSpeaker);
     NetworkTableInstance.getDefault().getTable("Centering").getEntry("AngleDifference").setDouble(angle - angleToSpeaker);
 
@@ -143,6 +157,7 @@ public class SensorSubsystem extends SubsystemBase {
   public double SpeakerRotation() {
 
     double rotation = (angle - angleToSpeaker) * (0.02);
+    if (red) rotation *= -1;
 
     if (rotation > 0.4) rotation = 0.4;
     if (rotation < -0.4) rotation = -0.4;
