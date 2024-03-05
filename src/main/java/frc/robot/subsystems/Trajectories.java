@@ -165,8 +165,8 @@ public class Trajectories {
 
         Trajectory driveForwardAndOut = TrajectoryGenerator.generateTrajectory(
             new Pose2d(b * -7.42, 0.13, new Rotation2d(c)),
-            List.of(new Translation2d(b * -6.92, -1.8)),
-            new Pose2d(b * -5.17, -2.8, new Rotation2d(c)),
+            List.of(new Translation2d(b * -6.5, -1.6)),
+            new Pose2d(b * -5, -2.8, new Rotation2d(-Math.PI/2)),
             config);
 
         middleDoubleScore.add(driveForward);

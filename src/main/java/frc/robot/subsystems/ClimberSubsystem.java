@@ -51,14 +51,20 @@ public class ClimberSubsystem extends SubsystemBase {
     NetworkTableInstance.getDefault().getTable("Climber").getEntry("LeftPos").setDouble(m_LeftEncoder.getPosition());
     NetworkTableInstance.getDefault().getTable("Climber").getEntry("RightPos").setDouble(m_RightEncoder.getPosition());
 
-    // if (m_RightEncoder.getPosition() < -250) m_ClimberRight.set(0);
-    // else if (m_RightEncoder.getPosition() > 1) m_ClimberRight.set(0);
-
-    // if (m_LeftEncoder.getPosition() < -250) m_ClimberLeft.set(0);
-    // else if (m_LeftEncoder.getPosition() > 1) m_ClimberLeft.set(0);
+    if (m_RightEncoder.getPosition() < -225) { m_ClimberRight.set(0.1); }
+    if (m_LeftEncoder.getPosition() < -225) { m_ClimberLeft.set(0.1); }
   }
 
   public Command RunClimber(double speed) {
-    return runOnce(() -> { m_ClimberRight.set(speed); m_ClimberLeft.set(speed); });
+    return runOnce(() -> { 
+      m_ClimberRight.set(speed); m_ClimberLeft.set(speed); 
+    });
+  }
+
+  public Command ResetEncoders() {
+    return runOnce(() -> {
+      m_RightEncoder.setPosition(0);
+      m_LeftEncoder.setPosition(0);
+    });
   }
 }

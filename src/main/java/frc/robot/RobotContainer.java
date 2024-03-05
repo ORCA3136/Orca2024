@@ -378,12 +378,12 @@ public class RobotContainer {
     //Main buttons
     new JoystickButton(m_driverController, 1).whileTrue(RunIntakeCommand(1));
     new JoystickButton(m_driverController, 2).whileTrue(RunIntakeCommand(-0.3));
-    new JoystickButton(m_driverController, 3).onTrue(m_ArmSubsystem.RunArm(0.2)).onFalse(m_ArmSubsystem.RunArm(0));
-    new JoystickButton(m_driverController, 4).onTrue(m_ArmSubsystem.RunArm(-0.2)).onFalse(m_ArmSubsystem.RunArm(0));
+    new JoystickButton(m_driverController, 3).onTrue(m_ArmSubsystem.RunArm(0.5)).onFalse(m_ArmSubsystem.RunArm(0));
+    new JoystickButton(m_driverController, 4).onTrue(m_ArmSubsystem.RunArm(-0.3)).onFalse(m_ArmSubsystem.RunArm(0));
     new JoystickButton(m_driverController, 5).onTrue(m_ShooterSubsystem.shootNote(Constants.ShooterConstants.reverse)).onFalse(m_ShooterSubsystem.shootNote(0));
-    new JoystickButton(m_driverController, 6).onTrue(m_ShooterSubsystem.shootNote(5000)).onFalse(m_ShooterSubsystem.shootNote(0));
-    new JoystickButton(m_driverController, 7).onTrue(m_ClimberSubsystem.RunClimber(0.6)).onFalse(m_ClimberSubsystem.RunClimber(0));
-    new JoystickButton(m_driverController, 8).onTrue(m_ClimberSubsystem.RunClimber(-0.6)).onFalse(m_ClimberSubsystem.RunClimber(0));
+    new JoystickButton(m_driverController, 6).onTrue(m_ShooterSubsystem.shootNote(5500)).onFalse(m_ShooterSubsystem.shootNote(0));
+    new JoystickButton(m_driverController, 7).onTrue(m_ClimberSubsystem.RunClimber(1)).onFalse(m_ClimberSubsystem.RunClimber(0));
+    new JoystickButton(m_driverController, 8).onTrue(m_ClimberSubsystem.RunClimber(-1)).onFalse(m_ClimberSubsystem.RunClimber(0));
     new JoystickButton(m_driverController, 10).whileTrue(ZeroHeading());
 
     m_secondaryController.button(1).onTrue(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem)).onFalse(m_robotDrive.regularDrive(m_driverController));
@@ -391,9 +391,9 @@ public class RobotContainer {
     m_secondaryController.button(3).onTrue(new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(1.5));
     //m_secondaryController.button(4).onTrue(new ShootSpeaker(m_ShooterSubsystem, m_IntakeSubsystem, 4000).withTimeout(3.5));
 
-    m_secondaryController.button(5).onTrue(new ParallelCommandGroup(m_ShooterSubsystem.shootNoteNOTNOTSensor(m_SensorSubsystem), m_ArmSubsystem.SetPIDNOTNOTSensor(m_SensorSubsystem))).onFalse(m_ShooterSubsystem.shootNote(0));
+    m_secondaryController.button(5).onTrue(m_ArmSubsystem.SetPIDNOTNOTSensor(m_SensorSubsystem));
     // m_secondaryController.button(6).onTrue(Commands.waitSeconds(0.5).andThen(RunIntakeCommand(0.3)));
-    // m_secondaryController.button(7).onTrue(m_ArmSubsystem.SetSetpoint2());
+    m_secondaryController.button(7).onTrue(m_ClimberSubsystem.ResetEncoders());
     // m_secondaryController.button(8).onTrue();
 
     m_secondaryController.button(9).onTrue(m_ArmSubsystem.SetPIDPosition(3));
@@ -413,6 +413,17 @@ public class RobotContainer {
     Trigger LeftTrigger = new Trigger(LeftTriggerSupplier);
 
     LeftTrigger.whileTrue(NOTNOTNoteSuck());
+
+    BooleanSupplier RightTriggerSupplier = new BooleanSupplier() {
+      @Override
+      public boolean getAsBoolean() {
+        if (m_driverController.getRightTriggerAxis() > 0.5) return true;
+        else return false;
+      }
+    };
+    Trigger RightTrigger = new Trigger(RightTriggerSupplier);
+
+    RightTrigger.onTrue(m_ShooterSubsystem.shootNote(5500)).onFalse(m_ShooterSubsystem.shootNote(0));
   }
 
 
