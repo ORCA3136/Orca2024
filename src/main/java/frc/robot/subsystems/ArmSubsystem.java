@@ -45,23 +45,20 @@ public class ArmSubsystem extends SubsystemBase {
   boolean shootNoteInUse = false;
   boolean useTrigger = false;
 
-  double kS = 0;
+  double kS = 0.0;
   double kG = 0.0175;
-  double kV = 3.61;
-  double kA = 0.04;
+  double kV = 0.0; // 3.61
+  double kA = 0.0; // 0.04
 
   double kP = Constants.ArmPIDConstants.armkP;
-  double kI = Constants.ArmPIDConstants.armkI;
   double kD = Constants.ArmPIDConstants.armkD;
 
   SparkPIDController pidController;
 
   double feedforward = 0;
-  double feedForward = 0;
   double setpoint = -1;
-  double previousSetpoint = -1;
 
-  double setpoint2 = 3;
+  double tempSetpoint = -1;
 
   public ArmSubsystem(RobotContainer robot) {
 
@@ -69,7 +66,6 @@ public class ArmSubsystem extends SubsystemBase {
 
     SmartDashboard.putNumber("kG", kG);
     SmartDashboard.putNumber("kP", kP);
-    SmartDashboard.putNumber("kI", kI);
     SmartDashboard.putNumber("kD", kD);
 
     //Left arm spark has absolute encoder
@@ -93,7 +89,7 @@ public class ArmSubsystem extends SubsystemBase {
 
     pidController = m_LeftArm.getPIDController();
     pidController.setP(kP);
-    pidController.setI(kI);
+    pidController.setI(0);
     pidController.setD(kD);
 
     pidController.setPositionPIDWrappingEnabled(true);
@@ -104,6 +100,14 @@ public class ArmSubsystem extends SubsystemBase {
     encoder.setPositionConversionFactor(360);
     pidController.setFeedbackDevice(encoder);
 
+    // Create a new ArmFeedforward with gains kS, kG, kV, and kA
+    ArmFeedforward armFeedforward = new ArmFeedforward(kS, kG, kV, kA);
+
+    // Calculates the feedforward for a position of 1 units, a velocity of 2 units/second, and
+    // an acceleration of 3 units/second^2
+    // Units are determined by the units of the gains passed in at construction.
+    armFeedforward.calculate(1, 2, 3);
+
   }
 
   @Override
@@ -111,6 +115,8 @@ public class ArmSubsystem extends SubsystemBase {
     // This method will be called once per scheduler run
     NetworkTableInstance.getDefault().getTable("Arm").getEntry("AbsoluteEncoderPosition").setDouble(getDistance());
     NetworkTableInstance.getDefault().getTable("Arm").getEntry("TargetSetpoint").setDouble(setpoint);
+    NetworkTableInstance.getDefault().getTable("Arm").getEntry("TempTargetSetpoint").setDouble(tempSetpoint);
+    NetworkTableInstance.getDefault().getTable("Arm").getEntry("MotorVelocity").setDouble(encoder.getVelocity());
 
     // 2.5 Floor Pickup
     // 29 Under Stage
@@ -120,40 +126,38 @@ public class ArmSubsystem extends SubsystemBase {
 
 
     kG = SmartDashboard.getNumber("kG", kG);
-    feedForward = kG * Math.cos((getDistance() + 5) * (Math.PI/180));
+    kV = SmartDashboard.getNumber("kV", kV);
 
 
-    if (kP != SmartDashboard.getNumber("kP", kP) || kI != SmartDashboard.getNumber("kI", kI) || kD != SmartDashboard.getNumber("kD", kD)) {
+    if (kP != SmartDashboard.getNumber("kP", kP) || kD != SmartDashboard.getNumber("kD", kD)) {
       kP = SmartDashboard.getNumber("kP", kP);
-      kI = SmartDashboard.getNumber("kI", kI);
       kD = SmartDashboard.getNumber("kD", kD);
       pidController.setP(kP);
-      pidController.setI(kI);
       pidController.setD(kD);
     }
     if (setpoint == -1) setpoint = -1;
-    else if (setpoint < 1) setpoint = 1;
-    else if (setpoint > 100) setpoint = 100;
+    else if (setpoint < 1) { setpoint = 1; tempSetpoint = 1; } 
+    else if (setpoint > 100) { setpoint = 100; tempSetpoint = 1; } 
 
     // Horizontal angle 5
     // Vertical angle 95
     if (setpoint != -1) {
-      if (setpoint != previousSetpoint) {
 
-        // P increases when setpoint is low
-        double p = kP * 0.4 + kP * 0.6 * Math.abs(Math.cos((getDistance() + 5) * (Math.PI/180)));
-        // P increases when going up
-        if (setpoint > previousSetpoint) p += kP * 0.2;
-        // P decreases when difference in setpoints is large
-        double j = Math.abs(setpoint - previousSetpoint);
-        if (j > 60 && setpoint > 50) p *= 0.5;
-        else if (j > 30) p *= 0.8;
-        pidController.setP(p);
 
-        feedforward = kG * ((getDistance() + 5) * (Math.PI/180));
-        pidController.setReference(setpoint, ControlType.kPosition, 0, feedForward);
-        previousSetpoint = setpoint;
-      }
+      if (getError() < 5 && encoder.getVelocity() < 0.002) tempSetpoint = tempSetpoint + 0.05*(setpoint - getDistance());
+
+      // P increases when setpoint is low
+      double p = kP * 0.3 + kP * 0.6 * Math.abs(Math.cos((getDistance() + 5) * (Math.PI/180)));
+      // P increases when going up
+      if (setpoint > getDistance()) p += kP * 0.2;
+      // P decreases when difference in setpoints is large
+      double diff = Math.abs(setpoint - getDistance());
+      if (diff > 60) p *= 0.5;
+      else if (diff > 30) p *= 0.8;
+      pidController.setP(p);
+
+      feedforward = kG * ((getDistance() + 5) * (Math.PI/180));
+      pidController.setReference(tempSetpoint, ControlType.kPosition, 0, feedforward);
       NetworkTableInstance.getDefault().getTable("Arm").getEntry("PIDWorking?").setString("True" + RobotController.getFPGATime());
     }
     else {
@@ -170,12 +174,14 @@ public class ArmSubsystem extends SubsystemBase {
   public Command SetPIDPosition(double setpoint) {
     return runOnce(() -> { 
       this.setpoint = setpoint; 
+      tempSetpoint = setpoint;
     });
   }
 
   public Command SetPIDNOTNOTSensor(SensorSubsystem sensor) {
     return runOnce(() -> { 
-      this.setpoint = sensor.angleMap; 
+      this.setpoint = sensor.angleMap;
+      tempSetpoint = setpoint;
     });
   }
 
@@ -189,6 +195,11 @@ public class ArmSubsystem extends SubsystemBase {
   public double getDistance()
   {
     return encoder.getPosition();
+  }
+
+  public double getError() 
+  {
+    return Math.abs(setpoint - getDistance());
   }
 
   public double getTargetPosition() {
@@ -214,19 +225,7 @@ public class ArmSubsystem extends SubsystemBase {
   public Command RunkG() {
     return runOnce(() -> {
       setpoint = -1;
-      m_LeftArm.set(feedForward);
-    });
-  }
-
-  public Command IncreaseSetpoint2(int change) {
-    return runOnce(() -> {
-      setpoint2 += change;
-    });
-  }
-
-  public Command SetSetpoint2() {
-    return runOnce(() -> {
-      setpoint = setpoint2;
+      m_LeftArm.set(feedforward);
     });
   }
 }
