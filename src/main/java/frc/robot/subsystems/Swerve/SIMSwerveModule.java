@@ -7,6 +7,8 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.ModuleConstants;
 
 public class SIMSwerveModule implements SwerveModuleIO {
 
@@ -18,10 +20,10 @@ public class SIMSwerveModule implements SwerveModuleIO {
     double DriveConversionFactor = 1/(6.12/ ((Units.inchesToMeters(4) * Math.PI) ));
 
     public SIMSwerveModule() {
-        m_driveMotor = new DCMotorSim(DCMotor.getKrakenX60(1), 6.12, 0.04);
-        m_turningMotor = new DCMotorSim(DCMotor.getFalcon500(1), 6.12, 0.04);
-        m_drivePIDController = new PIDController(10, 0, 0);
-        m_turningPIDController = new PIDController(1, 0, 0);
+        m_driveMotor = new DCMotorSim(DCMotor.getNEO(1), ModuleConstants.kDrivingMotorReduction, 0.04);
+        m_turningMotor = new DCMotorSim(DCMotor.getNeo550(1), 46.42, 0.04);
+        m_drivePIDController = new PIDController(ModuleConstants.kDrivingP, ModuleConstants.kDrivingI, ModuleConstants.kDrivingD);
+        m_turningPIDController = new PIDController(ModuleConstants.kTurningP, ModuleConstants.kTurningI, ModuleConstants.kTurningD);
         m_turningPIDController.enableContinuousInput(-Math.PI, Math.PI);
     }
 
