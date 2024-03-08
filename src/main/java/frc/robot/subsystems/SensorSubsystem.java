@@ -42,6 +42,7 @@ public class SensorSubsystem extends SubsystemBase {
   private Pose2d robotPose2d;
   //private DriverStation.Alliance alliance = DriverStation.getAlliance().get();
   private boolean output0;
+  private boolean output1;
   private boolean[] sensorValues;
   private DriveSubsystem robotDrive;
 
@@ -69,9 +70,10 @@ public class SensorSubsystem extends SubsystemBase {
   /** Creates a new SensorSubsystem. */
   public SensorSubsystem(DriveSubsystem drive) {
     DIO_0 = new DigitalInput(0);
+    DIO_1 = new DigitalInput(1);
     robotDrive = drive;
 
-    sensorValues = new boolean[1];
+    sensorValues = new boolean[2];
 
     shooterSpeedMap.put(Double.valueOf(1.27), Double.valueOf(2600.0));
     shooterSpeedMap.put(Double.valueOf(1.88), Double.valueOf(2850.0));
@@ -97,6 +99,10 @@ public class SensorSubsystem extends SubsystemBase {
     output0 = DIO_0.get();
     sensorValues[0] = output0;
     NetworkTableInstance.getDefault().getTable("Sensors").getEntry("DIO_0").setBoolean(output0);
+
+    output1 = DIO_1.get();
+    sensorValues[1] = output1;
+    NetworkTableInstance.getDefault().getTable("Sensors").getEntry("DIO_1").setBoolean(output1);
     
     if (LimelightHelpers.getTV("limelight-april")) {
       robotDrive.visionPose(LimelightHelpers.getBotPose2d("limelight-april"), Timer.getFPGATimestamp());

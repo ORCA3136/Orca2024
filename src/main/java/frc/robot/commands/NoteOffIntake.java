@@ -5,7 +5,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.SensorSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
@@ -16,7 +15,9 @@ public class NoteOffIntake extends Command {
   IntakeSubsystem m_IntakeSubsystem;
   ShooterSubsystem m_ShooterSubsystem;
   SensorSubsystem m_SensorSubsystem;
+
   boolean m_IntakeSensorValue = true;
+  boolean m_IntakeSideSensorValue = true;
   boolean finished = false;
   boolean finishedIntake = false;
 
@@ -33,6 +34,7 @@ public class NoteOffIntake extends Command {
   public void initialize() {
 
     m_IntakeSensorValue = m_SensorSubsystem.getIntakeSensor(0);
+    m_IntakeSideSensorValue = m_SensorSubsystem.getIntakeSensor(1);
     m_ShooterSubsystem.setShootSpeed(-600);
     m_IntakeSubsystem.RunIntake(-0.1);
 
@@ -43,9 +45,15 @@ public class NoteOffIntake extends Command {
   public void execute() {
 
     m_IntakeSensorValue = m_SensorSubsystem.getIntakeSensor(0);
+    m_IntakeSideSensorValue = m_SensorSubsystem.getIntakeSensor(1);
 
     if (!m_IntakeSensorValue) {
       end(false);
+    }
+
+    if (!m_IntakeSideSensorValue) {
+        m_ShooterSubsystem.setShootSpeed(0);
+        m_IntakeSubsystem.RunIntake(0.1);
     }
   }
 

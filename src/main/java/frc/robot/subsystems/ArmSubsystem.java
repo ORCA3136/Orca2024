@@ -27,7 +27,6 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import frc.robot.Constants.CurrentConstants;
-import frc.robot.commands.ArmPID;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 
@@ -145,6 +144,10 @@ public class ArmSubsystem extends SubsystemBase {
 
 
       if (getError() < 5 && encoder.getVelocity() < 0.002) tempSetpoint = tempSetpoint + 0.05*(setpoint - getDistance());
+
+      if (getError() > 5) tempSetpoint = setpoint;
+
+      if (Math.abs(tempSetpoint - setpoint) > 7) tempSetpoint = setpoint;
 
       // P increases when setpoint is low
       double p = kP * 0.3 + kP * 0.6 * Math.abs(Math.cos((getDistance() + 5) * (Math.PI/180)));

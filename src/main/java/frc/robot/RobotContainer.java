@@ -40,8 +40,9 @@ import frc.robot.commands.FollowPathCommand;
 import frc.robot.commands.PathfindThenFollowPathCommand;
 import frc.robot.commands.ZeroHeading;
 import frc.robot.commands.NoteOffIntake;
+import frc.robot.commands.NoteOffIntake;
 import frc.robot.commands.ShootSpeaker;
-import frc.robot.commands.VerticalCentering;
+import frc.robot.commands.SpeakerCentering;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.SensorSubsystem;
@@ -376,15 +377,29 @@ public class RobotContainer {
   private void configureButtonBindings() {
     
     //Main buttons
-    new JoystickButton(m_driverController, 1).whileTrue(RunIntakeCommand(1));
-    new JoystickButton(m_driverController, 2).whileTrue(RunIntakeCommand(-0.3));
+
+    // Maybe auto sensing note for off fly subroutine
+    new JoystickButton(m_driverController, 1).whileTrue(RunIntakeCommand(1)).onFalse(new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(1.5));
+    // Add in slow flywheel speed
+    new JoystickButton(m_driverController, 2).whileTrue(new ParallelCommandGroup(RunIntakeCommand(-0.3), m_ShooterSubsystem.shootNote(Constants.ShooterConstants.reverse))).onFalse(m_ShooterSubsystem.shootNote(0));
+
+    // Unused - besides climb
     new JoystickButton(m_driverController, 3).onTrue(m_ArmSubsystem.RunArm(0.5)).onFalse(m_ArmSubsystem.RunArm(0));
     new JoystickButton(m_driverController, 4).onTrue(m_ArmSubsystem.RunArm(-0.3)).onFalse(m_ArmSubsystem.RunArm(0));
-    new JoystickButton(m_driverController, 5).onTrue(m_ShooterSubsystem.shootNote(Constants.ShooterConstants.reverse)).onFalse(m_ShooterSubsystem.shootNote(0));
+
+    // Go to 2
+    // new JoystickButton(m_driverController, 5).onTrue(m_ShooterSubsystem.shootNote(Constants.ShooterConstants.reverse)).onFalse(m_ShooterSubsystem.shootNote(0));
+    // Manual shoot
     new JoystickButton(m_driverController, 6).onTrue(m_ShooterSubsystem.shootNote(5500)).onFalse(m_ShooterSubsystem.shootNote(0));
+
+    // Maybe front climb routine
     new JoystickButton(m_driverController, 7).onTrue(m_ClimberSubsystem.RunClimber(1)).onFalse(m_ClimberSubsystem.RunClimber(0));
+    // Maybe back/harmony climb routine
     new JoystickButton(m_driverController, 8).onTrue(m_ClimberSubsystem.RunClimber(-1)).onFalse(m_ClimberSubsystem.RunClimber(0));
+    
     new JoystickButton(m_driverController, 10).whileTrue(ZeroHeading());
+
+    //---------------------------------------------------------------------------------------------------------------------------------
 
     m_secondaryController.button(1).onTrue(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem)).onFalse(m_robotDrive.regularDrive(m_driverController));
     //m_secondaryController.button(2).onTrue();
@@ -396,7 +411,7 @@ public class RobotContainer {
     m_secondaryController.button(7).onTrue(m_ClimberSubsystem.ResetEncoders());
     // m_secondaryController.button(8).onTrue();
 
-    m_secondaryController.button(9).onTrue(m_ArmSubsystem.SetPIDPosition(3));
+    m_secondaryController.button(9).onTrue(m_ArmSubsystem.SetPIDPosition(2));
     m_secondaryController.button(10).onTrue(m_ArmSubsystem.SetPIDPosition(25));
     m_secondaryController.button(11).onTrue(m_ArmSubsystem.SetPIDPosition(70));
     m_secondaryController.button(12).onTrue(m_ArmSubsystem.SetPIDPosition(90));
@@ -423,7 +438,8 @@ public class RobotContainer {
     };
     Trigger RightTrigger = new Trigger(RightTriggerSupplier);
 
-    RightTrigger.onTrue(m_ShooterSubsystem.shootNote(5500)).onFalse(m_ShooterSubsystem.shootNote(0));
+    // Change to shoot routine
+    RightTrigger.whileTrue(m_ShooterSubsystem.shootNote(0));
   }
 
 
