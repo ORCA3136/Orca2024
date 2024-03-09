@@ -26,7 +26,11 @@ public class ShooterSubsystem extends SubsystemBase {
 
   private double setPoint = 0;
 
-  public ShooterSubsystem() {
+  SensorSubsystem sensorSubsystem;
+
+  public ShooterSubsystem(SensorSubsystem sensor) {
+
+    sensorSubsystem = sensor;
 
     m_ShooterRight = new CANSparkMax(Constants.DriveConstants.kShooterRightCanId, MotorType.kBrushless);
     //m_ShooterRight.restoreFactoryDefaults();
@@ -75,12 +79,19 @@ public class ShooterSubsystem extends SubsystemBase {
     leftPid.setReference(setPoint, ControlType.kVelocity);
     rightPid.setReference(setPoint, ControlType.kVelocity);
 
-    /*leftMotorPid.setReference(
-            target, 
-            CANSparkMax.ControlType.kPosition,
-            0, 
-            armFF 
-        );*/
+    if (sensorSubsystem.onSide()) {
+      if (setPoint == 0 && !sensorSubsystem.getIntakeSensor(0)) {
+        setNewTarget(1100);
+      }
+      if (setPoint == 1100 && sensorSubsystem.getIntakeSensor(0)) {
+        setNewTarget(0);
+      }
+    }
+    else {
+      if (setPoint == 1100) {
+        setNewTarget(0);
+      }
+    }
 
     NetworkTableInstance.getDefault().getTable("Shooter").getEntry("RPM").setDouble(getSpeed());
     NetworkTableInstance.getDefault().getTable("Shooter").getEntry("Target RPM").setDouble(setPoint);

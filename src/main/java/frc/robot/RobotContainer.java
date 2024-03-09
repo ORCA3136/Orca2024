@@ -36,8 +36,6 @@ import frc.robot.commands.NOTNOTNoteSuck;
 import frc.robot.commands.RunIntakeCommand;
 import frc.robot.commands.RunArmCommand;
 import frc.robot.commands.SetSwerveXCommand;
-import frc.robot.commands.FollowPathCommand;
-import frc.robot.commands.PathfindThenFollowPathCommand;
 import frc.robot.commands.ZeroHeading;
 import frc.robot.commands.NoteOffIntake;
 import frc.robot.commands.NoteOffIntake;
@@ -76,10 +74,11 @@ import edu.wpi.first.wpilibj.RobotController;
 public class RobotContainer {
   // The robot's subsystems
   private final DriveSubsystem m_robotDrive = new DriveSubsystem();
-  private final IntakeSubsystem m_IntakeSubsystem = new IntakeSubsystem();
-  private final ShooterSubsystem m_ShooterSubsystem = new ShooterSubsystem();
-  private final ArmSubsystem m_ArmSubsystem = new ArmSubsystem(this);
   private final SensorSubsystem m_SensorSubsystem = new SensorSubsystem(m_robotDrive);
+
+  private final IntakeSubsystem m_IntakeSubsystem = new IntakeSubsystem();
+  private final ShooterSubsystem m_ShooterSubsystem = new ShooterSubsystem(m_SensorSubsystem);
+  private final ArmSubsystem m_ArmSubsystem = new ArmSubsystem(this);
   private final ClimberSubsystem m_ClimberSubsystem = new ClimberSubsystem();
   private final Trajectories m_trajectories = new Trajectories(m_robotDrive);
   private final SendableChooser<Command> autoChooser;
@@ -379,9 +378,9 @@ public class RobotContainer {
     //Main buttons
 
     // Maybe auto sensing note for off fly subroutine
-    new JoystickButton(m_driverController, 1).whileTrue(RunIntakeCommand(1)).onFalse(new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(1.5));
+    new JoystickButton(m_driverController, 1).whileTrue(new RunIntakeCommand(1, m_IntakeSubsystem)).onFalse(new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(1.5));
     // Add in slow flywheel speed
-    new JoystickButton(m_driverController, 2).whileTrue(new ParallelCommandGroup(RunIntakeCommand(-0.3), m_ShooterSubsystem.shootNote(Constants.ShooterConstants.reverse))).onFalse(m_ShooterSubsystem.shootNote(0));
+    new JoystickButton(m_driverController, 2).whileTrue(new ParallelCommandGroup(new RunIntakeCommand(-0.3, m_IntakeSubsystem), m_ShooterSubsystem.shootNote(Constants.ShooterConstants.reverse))).onFalse(m_ShooterSubsystem.shootNote(0));
 
     // Unused - besides climb
     new JoystickButton(m_driverController, 3).onTrue(m_ArmSubsystem.RunArm(0.5)).onFalse(m_ArmSubsystem.RunArm(0));
@@ -397,7 +396,7 @@ public class RobotContainer {
     // Maybe back/harmony climb routine
     new JoystickButton(m_driverController, 8).onTrue(m_ClimberSubsystem.RunClimber(-1)).onFalse(m_ClimberSubsystem.RunClimber(0));
     
-    new JoystickButton(m_driverController, 10).whileTrue(ZeroHeading());
+    new JoystickButton(m_driverController, 10).whileTrue(new ZeroHeading(m_robotDrive));
 
     //---------------------------------------------------------------------------------------------------------------------------------
 
@@ -406,7 +405,7 @@ public class RobotContainer {
     m_secondaryController.button(3).onTrue(new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(1.5));
     //m_secondaryController.button(4).onTrue(new ShootSpeaker(m_ShooterSubsystem, m_IntakeSubsystem, 4000).withTimeout(3.5));
 
-    m_secondaryController.button(5).onTrue(m_ArmSubsystem.SetPIDNOTNOTSensor(m_SensorSubsystem));
+    m_secondaryController.button(5).onTrue(m_ArmSubsystem.SetPIDSensor(m_SensorSubsystem));
     // m_secondaryController.button(6).onTrue(Commands.waitSeconds(0.5).andThen(RunIntakeCommand(0.3)));
     m_secondaryController.button(7).onTrue(m_ClimberSubsystem.ResetEncoders());
     // m_secondaryController.button(8).onTrue();
@@ -427,7 +426,7 @@ public class RobotContainer {
     };
     Trigger LeftTrigger = new Trigger(LeftTriggerSupplier);
 
-    LeftTrigger.whileTrue(NOTNOTNoteSuck());
+    LeftTrigger.whileTrue(new NOTNOTNoteSuck(m_robotDrive));
 
     BooleanSupplier RightTriggerSupplier = new BooleanSupplier() {
       @Override
@@ -439,7 +438,7 @@ public class RobotContainer {
     Trigger RightTrigger = new Trigger(RightTriggerSupplier);
 
     // Change to shoot routine
-    RightTrigger.whileTrue(m_ShooterSubsystem.shootNote(0));
+    RightTrigger.whileTrue(new SpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_robotDrive, m_IntakeSubsystem, m_driverController));
   }
 
 
@@ -462,26 +461,6 @@ public class RobotContainer {
 
   public final double getLeftTrigger() {
     return m_driverController.getLeftTriggerAxis();
-  }
-
-
-  //private commands
-  private final RunIntakeCommand RunIntakeCommand(double speed) {
-
-    return new RunIntakeCommand(speed, m_IntakeSubsystem);
-
-  }
-
-  private final NOTNOTNoteSuck NOTNOTNoteSuck() {
-
-    return new NOTNOTNoteSuck(m_robotDrive);
-
-  }
-
-  private final ZeroHeading ZeroHeading() {
-
-    return new ZeroHeading(m_robotDrive);
-
   }
 
   private Command GenerateTrajectoryCommand(Trajectory trajectory) {
@@ -522,3 +501,15 @@ public class RobotContainer {
 
   // }
 }
+
+
+/**
+ * How well does coral identify notes?
+ * Do trajectories work well with timeouts?
+ * Triple note autos - Middle + left, Middle + right
+ * Maybe auto that picks up mid notes
+ * Climb sequences
+ * Test auto shooting - works
+ * 
+ * Find a wait command for commands
+ */

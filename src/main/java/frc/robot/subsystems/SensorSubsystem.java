@@ -83,9 +83,6 @@ public class SensorSubsystem extends SubsystemBase {
     shooterAngleMap.put(Double.valueOf(1.88), Double.valueOf(7.0));
     shooterAngleMap.put(Double.valueOf(2.35), Double.valueOf(10.0));
 
-    DataLogManager.log("ShooterAngleMap: "+shooterAngleMap.get(Double.valueOf(2)));
-    DataLogManager.log("ShooterSpeedMap: "+shooterSpeedMap.get(Double.valueOf(2)));
-
     // 1.27m  2600rpm 0deg
     // 1.88m  2850rpm 7deg
     // 3400 8.5
@@ -111,8 +108,13 @@ public class SensorSubsystem extends SubsystemBase {
     pose = robotDrive.getPose();
     angle = pose.getRotation().getDegrees();
 
-    red = false;
-    if (pose.getX() > 0) red = true;
+    if (DriverStation.isFMSAttached()) {
+      if (DriverStation.getAlliance().isPresent()) {
+        red = DriverStation.getAlliance().get() == DriverStation.Alliance.Red;
+      }
+    }
+    else if (pose.getX() > 0) red = true;
+    else red = false;
 
     if (red) {
       if (angle > 0) angle -= 180;
@@ -132,7 +134,7 @@ public class SensorSubsystem extends SubsystemBase {
     angleToSpeaker = Math.atan2(yDistance, xDistance) * (180/Math.PI);
 
     speedMap = shooterSpeedMap.get(distanceToSpeaker) + 2000;
-    angleMap = shooterAngleMap.get(Double.valueOf(distanceToSpeaker)) + 1.5;
+    angleMap = shooterAngleMap.get(Double.valueOf(distanceToSpeaker));
 
     NetworkTableInstance.getDefault().getTable("Centering").getEntry("xDistance").setDouble(xDistance);
     NetworkTableInstance.getDefault().getTable("Centering").getEntry("yDistance").setDouble(yDistance);
@@ -154,6 +156,8 @@ public class SensorSubsystem extends SubsystemBase {
 
   public boolean getIntakeSensor(int sensorNum) {
 
+    // DIO 0 inverted
+
     if (sensorNum > -1 && sensorNum < sensorValues.length) 
       return sensorValues[sensorNum];
 
@@ -165,11 +169,23 @@ public class SensorSubsystem extends SubsystemBase {
     double rotation = (angle - angleToSpeaker) * (0.02);
     if (red) rotation *= -1;
 
-    if (rotation > 0.4) rotation = 0.4;
-    if (rotation < -0.4) rotation = -0.4;
+    if (rotation > 0.25) rotation = 0.25;
+    if (rotation < -0.25) rotation = -0.25;
+
 
     NetworkTableInstance.getDefault().getTable("Centering").getEntry("Rotation").setDouble(rotation);
 
     return rotation;
+  }
+
+  public boolean onSide() {
+    
+    if (red && pose.getX() > 1) return true;
+    else if (!red && pose.getX() < -1) return true;
+    return false;
+  }
+
+  public boolean inRange() {
+    return distanceToSpeaker < 2.5;
   }
 }

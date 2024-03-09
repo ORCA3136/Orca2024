@@ -18,6 +18,7 @@ import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
@@ -43,6 +44,7 @@ public class ArmSubsystem extends SubsystemBase {
   double targetPosition;
   boolean shootNoteInUse = false;
   boolean useTrigger = false;
+  boolean autoCentering = false;
 
   double kS = 0.0;
   double kG = 0.0175;
@@ -135,28 +137,31 @@ public class ArmSubsystem extends SubsystemBase {
       pidController.setD(kD);
     }
     if (setpoint == -1) setpoint = -1;
-    else if (setpoint < 1) { setpoint = 1; tempSetpoint = 1; } 
-    else if (setpoint > 100) { setpoint = 100; tempSetpoint = 1; } 
+    else if (setpoint < 1) { setpoint = 1; tempSetpoint = 2; } 
+    else if (setpoint > 100) { setpoint = 100; tempSetpoint = 100; } 
 
     // Horizontal angle 5
     // Vertical angle 95
     if (setpoint != -1) {
 
+      if (DriverStation.isEnabled()) {
+        if (getDistance() - setpoint > -4 && getDistance() - setpoint < 2 && encoder.getVelocity() < 0.05) tempSetpoint = tempSetpoint + 0.03 * (setpoint - getDistance());
+      }
+      
+      if (getDistance() - setpoint < -4 || getDistance() - setpoint > 2) tempSetpoint = setpoint + 1.5;
 
-      if (getError() < 5 && encoder.getVelocity() < 0.002) tempSetpoint = tempSetpoint + 0.05*(setpoint - getDistance());
-
-      if (getError() > 5) tempSetpoint = setpoint;
-
-      if (Math.abs(tempSetpoint - setpoint) > 7) tempSetpoint = setpoint;
+      if (Math.abs(tempSetpoint - setpoint) > 7) tempSetpoint = setpoint + 1;
 
       // P increases when setpoint is low
-      double p = kP * 0.3 + kP * 0.6 * Math.abs(Math.cos((getDistance() + 5) * (Math.PI/180)));
+      double p = kP * 0.4 + kP * 0.5 * Math.abs(Math.cos((getDistance() + 5) * (Math.PI/180)));
       // P increases when going up
       if (setpoint > getDistance()) p += kP * 0.2;
       // P decreases when difference in setpoints is large
       double diff = Math.abs(setpoint - getDistance());
       if (diff > 60) p *= 0.5;
       else if (diff > 30) p *= 0.8;
+      else if (diff < 10) p *= 1.2;
+      else if (diff < 5) p *= 1.5;
       pidController.setP(p);
 
       feedforward = kG * ((getDistance() + 5) * (Math.PI/180));
@@ -177,15 +182,30 @@ public class ArmSubsystem extends SubsystemBase {
   public Command SetPIDPosition(double setpoint) {
     return runOnce(() -> { 
       this.setpoint = setpoint; 
-      tempSetpoint = setpoint;
+      tempSetpoint = setpoint + 1;
     });
   }
 
-  public Command SetPIDNOTNOTSensor(SensorSubsystem sensor) {
+  public void SetPositionPID(double setpoint) {
+    this.setpoint = setpoint; 
+    tempSetpoint = setpoint + 1;
+  }
+
+  public Command SetPIDSensor(SensorSubsystem sensor) {
     return runOnce(() -> { 
+
+      double difference = sensor.angleMap - setpoint;
       this.setpoint = sensor.angleMap;
-      tempSetpoint = setpoint;
+      tempSetpoint += difference;
+
+      if (Math.abs(difference) > 2) tempSetpoint = sensor.angleMap + 1.5;
+
     });
+  }
+
+  public void SetSensorPID(SensorSubsystem sensor) {
+    if (Math.abs(setpoint - sensor.angleMap) > 2) tempSetpoint = sensor.angleMap + 1;
+    this.setpoint = sensor.angleMap;
   }
 
   public Command RunArm(double speed) {
@@ -207,22 +227,6 @@ public class ArmSubsystem extends SubsystemBase {
 
   public double getTargetPosition() {
     return 0.0;
-  }
-
-  public boolean checkUserButton() {
-    return false;
-    //RobotController.getUserButton();
-  }
-
-  public void setArmModeWhileDisabled() {
-
-
-    m_LeftArm.setIdleMode(IdleMode.kCoast);
-    m_RightArm.setIdleMode(IdleMode.kCoast);
-
-
-    m_LeftArm.setIdleMode(IdleMode.kBrake);
-    m_RightArm.setIdleMode(IdleMode.kBrake);
   }
 
   public Command RunkG() {

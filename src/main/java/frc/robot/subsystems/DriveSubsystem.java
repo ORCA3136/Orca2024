@@ -29,22 +29,10 @@ import frc.robot.LimelightHelpers;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.Constants.PathPlanningConstants;
-import frc.robot.commands.FollowPathCommand;
 import frc.utils.SwerveUtils;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.commands.FollowPathHolonomic;
-import com.pathplanner.lib.commands.FollowPathWithEvents;
-import com.pathplanner.lib.commands.PathfindingCommand;
-import com.pathplanner.lib.path.GoalEndState;
-import com.pathplanner.lib.path.PathConstraints;
-import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
-import com.pathplanner.lib.util.PIDConstants;
-import com.pathplanner.lib.util.ReplanningConfig;
 
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain;
 
@@ -110,7 +98,7 @@ public class DriveSubsystem extends SubsystemBase {
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
-    configureAutoBuilder();
+    
   }
 
   @Override
@@ -323,80 +311,8 @@ public class DriveSubsystem extends SubsystemBase {
     return m_gyro.getRate() * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
   }
 
-  // Configure Pathplanner
-  public void configureAutoBuilder() {
-    AutoBuilder.configureHolonomic(
-      this::getPose,
-      this::resetOdometry,
-      this::getRobotRelativeSpeeds,
-      this::driveRobotRelative,
-      Constants.PathPlanningConstants.HoloConfig,
-      () -> {
-        var alliance = DriverStation.getAlliance();
-        if (alliance.isPresent()) {
-            return alliance.get() == DriverStation.Alliance.Red;
-        }
-        return false;
-      },
-      this
-    );
-  }
 
 
-
-  // May or may not work with inverted gyro
-  public void followPathCommand(String pathName) {
-    DataLogManager.log(">>followPathCommand");
-    DataLogManager.log("PATHNAME:"+pathName);
-    //PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
-
-    //return AutoBuilder.followPath(path);
-
-    Pose2d currentPose = getPose();
-    DataLogManager.log("CURRENT POSE:"+currentPose);
-
-    // The rotation component in these poses represents the direction of travel
-    Pose2d startPos = new Pose2d(currentPose.getTranslation(), currentPose.getRotation().plus(new Rotation2d(0)));
-    DataLogManager.log("START POSE:"+startPos);
-
-    Pose2d endPos = new Pose2d(currentPose.getTranslation().plus(new Translation2d(2.0, 0.0)), currentPose.getRotation().plus(new Rotation2d(0)));
-    DataLogManager.log("END POSE:"+endPos);
-
-    List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(startPos, endPos);
-    PathPlannerPath path = new PathPlannerPath(
-      bezierPoints, 
-      Constants.PathPlanningConstants.slowConstraints,  
-      new GoalEndState(0.0, currentPose.getRotation())
-    );
-
-    // Prevent this path from being flipped on the red alliance, since the given positions are already correct
-    path.preventFlipping = true;
-
-    AutoBuilder.followPath(path).schedule();
-    DataLogManager.log("<<followPathCommand");
-
-  }
-
-  public Command followPathCommand2(String pathName) {
-    DataLogManager.log(">>followPathCommand2");
-
-    PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
-
-    //resetOdometry(new Pose2d(new Translation2d(2.38, 4.99), this.getPose().getRotation()));
-    DataLogManager.log("<<followPathCommand2");
-
-    return AutoBuilder.followPath(path);
-  }
-
-  public Command pathfindThenFollowPathCommand(String pathName) {
-    DataLogManager.log(">>pathfindThenFollowPathCommand");
-    PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
-    DataLogManager.log("<<pathfindThenFollowPathCommand");
-    return AutoBuilder.pathfindThenFollowPath(path,
-        Constants.PathPlanningConstants.slowConstraints,
-        0.25 // Distance before attempting to rotate
-        );
-  }
 
   public Command speakerCentering(XboxController xboxController, SensorSubsystem sensor) {
     return runOnce(() -> this.setDefaultCommand(
@@ -407,6 +323,17 @@ public class DriveSubsystem extends SubsystemBase {
               -MathUtil.applyDeadband(sensor.SpeakerRotation(), OIConstants.kCenteringDeadband),
               true, true),
             this)));
+  }
+
+  public void speakerCenteringTele(XboxController xboxController, SensorSubsystem sensor) {
+    this.setDefaultCommand(
+      new RunCommand(
+          () -> this.drive(
+              -MathUtil.applyDeadband(xboxController.getLeftY(), OIConstants.kDriveDeadband),
+              -MathUtil.applyDeadband(xboxController.getLeftX(), OIConstants.kDriveDeadband),
+              -MathUtil.applyDeadband(sensor.SpeakerRotation(), OIConstants.kCenteringDeadband),
+              true, true),
+            this));
   }
 
   public Command regularDrive(XboxController xboxController) {
@@ -420,6 +347,17 @@ public class DriveSubsystem extends SubsystemBase {
           this)));
   }
 
+  public void regularDriveTele(XboxController xboxController) {
+    this.setDefaultCommand(
+      new RunCommand(
+          () -> this.drive(
+              -MathUtil.applyDeadband(xboxController.getLeftY(), OIConstants.kDriveDeadband),
+              -MathUtil.applyDeadband(xboxController.getLeftX(), OIConstants.kDriveDeadband),
+              -MathUtil.applyDeadband(xboxController.getRightX(), OIConstants.kDriveDeadband),
+              true, true),
+          this));
+  }
+
   public Command autoSpeakerCentering(SensorSubsystem sensor) {
     return new RunCommand(
           () -> this.drive(
@@ -428,5 +366,9 @@ public class DriveSubsystem extends SubsystemBase {
               -MathUtil.applyDeadband(sensor.SpeakerRotation() * 0.1, OIConstants.kCenteringDeadband),
               true, true),
             this);
+  }
+
+  public boolean stopped() {
+    return getRobotRelativeSpeeds().vxMetersPerSecond < 0.1;
   }
 }
