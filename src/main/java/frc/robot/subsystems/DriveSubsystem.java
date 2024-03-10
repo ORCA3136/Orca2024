@@ -363,7 +363,7 @@ public class DriveSubsystem extends SubsystemBase {
           () -> this.drive(
               -MathUtil.applyDeadband(0, OIConstants.kDriveDeadband),
               -MathUtil.applyDeadband(0, OIConstants.kDriveDeadband),
-              -MathUtil.applyDeadband(sensor.SpeakerRotation() * 0.1, OIConstants.kCenteringDeadband),
+              -MathUtil.applyDeadband(sensor.SpeakerRotation(), OIConstants.kCenteringDeadband),
               true, true),
             this);
   }

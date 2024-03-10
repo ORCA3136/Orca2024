@@ -61,10 +61,26 @@ public class ClimberSubsystem extends SubsystemBase {
     });
   }
 
+  public void RunLeftClimber(double speed) {
+    m_ClimberRight.set(speed); m_ClimberLeft.set(speed); 
+  }
+
+  public void RunRightClimber(double speed) {
+    m_ClimberRight.set(speed); m_ClimberLeft.set(speed); 
+  }
+
   public Command ResetEncoders() {
     return runOnce(() -> {
       m_RightEncoder.setPosition(0);
       m_LeftEncoder.setPosition(0);
     });
+  }
+
+  public double getLeftPos() {
+    return m_LeftEncoder.getPosition();
+  }
+
+  public double getRightPos() {
+    return m_RightEncoder.getPosition();
   }
 }

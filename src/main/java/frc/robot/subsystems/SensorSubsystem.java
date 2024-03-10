@@ -69,6 +69,9 @@ public class SensorSubsystem extends SubsystemBase {
 
   /** Creates a new SensorSubsystem. */
   public SensorSubsystem(DriveSubsystem drive) {
+
+    LimelightHelpers.setPipelineIndex("limelight-note", 0);
+
     DIO_0 = new DigitalInput(0);
     DIO_1 = new DigitalInput(1);
     robotDrive = drive;

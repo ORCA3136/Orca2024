@@ -47,9 +47,9 @@ public class NoteOffIntake extends Command {
     m_IntakeSensorValue = m_SensorSubsystem.getIntakeSensor(0);
     m_IntakeSideSensorValue = m_SensorSubsystem.getIntakeSensor(1);
 
-    if (!m_IntakeSensorValue) {
-      end(false);
-    }
+    // if (!m_IntakeSensorValue) {
+    //   end(false);
+    // }
 
     if (!m_IntakeSideSensorValue) {
         m_ShooterSubsystem.setShootSpeed(0);
@@ -69,6 +69,6 @@ public class NoteOffIntake extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return false;
+    return !m_IntakeSensorValue;
   }
 }
