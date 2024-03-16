@@ -4,7 +4,9 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.ArmSubsystem;
@@ -12,6 +14,7 @@ import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.SensorSubsystem;
 import frc.robot.Constants;
+import frc.robot.LimelightHelpers;
 
 
 public class SpeakerCentering extends Command {
@@ -34,6 +37,7 @@ public class SpeakerCentering extends Command {
   double armPosition;
 
   boolean startedShot = false;
+  boolean finished = false;
 
   public SpeakerCentering(ShooterSubsystem ShooterSubsystem, SensorSubsystem SensorSubsystem, ArmSubsystem ArmSubsystem,
         DriveSubsystem DriveSubsystem, IntakeSubsystem IntakeSubsystem, XboxController controller) {
@@ -53,6 +57,7 @@ public class SpeakerCentering extends Command {
   public void initialize() {
 
     startedShot = false;
+    finished = false;
     // DataLogManager.log("Auto shooting - init");
 
     m_DriveSubsystem.speakerCentering(m_controller, m_SensorSubsystem).schedule();
@@ -76,11 +81,11 @@ public class SpeakerCentering extends Command {
 
     if (m_DriveSubsystem.stopped() && m_SensorSubsystem.inRange()) {
       // DataLogManager.log("Auto shooting ----- In range & stopped");
-      if (!startedShot && m_ShooterSubsystem.getSpeed() > 3800 && m_ArmSubsystem.getError() < 0.5) {
+      if (!startedShot && m_ShooterSubsystem.getSpeed() > 4000 && m_ArmSubsystem.getError() < 0.5) {
         // DataLogManager.log("Auto shooting ------------- Started shot --------");
         startedShot = true;
         m_IntakeSubsystem.RunIntake(1);
-        // Wait 0.5 seconds
+        new SequentialCommandGroup(Commands.waitSeconds(0.5), Commands.runOnce(() -> {this.finished = true;}));
       }
     }
     
@@ -101,6 +106,6 @@ public class SpeakerCentering extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return false;
+    return finished;
   }
 }

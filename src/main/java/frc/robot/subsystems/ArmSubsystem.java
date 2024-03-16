@@ -153,12 +153,12 @@ public class ArmSubsystem extends SubsystemBase {
       if (Math.abs(tempSetpoint - setpoint) > 7) tempSetpoint = setpoint + 1;
 
       // P increases when setpoint is low
-      double p = kP * 0.4 + kP * 0.5 * Math.abs(Math.cos((getDistance() + 5) * (Math.PI/180)));
+      double p = kP * 0.5 + kP * 0.4 * Math.abs(Math.cos((getDistance() + 5) * (Math.PI/180)));
       // P increases when going up
       if (setpoint > getDistance()) p += kP * 0.2;
       // P decreases when difference in setpoints is large
       double diff = Math.abs(setpoint - getDistance());
-      if (diff > 60) p *= 0.5;
+      if (diff > 60) p *= 0.6;
       else if (diff > 30) p *= 0.8;
       else if (diff < 10) p *= 1.2;
       else if (diff < 5) p *= 1.5;

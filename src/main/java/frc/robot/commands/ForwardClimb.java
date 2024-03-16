@@ -44,12 +44,12 @@ public class ForwardClimb extends Command {
     if (armPosition > armThreshold) {
 
         if (climberLeftPosition > climberHeight) {
-            m_ClimberSubsystem.RunLeftClimber(-0.3);
+            m_ClimberSubsystem.RunLeftClimber(-1);
         }
         else m_ClimberSubsystem.RunLeftClimber(0);
 
         if (climberRightPosition > climberHeight) {
-            m_ClimberSubsystem.RunRightClimber(-0.3);
+            m_ClimberSubsystem.RunRightClimber(-1);
         }
         else m_ClimberSubsystem.RunRightClimber(0);
 

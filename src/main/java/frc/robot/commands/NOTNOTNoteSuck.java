@@ -52,7 +52,7 @@ public class NOTNOTNoteSuck extends Command {
     //Positive: Target is right of cursor
     double m_tx = LimelightHelpers.getTX(limelightName);
 
-    double xSpeed = 0.4;
+    double xSpeed = 0.3;
 
     double rot = 0;
     if (m_tx < -8) {

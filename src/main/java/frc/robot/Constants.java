@@ -172,8 +172,8 @@ public final class Constants {
   }
 
   public static final class AutoConstants {
-    public static final double kMaxSpeedMetersPerSecond = 2; // 2.5
-    public static final double kMaxAccelerationMetersPerSecondSquared = 3; // 2.5
+    public static final double kMaxSpeedMetersPerSecond = 2.5; // 2.5
+    public static final double kMaxAccelerationMetersPerSecondSquared = 4; // 2.5
     public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI * 2;
     public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI * 2;
 

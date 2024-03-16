@@ -169,11 +169,11 @@ public class SensorSubsystem extends SubsystemBase {
 
   public double SpeakerRotation() {
 
-    double rotation = (angle - angleToSpeaker) * (0.02);
+    double rotation = (angle - angleToSpeaker) * (0.025);
     if (red) rotation *= -1;
 
-    if (rotation > 0.25) rotation = 0.25;
-    if (rotation < -0.25) rotation = -0.25;
+    if (rotation > 0.35) rotation = 0.35;
+    if (rotation < -0.35) rotation = -0.35;
 
 
     NetworkTableInstance.getDefault().getTable("Centering").getEntry("Rotation").setDouble(rotation);
@@ -190,5 +190,9 @@ public class SensorSubsystem extends SubsystemBase {
 
   public boolean inRange() {
     return distanceToSpeaker < 2.5;
+  }
+
+  public double getCenteringRotationError() {
+    return angle - angleToSpeaker;
   }
 }

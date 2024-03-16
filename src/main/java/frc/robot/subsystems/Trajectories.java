@@ -32,10 +32,15 @@ public class Trajectories {
 
     private DriveSubsystem robotDrive;
 
-    private ArrayList<Trajectory> middleDoubleScore = new ArrayList<Trajectory>();
-    private ArrayList<Trajectory> tripleSpeakerScore = new ArrayList<Trajectory>();
-    private ArrayList<Trajectory> ampDoubleScore = new ArrayList<Trajectory>();
-    private ArrayList<Trajectory> driveForwardAuto = new ArrayList<Trajectory>();
+    private ArrayList<Trajectory> middleDoubleScoreBlue = new ArrayList<Trajectory>();
+    private ArrayList<Trajectory> tripleSpeakerScoreBlue = new ArrayList<Trajectory>();
+    private ArrayList<Trajectory> ampDoubleScoreBlue = new ArrayList<Trajectory>();
+    private ArrayList<Trajectory> driveForwardAutoBlue = new ArrayList<Trajectory>();
+
+    private ArrayList<Trajectory> middleDoubleScoreRed = new ArrayList<Trajectory>();
+    private ArrayList<Trajectory> tripleSpeakerScoreRed = new ArrayList<Trajectory>();
+    private ArrayList<Trajectory> ampDoubleScoreRed = new ArrayList<Trajectory>();
+    private ArrayList<Trajectory> driveForwardAutoRed = new ArrayList<Trajectory>();
 
     TrajectoryConfig config = new TrajectoryConfig(
             AutoConstants.kMaxSpeedMetersPerSecond,
@@ -46,6 +51,9 @@ public class Trajectories {
 
     public Trajectories(DriveSubsystem drive) {
         robotDrive = drive;
+
+        CreateBlueTrajectories();
+        CreateRedTrajectories();
     }
 
     public Command DriveTrajectory(String Trajectory) {
@@ -63,58 +71,36 @@ public class Trajectories {
             );
     }
 
-    public ArrayList<Trajectory> getMiddleDoubleScore() {
-        return middleDoubleScore;
+    public ArrayList<Trajectory> getMiddleDoubleScore(boolean red) {
+        if (red) return middleDoubleScoreRed;
+        return middleDoubleScoreBlue;
     }
 
-    public ArrayList<Trajectory> getTripleSpeakerScore() {
-        return tripleSpeakerScore;
+    public ArrayList<Trajectory> getTripleSpeakerScore(boolean red) {
+        if (red) return tripleSpeakerScoreRed;
+        return tripleSpeakerScoreBlue;
     }
 
-    public ArrayList<Trajectory> getAmpDoubleScore() {
-        return ampDoubleScore;
+    public ArrayList<Trajectory> getAmpDoubleScore(boolean red) {
+        if (red) return ampDoubleScoreRed;
+        return ampDoubleScoreBlue;
     }
 
-    public ArrayList<Trajectory> getDriveForward() {
-        return driveForwardAuto;
+    public ArrayList<Trajectory> getDriveForward(boolean red) {
+        if (red) return driveForwardAutoRed;
+        return driveForwardAutoBlue;
     }
 
-    public void CreateTrajectories(boolean red) {
+    public void CreateRedTrajectories() {
+        
+        double b = -1;
 
-        int j = middleDoubleScore.size();
-        for (int i = 0; i < j; i ++) {
-            middleDoubleScore.remove(0);
-        }
-        j = tripleSpeakerScore.size();
-        for (int i = 0; i < j; i ++) {
-            tripleSpeakerScore.remove(0);
-        }
-        j = ampDoubleScore.size();
-        for (int i = 0; i < j; i ++) {
-            ampDoubleScore.remove(0);
-        }
-        j = driveForwardAuto.size();
-        for (int i = 0; i < j; i ++) {
-            driveForwardAuto.remove(0);
-        }
-
-        boolean isRed = red;
-
-        double b = 1;
-
-        if (isRed) {
-            b = -1;
-        }
-        else {
-            b = 1;
-        }
-
-        Pose2d speakerPose = new Pose2d(b * -6.65, 1.295, new Rotation2d(calcAngle(0, isRed)));
-        Pose2d sideSpeakerPose = new Pose2d(b * -7.42, 0.13, new Rotation2d(calcAngle(0, isRed)));
-        Pose2d ampPose = new Pose2d(b * -6.52, 3.65, new Rotation2d(calcAngle(-Math.PI/2, isRed)));
-        Pose2d ampNotePose = new Pose2d(b * -5.57, 2.945, new Rotation2d(calcAngle(0, isRed)));
-        Pose2d middleNotePose = new Pose2d(b * -5.67, 1.295, new Rotation2d(calcAngle(0, isRed)));
-        Pose2d sourceNotePose = new Pose2d(b * -5.95, 0, new Rotation2d(calcAngle(0, isRed)));
+        Pose2d speakerPose = new Pose2d(b * -6.8, 1.295, new Rotation2d(calcAngle(0, true)));
+        Pose2d sideSpeakerPose = new Pose2d(b * -7.42, 0.13, new Rotation2d(calcAngle(0, true)));
+        Pose2d ampPose = new Pose2d(b * -6.5, 3.75, new Rotation2d(calcAngle(-Math.PI/2, true)));
+        Pose2d ampNotePose = new Pose2d(b * -5.57, 3.2, new Rotation2d(calcAngle(0, true)));
+        Pose2d middleNotePose = new Pose2d(b * -5.67, 1.295, new Rotation2d(calcAngle(0, true)));
+        Pose2d sourceNotePose = new Pose2d(b * -5.95, 0, new Rotation2d(calcAngle(0, true)));
         
         // Trajectories
         // Speaker -> first note
@@ -135,12 +121,125 @@ public class Trajectories {
         Trajectory driveFartherForward = TrajectoryGenerator.generateTrajectory(
             speakerPose,
             List.of(new Translation2d(b * -5.87, 1.395)),
-            new Pose2d(b * -4.67, 1.295, new Rotation2d(calcAngle(0, isRed))),
+            new Pose2d(b * -4.67, 1.295, new Rotation2d(calcAngle(0, true))),
             config);
 
         // Corner of starting zone -> Amp
         Trajectory driveToAmp = TrajectoryGenerator.generateTrajectory(
-            new Pose2d(b * -6.82, 2.895, new Rotation2d(calcAngle(-Math.PI/2, isRed))),
+            new Pose2d(b * -6.82, 2.895, new Rotation2d(calcAngle(-Math.PI/2, true))),
+            List.of(new Translation2d(b * -6.4, 3.395)),
+            ampPose,
+            config);
+
+        // Amp -> amp note
+        Trajectory driveToAmpNote = TrajectoryGenerator.generateTrajectory(
+            ampPose,
+            List.of(new Translation2d(b * -6.27, 3.4)),
+            ampNotePose,
+            config);
+
+        // Amp note -> amp
+        Trajectory driveToAmpFromNote = TrajectoryGenerator.generateTrajectory(
+            ampNotePose,
+            List.of(new Translation2d(b * -6.27, 3.395)),
+            ampPose,
+            config);
+
+        // Amp -> end of wing
+        Trajectory driveAcrossLineAmp = TrajectoryGenerator.generateTrajectory(
+            ampPose,
+            List.of(new Translation2d(b * -6.07, 3.295)),
+            new Pose2d(b * -1.27, 2.395, new Rotation2d(calcAngle(0, true))),
+            config);
+
+        // Side of speaker -> source side
+        Trajectory driveForwardAndOut = TrajectoryGenerator.generateTrajectory(
+            sideSpeakerPose,
+            List.of(new Translation2d(b * -6.5, -1.6)),
+            new Pose2d(b * -2, -2.8, new Rotation2d(calcAngle(0, true))),
+            config);
+
+        // Speaker -> amp note
+        Trajectory driveSpeakerToAmpNote = TrajectoryGenerator.generateTrajectory(
+            speakerPose,
+            List.of(new Translation2d(b * -5.7, 1.8)),
+            new Pose2d(b * -5.57, 2.945, new Rotation2d(calcAngle(Math.PI/2, true))),
+            config);
+
+        // Amp note -> speaker
+        Trajectory driveAmpNoteToSpeaker = TrajectoryGenerator.generateTrajectory(
+            new Pose2d(b * -5.57, 2.945, new Rotation2d(calcAngle(Math.PI/3, true))),
+            List.of(new Translation2d(b * -5.7, 1.8)),
+            speakerPose,
+            config);
+
+        // Speaker -> source note
+        Trajectory driveSpeakerToSourceNote = TrajectoryGenerator.generateTrajectory(
+            speakerPose,
+            List.of(),
+            sourceNotePose,
+            config);
+
+        // Source note -> speaker
+        Trajectory driveSourceNoteToSpeaker = TrajectoryGenerator.generateTrajectory(
+            sourceNotePose,
+            List.of(),
+            speakerPose,
+            config);
+
+        middleDoubleScoreRed.add(driveForward);
+        middleDoubleScoreRed.add(driveBackward);
+        middleDoubleScoreRed.add(driveFartherForward);
+
+        tripleSpeakerScoreRed.add(driveSpeakerToAmpNote);
+        tripleSpeakerScoreRed.add(driveAmpNoteToSpeaker);
+        tripleSpeakerScoreRed.add(driveSpeakerToSourceNote);
+        tripleSpeakerScoreRed.add(driveSourceNoteToSpeaker);
+
+        ampDoubleScoreRed.add(driveToAmp);
+        ampDoubleScoreRed.add(driveToAmpNote);
+        ampDoubleScoreRed.add(driveToAmpFromNote);
+        ampDoubleScoreRed.add(driveAcrossLineAmp);
+
+        driveForwardAutoRed.add(driveForwardAndOut);
+    }
+
+    public void CreateBlueTrajectories() {
+        
+        double b = 1;
+
+        Pose2d speakerPose = new Pose2d(b * -6.8, 1.295, new Rotation2d(calcAngle(0, false)));
+        Pose2d sideSpeakerPose = new Pose2d(b * -7.42, 0.13, new Rotation2d(calcAngle(0, false)));
+        Pose2d ampPose = new Pose2d(b * -6.52, 3.75, new Rotation2d(calcAngle(-Math.PI/2, false)));
+        Pose2d ampNotePose = new Pose2d(b * -5.57, 3.2, new Rotation2d(calcAngle(0.2, false)));
+        Pose2d middleNotePose = new Pose2d(b * -5.67, 1.295, new Rotation2d(calcAngle(0, false)));
+        Pose2d sourceNotePose = new Pose2d(b * -5.95, 0, new Rotation2d(calcAngle(0, false)));
+        
+        // Trajectories
+        // Speaker -> first note
+        Trajectory driveForward = TrajectoryGenerator.generateTrajectory(
+            speakerPose,
+            List.of(new Translation2d(b * -6.27, 1.395)),
+            middleNotePose,
+            config);
+
+        // First note -> speaker
+        Trajectory driveBackward = TrajectoryGenerator.generateTrajectory(
+            middleNotePose,
+            List.of(new Translation2d(b * -6.27, 1.195)),
+            speakerPose,
+            config);
+
+        // Speaker -> past first note
+        Trajectory driveFartherForward = TrajectoryGenerator.generateTrajectory(
+            speakerPose,
+            List.of(new Translation2d(b * -5.87, 1.395)),
+            new Pose2d(b * -4.67, 1.295, new Rotation2d(calcAngle(0, false))),
+            config);
+
+        // Corner of starting zone -> Amp
+        Trajectory driveToAmp = TrajectoryGenerator.generateTrajectory(
+            new Pose2d(b * -6.82, 2.895, new Rotation2d(calcAngle(-Math.PI/2, false))),
             List.of(new Translation2d(b * -6.4, 3.395)),
             ampPose,
             config);
@@ -163,27 +262,27 @@ public class Trajectories {
         Trajectory driveAcrossLineAmp = TrajectoryGenerator.generateTrajectory(
             ampPose,
             List.of(new Translation2d(b * -6.07, 3.295)),
-            new Pose2d(b * -1.27, 2.395, new Rotation2d(calcAngle(0, isRed))),
+            new Pose2d(b * -1.27, 2.395, new Rotation2d(calcAngle(0, false))),
             config);
 
         // Side of speaker -> source side
         Trajectory driveForwardAndOut = TrajectoryGenerator.generateTrajectory(
             sideSpeakerPose,
             List.of(new Translation2d(b * -6.5, -1.6)),
-            new Pose2d(b * -5, -2.8, new Rotation2d(calcAngle(0, isRed))),
+            new Pose2d(b * -2, -2.8, new Rotation2d(calcAngle(0, false))),
             config);
 
         // Speaker -> amp note
         Trajectory driveSpeakerToAmpNote = TrajectoryGenerator.generateTrajectory(
             speakerPose,
             List.of(new Translation2d(b * -5.7, 1.8)),
-            new Pose2d(b * -5.57, 2.945, new Rotation2d(calcAngle(Math.PI/3, isRed))),
+            new Pose2d(b * -5.57, 2.945, new Rotation2d(calcAngle(Math.PI/2, false))),
             config);
 
         // Amp note -> speaker
         Trajectory driveAmpNoteToSpeaker = TrajectoryGenerator.generateTrajectory(
-            ampNotePose,
-            List.of(),
+            new Pose2d(b * -5.57, 2.945, new Rotation2d(calcAngle(Math.PI/3, false))),
+            List.of(new Translation2d(b * -5.7, 1.8)),
             speakerPose,
             config);
 
@@ -201,23 +300,21 @@ public class Trajectories {
             speakerPose,
             config);
 
-        middleDoubleScore.add(driveForward);
-        middleDoubleScore.add(driveBackward);
-        middleDoubleScore.add(driveFartherForward);
+        middleDoubleScoreBlue.add(driveForward);
+        middleDoubleScoreBlue.add(driveBackward);
+        middleDoubleScoreBlue.add(driveFartherForward);
 
-        tripleSpeakerScore.add(driveSpeakerToAmpNote);
-        tripleSpeakerScore.add(driveAmpNoteToSpeaker);
-        tripleSpeakerScore.add(driveSpeakerToSourceNote);
-        tripleSpeakerScore.add(driveSourceNoteToSpeaker);
+        tripleSpeakerScoreBlue.add(driveSpeakerToAmpNote);
+        tripleSpeakerScoreBlue.add(driveAmpNoteToSpeaker);
+        tripleSpeakerScoreBlue.add(driveSpeakerToSourceNote);
+        tripleSpeakerScoreBlue.add(driveSourceNoteToSpeaker);
 
-        ampDoubleScore.add(driveToAmp);
-        ampDoubleScore.add(driveToAmpNote);
-        ampDoubleScore.add(driveToAmpFromNote);
-        ampDoubleScore.add(driveAcrossLineAmp);
+        ampDoubleScoreBlue.add(driveToAmp);
+        ampDoubleScoreBlue.add(driveToAmpNote);
+        ampDoubleScoreBlue.add(driveToAmpFromNote);
+        ampDoubleScoreBlue.add(driveAcrossLineAmp);
 
-        driveForwardAuto.add(driveForwardAndOut);
-
-        tripleSpeakerScore.add(driveSpeakerToAmpNote);
+        driveForwardAutoBlue.add(driveForwardAndOut);
     }
 
     private double calcAngle(double angle, Boolean isRed) {
