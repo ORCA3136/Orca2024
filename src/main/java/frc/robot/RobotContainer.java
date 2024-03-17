@@ -204,7 +204,7 @@ public class RobotContainer {
 
       Commands.waitSeconds(0.25),
       m_ShooterSubsystem.shootNote(0),
-      m_IntakeSubsystem.RunIntakeCommand(0.3),
+      m_IntakeSubsystem.RunIntakeCommand(0.5),
 
       GenerateTrajectoryCommand(TripSpeakBlue.get(0)),
       new NOTNOTNoteSuck(m_robotDrive, m_IntakeSubsystem, m_SensorSubsystem, m_ShooterSubsystem).withTimeout(0.25),
@@ -357,7 +357,7 @@ public class RobotContainer {
 
       Commands.waitSeconds(0.25),
       m_ShooterSubsystem.shootNote(0),
-      m_IntakeSubsystem.RunIntakeCommand(0.3),
+      m_IntakeSubsystem.RunIntakeCommand(0.5),
 
       GenerateTrajectoryCommand(TripSpeakRed.get(0)),
       new NOTNOTNoteSuck(m_robotDrive, m_IntakeSubsystem, m_SensorSubsystem, m_ShooterSubsystem).withTimeout(0.25),

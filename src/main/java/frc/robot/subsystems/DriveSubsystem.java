@@ -369,6 +369,6 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   public boolean stopped() {
-    return getRobotRelativeSpeeds().vxMetersPerSecond < 0.1;
+    return getRobotRelativeSpeeds().vxMetersPerSecond < 0.05;
   }
 }

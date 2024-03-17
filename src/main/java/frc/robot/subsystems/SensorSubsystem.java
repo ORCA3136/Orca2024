@@ -96,6 +96,8 @@ public class SensorSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     
+    NetworkTableInstance.getDefault().getTable("AutoCentering").getEntry("RotatonInRange").setBoolean(getCenteringRotationError() < 17);
+
     output0 = DIO_0.get();
     sensorValues[0] = output0;
     NetworkTableInstance.getDefault().getTable("Sensors").getEntry("DIO_0").setBoolean(output0);
@@ -193,6 +195,6 @@ public class SensorSubsystem extends SubsystemBase {
   }
 
   public double getCenteringRotationError() {
-    return angle - angleToSpeaker;
+    return Math.abs(angle - angleToSpeaker);
   }
 }
