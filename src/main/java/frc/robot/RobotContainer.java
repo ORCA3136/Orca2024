@@ -11,7 +11,6 @@ import java.util.function.BooleanSupplier;
 
 import com.choreo.lib.Choreo;
 //import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
-import com.pathplanner.lib.util.PathPlannerLogging;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
@@ -38,7 +37,6 @@ import frc.robot.commands.RunIntakeCommand;
 import frc.robot.commands.RunArmCommand;
 import frc.robot.commands.SetSwerveXCommand;
 import frc.robot.commands.ZeroHeading;
-import frc.robot.commands.NoteOffIntake;
 import frc.robot.commands.NoteOffIntake;
 import frc.robot.commands.ShootSpeaker;
 import frc.robot.commands.SpeakerCentering;
@@ -130,25 +128,6 @@ public class RobotContainer {
      
      field = new Field2d();
      SmartDashboard.putData("Field", field);
-     PathPlannerLogging.setLogCurrentPoseCallback((pose) -> {
-            DataLogManager.log("CurrentPose"+pose);
-            // Do whatever you want with the pose here
-            field.setRobotPose(pose);
-        });
-
-        // Logging callback for target robot pose
-        PathPlannerLogging.setLogTargetPoseCallback((pose) -> {
-            // Do whatever you want with the pose here
-            DataLogManager.log("Target Pose"+pose);
-            field.getObject("target pose").setPose(pose);
-        });
-
-        // Logging callback for the active path, this is sent as a list of poses
-        PathPlannerLogging.setLogActivePathCallback((poses) -> {
-            // Do whatever you want with the poses here
-            DataLogManager.log("Path"+poses);
-            field.getObject("path").setPoses(poses);
-        });
     //end pathplanner additional logging
 
     // Configure the button bindings

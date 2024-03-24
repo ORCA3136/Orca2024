@@ -5,8 +5,6 @@
 package frc.robot;
 
 import com.revrobotics.CANSparkBase.IdleMode;
-//import com.pathplanner.lib.*;
-import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -17,10 +15,6 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
-
-import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
-import com.pathplanner.lib.util.PIDConstants;
-import com.pathplanner.lib.util.ReplanningConfig;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
@@ -188,25 +182,6 @@ public final class Constants {
 
   public static final class NeoMotorConstants {
     public static final double kFreeSpeedRpm = 5676;
-  }
-
-  public static final class PathPlanningConstants {
-
-    public static final PathConstraints slowConstraints = new PathConstraints(
-      1.0, 1.0,
-      Units.degreesToRadians(540), Units.degreesToRadians(720));
-
-    public static final PathConstraints fastConstraints = new PathConstraints(
-      3.0, 4.0,
-      Units.degreesToRadians(540), Units.degreesToRadians(720));
-
-    public static final HolonomicPathFollowerConfig HoloConfig = new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
-      new PIDConstants(5, 0, 0), // Translation PID constants
-      new PIDConstants(5, 0, 0), // Rotation PID constants
-      AutoConstants.kMaxSpeedMetersPerSecond, // Max module speed, in m/s
-      0.386, // Drive base radius in meters. Distance from robot center to furthest module.
-      new ReplanningConfig() // Default path replanning config. See the API for the options here
-    );
   }
 
   public static class Field {
