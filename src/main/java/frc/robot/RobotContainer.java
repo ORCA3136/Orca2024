@@ -470,7 +470,7 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     
-    new JoystickButton(m_driverController, 1).whileTrue(new RunIntakeCommand(1, m_IntakeSubsystem)).onFalse(new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(1.5));
+    new JoystickButton(m_driverController, 1).whileTrue(new RunIntakeCommand(0.5, m_IntakeSubsystem)).onFalse(new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(1.5));
     new JoystickButton(m_driverController, 2).whileTrue(new ParallelCommandGroup(new RunIntakeCommand(-0.3, m_IntakeSubsystem), m_ShooterSubsystem.shootNote(Constants.ShooterConstants.reverse))).onFalse(m_ShooterSubsystem.shootNote(0));
     new JoystickButton(m_driverController, 3).onTrue(m_ArmSubsystem.RunArm(0.5)).onFalse(m_ArmSubsystem.RunArm(0));
     new JoystickButton(m_driverController, 4).onTrue(m_ArmSubsystem.RunArm(-0.3)).onFalse(m_ArmSubsystem.RunArm(0));
