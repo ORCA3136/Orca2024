@@ -5,42 +5,21 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
-
-import edu.wpi.first.wpilibj.ADIS16470_IMU;
-import edu.wpi.first.wpilibj.DataLogManager;
-//import edu.wpi.first.util.WPIUtilJNI;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
-//import edu.wpi.first.wpilibj.DataLogManager;
-//import edu.wpi.first.util.datalog.BooleanLogEntry;
-//import edu.wpi.first.util.datalog.DataLog;
-//import edu.wpi.first.util.datalog.DoubleLogEntry;
-//import edu.wpi.first.util.datalog.StringLogEntry;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.units.Time;
 
 public class SensorSubsystem extends SubsystemBase {
 
-  private double angleForArm;
-  private double speedForShooter;
-
   private static DigitalInput DIO_0;
   private static DigitalInput DIO_1;
-
-  //private final ADIS16470_IMU m_gyro = new ADIS16470_IMU();
-
-  private Pose2d robotPose2d;
-  //private DriverStation.Alliance alliance = DriverStation.getAlliance().get();
   private boolean output0;
   private boolean output1;
   private boolean[] sensorValues;
@@ -49,23 +28,20 @@ public class SensorSubsystem extends SubsystemBase {
   private InterpolatingDoubleTreeMap shooterSpeedMap = new InterpolatingDoubleTreeMap();
   private InterpolatingDoubleTreeMap shooterAngleMap = new InterpolatingDoubleTreeMap();
 
-  // True means note is in correct position
-  private boolean IntakeState = false;
+
+  boolean red;
+  Pose2d pose;
+  Translation2d speaker = Constants.Field.BLUE_SPEAKER_FROM_CENTER;
+  double angle;
   
+  double xDistance;
+  double yDistance;
 
-    boolean red;
-    Pose2d pose;
-    Translation2d speaker = Constants.Field.BLUE_SPEAKER_FROM_CENTER;
-    double angle;
-    
-    double xDistance;
-    double yDistance;
+  double distanceToSpeaker;
+  double angleToSpeaker;
 
-    double distanceToSpeaker;
-    double angleToSpeaker;
-
-    public double speedMap;
-    public double angleMap;
+  public double speedMap;
+  public double angleMap;
 
   /** Creates a new SensorSubsystem. */
   public SensorSubsystem(DriveSubsystem drive) {
@@ -85,6 +61,29 @@ public class SensorSubsystem extends SubsystemBase {
     shooterAngleMap.put(Double.valueOf(1.27), Double.valueOf(1.0));
     shooterAngleMap.put(Double.valueOf(1.88), Double.valueOf(7.0));
     shooterAngleMap.put(Double.valueOf(2.35), Double.valueOf(10.0));
+
+    // Need more accurate/updated and more numerous setpoints
+    // Need more accurate/updated and more numerous setpoints
+    // Need more accurate/updated and more numerous setpoints
+    // Need more accurate/updated and more numerous setpoints
+    // Need more accurate/updated and more numerous setpoints
+    // Need more accurate/updated and more numerous setpoints
+    // Need more accurate/updated and more numerous setpoints
+    // Need more accurate/updated and more numerous setpoints
+    // Need more accurate/updated and more numerous setpoints
+    // Need more accurate/updated and more numerous setpoints
+    // Need more accurate/updated and more numerous setpoints
+    // Need more accurate/updated and more numerous setpoints
+    // Need more accurate/updated and more numerous setpoints
+    // Need more accurate/updated and more numerous setpoints
+    // Need more accurate/updated and more numerous setpoints
+    // Need more accurate/updated and more numerous setpoints
+    // Need more accurate/updated and more numerous setpoints
+    // Need more accurate/updated and more numerous setpoints
+    // Need more accurate/updated and more numerous setpoints
+    // Need more accurate/updated and more numerous setpoints
+    // Need more accurate/updated and more numerous setpoints
+    // Need more accurate/updated and more numerous setpoints
 
     // 1.27m  2600rpm 0deg
     // 1.88m  2850rpm 7deg
@@ -169,13 +168,65 @@ public class SensorSubsystem extends SubsystemBase {
     return false;
   }
 
-  public double SpeakerRotation() {
+  public double SpeakerRotation(DriveSubsystem m_DriveSubsystem) {
+
+    // X Speed, Y Speed, Angular Speed - for moving shot momentum
+    ChassisSpeeds currentRobotSpeeds = m_DriveSubsystem.getRobotRelativeSpeeds();
+
+    // Side to side momentum - Compensate drive centering
+    double xSpeed = currentRobotSpeeds.vxMetersPerSecond;
+    // Forward Momentum - Compensate arm angle
+    double ySpeed = currentRobotSpeeds.vyMetersPerSecond;
+
+    
+
+
 
     double rotation = (angle - angleToSpeaker) * (0.025);
     if (red) rotation *= -1;
 
     if (rotation > 0.35) rotation = 0.35;
     if (rotation < -0.35) rotation = -0.35;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // Need more reactivity and precision
+    // Need more reactivity and precision
+    // Need more reactivity and precision
+    // Need more reactivity and precision
+    // Need more reactivity and precision
+    // Need more reactivity and precision
+    // Need more reactivity and precision
+    // Need more reactivity and precision
+    // Need more reactivity and precision
+    // Need more reactivity and precision
+    // Need more reactivity and precision
+    // Need more reactivity and precision
+    // Need more reactivity and precision
+    // Need more reactivity and precision
+    // Need more reactivity and precision
+    // Need more reactivity and precision
+    // Need more reactivity and precision
+    // Need more reactivity and precision
+    // Need more reactivity and precision
+    // Need more reactivity and precision
+    // Need more reactivity and precision
+    // Need more reactivity and precision
 
 
     NetworkTableInstance.getDefault().getTable("Centering").getEntry("Rotation").setDouble(rotation);

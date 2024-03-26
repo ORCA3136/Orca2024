@@ -88,8 +88,6 @@ public class RobotContainer {
 
   Command speakAmpNoteTrajectoryRed, ampNoteSpeakTrajectoryRed, speakSourceNoteTrajectoryRed, sourceNoteSpeakTrajectoryRed;
 
-  Command autoSpeakerCentering;
-
   
 
   private PIDController AutoDrivePID;
@@ -107,8 +105,6 @@ public class RobotContainer {
      
      AutoDrivePID = new PIDController(ModuleConstants.kDrivingP, ModuleConstants.kDrivingI, ModuleConstants.kDrivingD);
      AutoTurnPID = new PIDController(ModuleConstants.kTurningP, ModuleConstants.kTurningI, ModuleConstants.kTurningD);
-
-     autoSpeakerCentering = m_robotDrive.autoSpeakerCentering(m_SensorSubsystem);
 
      ArrayList<Trajectory> MidSpeakBlue = m_trajectories.getMiddleDoubleScore(false);
      ArrayList<Trajectory> DubAmpBlue = m_trajectories.getAmpDoubleScore(false);
@@ -552,7 +548,7 @@ public class RobotContainer {
     ProfiledPIDController thetaController = new ProfiledPIDController(
         AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
     thetaController.enableContinuousInput(-Math.PI, Math.PI);
-
+    
     SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
         trajectory,
         m_robotDrive::getPose, // Functional interface to feed supplier

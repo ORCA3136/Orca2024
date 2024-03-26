@@ -319,20 +319,9 @@ public class DriveSubsystem extends SubsystemBase {
           () -> this.drive(
               -MathUtil.applyDeadband(xboxController.getLeftY(), OIConstants.kDriveDeadband),
               -MathUtil.applyDeadband(xboxController.getLeftX(), OIConstants.kDriveDeadband),
-              -MathUtil.applyDeadband(sensor.SpeakerRotation(), OIConstants.kCenteringDeadband),
+              -MathUtil.applyDeadband(sensor.SpeakerRotation(this), OIConstants.kCenteringDeadband),
               true, true),
             this)));
-  }
-
-  public void speakerCenteringTele(XboxController xboxController, SensorSubsystem sensor) {
-    this.setDefaultCommand(
-      new RunCommand(
-          () -> this.drive(
-              -MathUtil.applyDeadband(xboxController.getLeftY(), OIConstants.kDriveDeadband),
-              -MathUtil.applyDeadband(xboxController.getLeftX(), OIConstants.kDriveDeadband),
-              -MathUtil.applyDeadband(sensor.SpeakerRotation(), OIConstants.kCenteringDeadband),
-              true, true),
-            this));
   }
 
   public Command regularDrive(XboxController xboxController) {
@@ -346,6 +335,17 @@ public class DriveSubsystem extends SubsystemBase {
           this)));
   }
 
+  public void speakerCenteringTele(XboxController xboxController, SensorSubsystem sensor) {
+    this.setDefaultCommand(
+      new RunCommand(
+          () -> this.drive(
+              -MathUtil.applyDeadband(xboxController.getLeftY(), OIConstants.kDriveDeadband),
+              -MathUtil.applyDeadband(xboxController.getLeftX(), OIConstants.kDriveDeadband),
+              -MathUtil.applyDeadband(sensor.SpeakerRotation(this), OIConstants.kCenteringDeadband),
+              true, true),
+            this));
+  }
+
   public void regularDriveTele(XboxController xboxController) {
     this.setDefaultCommand(
       new RunCommand(
@@ -355,19 +355,5 @@ public class DriveSubsystem extends SubsystemBase {
               -MathUtil.applyDeadband(xboxController.getRightX(), OIConstants.kDriveDeadband),
               true, true),
           this));
-  }
-
-  public Command autoSpeakerCentering(SensorSubsystem sensor) {
-    return new RunCommand(
-          () -> this.drive(
-              -MathUtil.applyDeadband(0, OIConstants.kDriveDeadband),
-              -MathUtil.applyDeadband(0, OIConstants.kDriveDeadband),
-              -MathUtil.applyDeadband(sensor.SpeakerRotation(), OIConstants.kCenteringDeadband),
-              true, true),
-            this);
-  }
-
-  public boolean stopped() {
-    return getRobotRelativeSpeeds().vxMetersPerSecond < 0.05;
   }
 }

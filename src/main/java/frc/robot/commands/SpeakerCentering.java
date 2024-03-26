@@ -71,7 +71,6 @@ public class SpeakerCentering extends Command {
 
     // DataLogManager.log("Auto shooting --- execute");
 
-    NetworkTableInstance.getDefault().getTable("AutoCentering").getEntry("Stopped").setBoolean(m_DriveSubsystem.stopped());
     NetworkTableInstance.getDefault().getTable("AutoCentering").getEntry("InRange").setBoolean(m_SensorSubsystem.inRange());
     NetworkTableInstance.getDefault().getTable("AutoCentering").getEntry("ShooterAtSpeed").setBoolean(m_ShooterSubsystem.getSpeed() > 4000);
     NetworkTableInstance.getDefault().getTable("AutoCentering").getEntry("StartedShot").setBoolean(startedShot);
@@ -80,15 +79,13 @@ public class SpeakerCentering extends Command {
 
     m_ArmSubsystem.SetSensorPID(m_SensorSubsystem);
 
-    if (m_DriveSubsystem.stopped() && m_SensorSubsystem.inRange()) {
-      // DataLogManager.log("Auto shooting ----- In range & stopped");
-      if (!startedShot && m_ShooterSubsystem.getSpeed() > 4000 && m_ArmSubsystem.getError() < 0.5 && m_SensorSubsystem.getCenteringRotationError() < 17) {
-        // DataLogManager.log("Auto shooting ------------- Started shot --------");
-        startedShot = true;
-        m_IntakeSubsystem.RunIntake(1);
-        new SequentialCommandGroup(Commands.waitSeconds(0.5), Commands.runOnce(() -> {this.finished = true;}));
-      }
+    if (!startedShot && m_ShooterSubsystem.getSpeed() > 3000 && m_ArmSubsystem.getError() < 0.5 && m_SensorSubsystem.getCenteringRotationError() < 15) {
+      // DataLogManager.log("Auto shooting ------------- Started shot --------");
+      startedShot = true;
+      m_IntakeSubsystem.RunIntake(1);
+      new SequentialCommandGroup(Commands.waitSeconds(0.5), Commands.runOnce(() -> {this.finished = true;}));
     }
+   
     
   }
 

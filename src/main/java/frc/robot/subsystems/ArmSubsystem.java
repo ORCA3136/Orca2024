@@ -17,6 +17,7 @@ import com.revrobotics.SparkPIDController;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
@@ -46,10 +47,7 @@ public class ArmSubsystem extends SubsystemBase {
   boolean useTrigger = false;
   boolean autoCentering = false;
 
-  double kS = 0.0;
   double kG = 0.0175;
-  double kV = 0.0; // 3.61
-  double kA = 0.0; // 0.04
 
   double kP = Constants.ArmPIDConstants.armkP;
   double kD = Constants.ArmPIDConstants.armkD;
@@ -102,13 +100,18 @@ public class ArmSubsystem extends SubsystemBase {
     pidController.setFeedbackDevice(encoder);
 
     // Create a new ArmFeedforward with gains kS, kG, kV, and kA
-    ArmFeedforward armFeedforward = new ArmFeedforward(kS, kG, kV, kA);
+    ArmFeedforward armFeedforward = new ArmFeedforward(0, kG, 0, 0);
 
     // Calculates the feedforward for a position of 1 units, a velocity of 2 units/second, and
     // an acceleration of 3 units/second^2
     // Units are determined by the units of the gains passed in at construction.
     armFeedforward.calculate(1, 2, 3);
 
+    TrapezoidProfile armProfile = new TrapezoidProfile(new TrapezoidProfile.Constraints(0.2, 0.1));
+    // profile.calculate(5, new TrapezoidProfile.State(0, 0), new TrapezoidProfile.State(5, 0));
+    // new TrapezoidProfile.State(5, 0);
+    // var setpoint = profile.calculate(elapsedTime, initialState, goalState);
+    // controller.calculate(encoder.getDistance(), setpoint.position);
   }
 
   @Override
@@ -127,7 +130,6 @@ public class ArmSubsystem extends SubsystemBase {
 
 
     kG = SmartDashboard.getNumber("kG", kG);
-    kV = SmartDashboard.getNumber("kV", kV);
 
 
     if (kP != SmartDashboard.getNumber("kP", kP) || kD != SmartDashboard.getNumber("kD", kD)) {
