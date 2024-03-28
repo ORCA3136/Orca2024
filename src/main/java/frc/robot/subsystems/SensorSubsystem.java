@@ -28,6 +28,10 @@ public class SensorSubsystem extends SubsystemBase {
   private InterpolatingDoubleTreeMap shooterSpeedMap = new InterpolatingDoubleTreeMap();
   private InterpolatingDoubleTreeMap shooterAngleMap = new InterpolatingDoubleTreeMap();
 
+  ChassisSpeeds currentRobotSpeeds;
+  double xSpeed;
+  double ySpeed;
+  double omegaSpeed;
 
   boolean red;
   Pose2d pose;
@@ -62,23 +66,6 @@ public class SensorSubsystem extends SubsystemBase {
     shooterAngleMap.put(Double.valueOf(1.88), Double.valueOf(7.0));
     shooterAngleMap.put(Double.valueOf(2.35), Double.valueOf(10.0));
 
-    // Need more accurate/updated and more numerous setpoints
-    // Need more accurate/updated and more numerous setpoints
-    // Need more accurate/updated and more numerous setpoints
-    // Need more accurate/updated and more numerous setpoints
-    // Need more accurate/updated and more numerous setpoints
-    // Need more accurate/updated and more numerous setpoints
-    // Need more accurate/updated and more numerous setpoints
-    // Need more accurate/updated and more numerous setpoints
-    // Need more accurate/updated and more numerous setpoints
-    // Need more accurate/updated and more numerous setpoints
-    // Need more accurate/updated and more numerous setpoints
-    // Need more accurate/updated and more numerous setpoints
-    // Need more accurate/updated and more numerous setpoints
-    // Need more accurate/updated and more numerous setpoints
-    // Need more accurate/updated and more numerous setpoints
-    // Need more accurate/updated and more numerous setpoints
-    // Need more accurate/updated and more numerous setpoints
     // Need more accurate/updated and more numerous setpoints
     // Need more accurate/updated and more numerous setpoints
     // Need more accurate/updated and more numerous setpoints
@@ -170,17 +157,7 @@ public class SensorSubsystem extends SubsystemBase {
 
   public double SpeakerRotation(DriveSubsystem m_DriveSubsystem) {
 
-    // X Speed, Y Speed, Angular Speed - for moving shot momentum
-    ChassisSpeeds currentRobotSpeeds = m_DriveSubsystem.getRobotRelativeSpeeds();
-
-    // Side to side momentum - Compensate drive centering
-    double xSpeed = currentRobotSpeeds.vxMetersPerSecond;
-    // Forward Momentum - Compensate arm angle
-    double ySpeed = currentRobotSpeeds.vyMetersPerSecond;
-
     
-
-
 
     double rotation = (angle - angleToSpeaker) * (0.025);
     if (red) rotation *= -1;
@@ -191,37 +168,6 @@ public class SensorSubsystem extends SubsystemBase {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // Need more reactivity and precision
-    // Need more reactivity and precision
-    // Need more reactivity and precision
-    // Need more reactivity and precision
-    // Need more reactivity and precision
-    // Need more reactivity and precision
-    // Need more reactivity and precision
-    // Need more reactivity and precision
-    // Need more reactivity and precision
-    // Need more reactivity and precision
-    // Need more reactivity and precision
-    // Need more reactivity and precision
-    // Need more reactivity and precision
-    // Need more reactivity and precision
-    // Need more reactivity and precision
-    // Need more reactivity and precision
-    // Need more reactivity and precision
     // Need more reactivity and precision
     // Need more reactivity and precision
     // Need more reactivity and precision
