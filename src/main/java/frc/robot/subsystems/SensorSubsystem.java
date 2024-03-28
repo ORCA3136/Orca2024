@@ -28,7 +28,7 @@ public class SensorSubsystem extends SubsystemBase {
   private InterpolatingDoubleTreeMap shooterSpeedMap = new InterpolatingDoubleTreeMap();
   private InterpolatingDoubleTreeMap shooterAngleMap = new InterpolatingDoubleTreeMap();
 
-  ChassisSpeeds currentRobotSpeeds;
+  ChassisSpeeds currentFieldSpeeds;
   double xSpeed;
   double ySpeed;
   double omegaSpeed;
@@ -43,6 +43,7 @@ public class SensorSubsystem extends SubsystemBase {
 
   double distanceToSpeaker;
   double angleToSpeaker;
+  double radiansToSpeaker;
 
   public double speedMap;
   public double angleMap;
@@ -72,11 +73,10 @@ public class SensorSubsystem extends SubsystemBase {
     // Need more accurate/updated and more numerous setpoints
     // Need more accurate/updated and more numerous setpoints
 
-    // 1.27m  2600rpm 0deg
-    // 1.88m  2850rpm 7deg
-    // 3400 8.5
-    // 2.35m  3800rpm 10deg
-    // +200rpm + 3.2deg
+    currentFieldSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(drive.getRobotRelativeSpeeds(), drive.getHeading());
+    xSpeed = currentFieldSpeeds.vxMetersPerSecond;
+    ySpeed = currentFieldSpeeds.vyMetersPerSecond;
+    omegaSpeed = currentFieldSpeeds.omegaRadiansPerSecond;
   }
 
   @Override
@@ -108,24 +108,26 @@ public class SensorSubsystem extends SubsystemBase {
     else red = false;
 
     if (red) {
-      if (angle > 0) angle -= 180;
-      else angle += 180;
-      angle *= -1;
+      speaker = Constants.Field.RED_SPEAKER_FROM_CENTER;
+      xDistance = Math.abs(speaker.getX()) - Math.abs(pose.getX());
+      yDistance = Math.abs(speaker.getY()) - Math.abs(pose.getY());
     }
-
-    NetworkTableInstance.getDefault().getTable("Centering").getEntry("Red: ").setBoolean(red);
-
-    speaker = Constants.Field.BLUE_SPEAKER_FROM_CENTER;
-    xDistance = Math.abs(pose.getX()) - Math.abs(speaker.getX());
-    yDistance = Math.abs(pose.getY()) - Math.abs(speaker.getY());
-
-    xDistance *= -1;
+    else {
+      speaker = Constants.Field.BLUE_SPEAKER_FROM_CENTER;
+      xDistance = Math.abs(speaker.getX()) - Math.abs(pose.getX());
+      yDistance = Math.abs(speaker.getY()) - Math.abs(pose.getY());
+    }
 
     distanceToSpeaker = Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
     angleToSpeaker = Math.atan2(yDistance, xDistance) * (180/Math.PI);
+    radiansToSpeaker = Math.atan2(yDistance, xDistance);
 
-    speedMap = shooterSpeedMap.get(distanceToSpeaker) + 2000;
+    speedMap = shooterSpeedMap.get(distanceToSpeaker);
     angleMap = shooterAngleMap.get(Double.valueOf(distanceToSpeaker));
+
+
+
+    NetworkTableInstance.getDefault().getTable("Centering").getEntry("Red: ").setBoolean(red);
 
     NetworkTableInstance.getDefault().getTable("Centering").getEntry("xDistance").setDouble(xDistance);
     NetworkTableInstance.getDefault().getTable("Centering").getEntry("yDistance").setDouble(yDistance);
@@ -157,22 +159,21 @@ public class SensorSubsystem extends SubsystemBase {
 
   public double SpeakerRotation(DriveSubsystem m_DriveSubsystem) {
 
-    
+    double tangentSpeed = Math.cos(radiansToSpeaker) * xSpeed + Math.sin(radiansToSpeaker) * ySpeed;
 
-    double rotation = (angle - angleToSpeaker) * (0.025);
-    if (red) rotation *= -1;
+    double centeringOffset = tangentSpeed * 0.0;
 
-    if (rotation > 0.35) rotation = 0.35;
-    if (rotation < -0.35) rotation = -0.35;
+    double rotationDifference = (angle - (angleToSpeaker + centeringOffset));
+
+    double rotation = 0.0;
+
+    if (rotationDifference > 25) rotation = 0.35;
+    else if (rotationDifference < -25) rotation = -0.35;
+    else  rotation = rotationDifference / 0.014;
 
 
 
 
-    // Need more reactivity and precision
-    // Need more reactivity and precision
-    // Need more reactivity and precision
-    // Need more reactivity and precision
-    // Need more reactivity and precision
 
 
     NetworkTableInstance.getDefault().getTable("Centering").getEntry("Rotation").setDouble(rotation);

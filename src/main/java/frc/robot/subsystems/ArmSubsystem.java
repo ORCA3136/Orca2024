@@ -112,6 +112,8 @@ public class ArmSubsystem extends SubsystemBase {
     // new TrapezoidProfile.State(5, 0);
     // var setpoint = profile.calculate(elapsedTime, initialState, goalState);
     // controller.calculate(encoder.getDistance(), setpoint.position);
+    // private TrapezoidProfile.State m_goal = new TrapezoidProfile.State();
+    // private TrapezoidProfile.State m_setpoint = new TrapezoidProfile.State();
   }
 
   @Override
