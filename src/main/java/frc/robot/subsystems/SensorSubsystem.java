@@ -167,9 +167,9 @@ public class SensorSubsystem extends SubsystemBase {
 
     double rotation = 0.0;
 
-    if (rotationDifference > 25) rotation = 0.35;
-    else if (rotationDifference < -25) rotation = -0.35;
-    else  rotation = rotationDifference / 0.014;
+    if (rotationDifference > 25) rotation = 0.2;
+    else if (rotationDifference < -25) rotation = -0.2;
+    else  rotation = rotationDifference / 0.08;
 
 
 

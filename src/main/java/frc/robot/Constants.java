@@ -146,7 +146,7 @@ public final class Constants {
     public static final int kDriverControllerPort = 0;
     //public static final int kButtonControllerPort = 1;
     public static final double kDriveDeadband = 0.08;
-    public static final double kCenteringDeadband = 0.02;
+    public static final double kCenteringDeadband = 0.01;
   }
 
   public static final class ArmPIDConstants {

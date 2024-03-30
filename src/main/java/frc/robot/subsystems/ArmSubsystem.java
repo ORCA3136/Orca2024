@@ -18,14 +18,14 @@ import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import frc.robot.Constants.CurrentConstants;
@@ -33,7 +33,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 
 public class ArmSubsystem extends SubsystemBase {
-  /** Creates a new IntakeSubsystem. */
+  /** Creates a new ArmSubsystem. */
 
   RobotContainer robotContainer;
 
@@ -58,6 +58,15 @@ public class ArmSubsystem extends SubsystemBase {
   double setpoint = -1;
 
   double tempSetpoint = -1;
+
+  TrapezoidProfile armProfile;
+  Timer m_timer;
+  // TrapezoidProfile.State m_end;
+  TrapezoidProfile.State targetState;
+  // TrapezoidProfile.State m_start;
+  Constraints armConstraints = new TrapezoidProfile.Constraints(0.2, 0.1);
+
+  ArmFeedforward armFeedforward = new ArmFeedforward(0, kG, 0, 0);
 
   public ArmSubsystem(RobotContainer robot) {
 
@@ -99,21 +108,81 @@ public class ArmSubsystem extends SubsystemBase {
     encoder.setPositionConversionFactor(360);
     pidController.setFeedbackDevice(encoder);
 
-    // Create a new ArmFeedforward with gains kS, kG, kV, and kA
-    ArmFeedforward armFeedforward = new ArmFeedforward(0, kG, 0, 0);
-
     // Calculates the feedforward for a position of 1 units, a velocity of 2 units/second, and
     // an acceleration of 3 units/second^2
     // Units are determined by the units of the gains passed in at construction.
     armFeedforward.calculate(1, 2, 3);
 
-    TrapezoidProfile armProfile = new TrapezoidProfile(new TrapezoidProfile.Constraints(0.2, 0.1));
+    armProfile = new TrapezoidProfile(armConstraints);
     // profile.calculate(5, new TrapezoidProfile.State(0, 0), new TrapezoidProfile.State(5, 0));
     // new TrapezoidProfile.State(5, 0);
     // var setpoint = profile.calculate(elapsedTime, initialState, goalState);
     // controller.calculate(encoder.getDistance(), setpoint.position);
-    // private TrapezoidProfile.State m_goal = new TrapezoidProfile.State();
-    // private TrapezoidProfile.State m_setpoint = new TrapezoidProfile.State();
+
+    /*
+      Init
+    
+      m_setpoint = Constants.Arm.kHomePosition;
+
+      m_timer = new Timer();
+      m_timer.start();
+      m_timer.reset();
+
+      updateMotionProfile();
+    */
+
+    /*
+      Set arm setpoint
+
+      if (_setpoint != m_setpoint) {
+        m_setpoint = _setpoint;
+        updateMotionProfile(); 
+      }
+    */
+
+    /*
+      updateMotionProfile()
+
+      TrapezoidProfile.State state = new TrapezoidProfile.State(m_encoder.getPosition(), m_encoder.getVelocity());
+      TrapezoidProfile.State goal = new TrapezoidProfile.State(m_setpoint, 0.0);
+      m_profile = new TrapezoidProfile(Constants.Arm.kArmMotionConstraint, goal, state);
+      m_timer.reset();
+    */
+
+    /* 
+      Automatic arm positioning - default arm command
+
+      double elapsedTime = m_timer.get();
+      if (m_profile.isFinished(elapsedTime)) {
+        targetState = new TrapezoidProfile.State(m_setpoint, 0.0);
+      }
+      else {
+        targetState = m_profile.calculate(elapsedTime);
+      }
+
+      feedforward = Constants.Arm.kArmFeedforward.calculate(m_encoder.getPosition()+Constants.Arm.kArmZeroCosineOffset, targetState.velocity);
+      m_controller.setReference(targetState.position, CANSparkMax.ControlType.kPosition, 0, feedforward);
+     */
+
+    /*
+      Manual arm positioning
+
+      m_setpoint = m_encoder.getPosition();
+      targetState = new TrapezoidProfile.State(m_setpoint, 0.0);
+      m_profile = new TrapezoidProfile(Constants.Arm.kArmMotionConstraint, targetState, targetState);
+      feedforward = Constants.Arm.kArmFeedforward.calculate(m_encoder.getPosition()+Constants.Arm.kArmZeroCosineOffset, targetState.velocity);
+      m_motor.set(_power + (feedforward / 12.0));
+      manualValue = _power;
+     */
+
+
+    setpoint = Constants.ArmPIDConstants.STAGE;
+
+    m_timer = new Timer();
+    m_timer.start();
+    m_timer.reset();
+
+    updateMotionProfile();
   }
 
   @Override
@@ -124,15 +193,9 @@ public class ArmSubsystem extends SubsystemBase {
     NetworkTableInstance.getDefault().getTable("Arm").getEntry("TempTargetSetpoint").setDouble(tempSetpoint);
     NetworkTableInstance.getDefault().getTable("Arm").getEntry("MotorVelocity").setDouble(encoder.getVelocity());
 
-    // 2.5 Floor Pickup
-    // 29 Under Stage
-    // 55 Safe position
-    // 71 Source - 69 actual position
-    // 92 In line with edge of bumpers --- Amp
 
 
     kG = SmartDashboard.getNumber("kG", kG);
-
 
     if (kP != SmartDashboard.getNumber("kP", kP) || kD != SmartDashboard.getNumber("kD", kD)) {
       kP = SmartDashboard.getNumber("kP", kP);
@@ -140,6 +203,7 @@ public class ArmSubsystem extends SubsystemBase {
       pidController.setP(kP);
       pidController.setD(kD);
     }
+
     if (setpoint == -1) setpoint = -1;
     else if (setpoint < 1) { setpoint = 1; tempSetpoint = 2; } 
     else if (setpoint > 100) { setpoint = 100; tempSetpoint = 100; } 
@@ -147,9 +211,9 @@ public class ArmSubsystem extends SubsystemBase {
     // Horizontal angle 5
     // Vertical angle 95
     if (setpoint != -1) {
-
       if (DriverStation.isEnabled()) {
-        if (getDistance() - setpoint > -4 && getDistance() - setpoint < 2 && encoder.getVelocity() < 0.05) tempSetpoint = tempSetpoint + 0.03 * (setpoint - getDistance());
+        if (getDistance() - setpoint > -4 && getDistance() - setpoint < 2 && encoder.getVelocity() < 0.05) 
+          tempSetpoint = tempSetpoint + 0.03 * (setpoint - getDistance());
       }
       
       if (getDistance() - setpoint < -4 || getDistance() - setpoint > 2) tempSetpoint = setpoint + 1.5;
@@ -182,6 +246,70 @@ public class ArmSubsystem extends SubsystemBase {
     if (encoder.getPosition() > Constants.ArmStops.BackPostion) m_LeftArm.set(Constants.ArmStops.BackSpeed);
 
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  public void setTrapezoidalSetpoint(double point) {
+    if (point != setpoint) {
+        setpoint = point;
+        updateMotionProfile(); 
+      }
+  }
+
+  public void updateMotionProfile() {
+    TrapezoidProfile.State state = new TrapezoidProfile.State(encoder.getPosition(), encoder.getVelocity());
+    TrapezoidProfile.State goal = new TrapezoidProfile.State(setpoint, 0.0);
+    armProfile = new TrapezoidProfile(armConstraints, goal, state);
+    m_timer.reset();
+  }
+
+  public void AutomaticPositioning() {
+    double elapsedTime = m_timer.get();
+    if (armProfile.isFinished(elapsedTime)) {
+      targetState = new TrapezoidProfile.State(setpoint, 0.0);
+    }
+    else {
+      targetState = armProfile.calculate(elapsedTime);
+    }
+
+    feedforward = armFeedforward.calculate(encoder.getPosition() - 0.082, targetState.velocity);
+    pidController.setReference(targetState.position, CANSparkMax.ControlType.kPosition, 0, feedforward);
+  }
+
+  public void ManualPositioning(double power) {
+    setpoint = encoder.getPosition();
+    targetState = new TrapezoidProfile.State(setpoint, 0.0);
+    armProfile = new TrapezoidProfile(armConstraints, targetState, targetState);
+    feedforward = armFeedforward.calculate(encoder.getPosition() - 0.082, targetState.velocity);
+    m_LeftArm.set(power + (feedforward / 12.0));
+    m_RightArm.set(power + (feedforward / 12.0));
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   public Command SetPIDPosition(double setpoint) {
     return runOnce(() -> { 

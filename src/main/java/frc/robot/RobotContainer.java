@@ -40,6 +40,7 @@ import frc.robot.commands.ZeroHeading;
 import frc.robot.commands.NoteOffIntake;
 import frc.robot.commands.ShootSpeaker;
 import frc.robot.commands.SpeakerCentering;
+import frc.robot.commands.TestSpeakerCentering;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.SensorSubsystem;
@@ -453,6 +454,7 @@ public class RobotContainer {
     ));
 
     SmartDashboard.putData("Auto Mode", autoChooser);
+    
   }
 
   /**
@@ -507,7 +509,8 @@ public class RobotContainer {
     };
     Trigger LeftTrigger = new Trigger(LeftTriggerSupplier);
 
-    LeftTrigger.whileTrue(new NOTNOTNoteSuck(m_robotDrive, m_IntakeSubsystem, m_SensorSubsystem, m_ShooterSubsystem));
+    LeftTrigger.whileTrue(new SpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_robotDrive, m_IntakeSubsystem, m_driverController));
+    // LeftTrigger.whileTrue(new NOTNOTNoteSuck(m_robotDrive, m_IntakeSubsystem, m_SensorSubsystem, m_ShooterSubsystem));
 
     BooleanSupplier RightTriggerSupplier = new BooleanSupplier() {
       @Override
@@ -519,7 +522,7 @@ public class RobotContainer {
     Trigger RightTrigger = new Trigger(RightTriggerSupplier);
 
     // Change to shoot routine
-    RightTrigger.whileTrue(new SpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_robotDrive, m_IntakeSubsystem, m_driverController));
+    RightTrigger.whileTrue(new TestSpeakerCentering(m_SensorSubsystem, m_ArmSubsystem, m_robotDrive, m_driverController));
   }
 
 
@@ -570,10 +573,6 @@ public class RobotContainer {
 /**
  * How well does coral identify notes? - Picks up farther notes over closer notes
  * Do trajectories work well with timeouts?
- * Triple note autos - Middle + left, Middle + right
- * Maybe auto that picks up mid notes
- * Climb sequences - done
- * Test auto shooting - works
  * 
  * Find a wait command for commands
  */
