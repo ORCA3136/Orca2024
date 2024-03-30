@@ -43,6 +43,7 @@ public class ShooterSubsystem extends SubsystemBase {
     //m_ShooterLeft.restoreFactoryDefaults();
     m_ShooterLeft.setIdleMode(IdleMode.kCoast);
     m_ShooterLeft.setSmartCurrentLimit(CurrentConstants.AMP60, CurrentConstants.AMP40);
+    m_ShooterLeft.setInverted(true);
 
 
     m_ShooterRight.getEncoder().setMeasurementPeriod(16);
