@@ -47,7 +47,7 @@ public class ArmSubsystem extends SubsystemBase {
   boolean useTrigger = false;
   boolean autoCentering = false;
 
-  double kG = 0.0175;
+  double kG = Constants.ArmPIDConstants.armkG;
 
   double kP = Constants.ArmPIDConstants.armkP;
   double kD = Constants.ArmPIDConstants.armkD;
@@ -61,9 +61,9 @@ public class ArmSubsystem extends SubsystemBase {
 
   TrapezoidProfile armProfile;
   Timer m_timer;
-  // TrapezoidProfile.State m_end;
+  TrapezoidProfile.State m_end;
   TrapezoidProfile.State targetState;
-  // TrapezoidProfile.State m_start;
+  TrapezoidProfile.State m_start;
   Constraints armConstraints = new TrapezoidProfile.Constraints(0.2, 0.1);
 
   ArmFeedforward armFeedforward = new ArmFeedforward(0, kG, 0, 0);
@@ -113,78 +113,63 @@ public class ArmSubsystem extends SubsystemBase {
     // Units are determined by the units of the gains passed in at construction.
     armFeedforward.calculate(1, 2, 3);
 
+
     armProfile = new TrapezoidProfile(armConstraints);
+
     // profile.calculate(5, new TrapezoidProfile.State(0, 0), new TrapezoidProfile.State(5, 0));
     // new TrapezoidProfile.State(5, 0);
     // var setpoint = profile.calculate(elapsedTime, initialState, goalState);
     // controller.calculate(encoder.getDistance(), setpoint.position);
 
-    /*
-      Init
     
-      m_setpoint = Constants.Arm.kHomePosition;
 
-      m_timer = new Timer();
-      m_timer.start();
-      m_timer.reset();
-
-      updateMotionProfile();
-    */
-
-    /*
-      Set arm setpoint
-
-      if (_setpoint != m_setpoint) {
-        m_setpoint = _setpoint;
-        updateMotionProfile(); 
-      }
-    */
-
-    /*
-      updateMotionProfile()
-
-      TrapezoidProfile.State state = new TrapezoidProfile.State(m_encoder.getPosition(), m_encoder.getVelocity());
-      TrapezoidProfile.State goal = new TrapezoidProfile.State(m_setpoint, 0.0);
-      m_profile = new TrapezoidProfile(Constants.Arm.kArmMotionConstraint, goal, state);
-      m_timer.reset();
-    */
-
-    /* 
-      Automatic arm positioning - default arm command
-
-      double elapsedTime = m_timer.get();
-      if (m_profile.isFinished(elapsedTime)) {
-        targetState = new TrapezoidProfile.State(m_setpoint, 0.0);
-      }
-      else {
-        targetState = m_profile.calculate(elapsedTime);
-      }
-
-      feedforward = Constants.Arm.kArmFeedforward.calculate(m_encoder.getPosition()+Constants.Arm.kArmZeroCosineOffset, targetState.velocity);
-      m_controller.setReference(targetState.position, CANSparkMax.ControlType.kPosition, 0, feedforward);
-     */
-
-    /*
-      Manual arm positioning
-
-      m_setpoint = m_encoder.getPosition();
-      targetState = new TrapezoidProfile.State(m_setpoint, 0.0);
-      m_profile = new TrapezoidProfile(Constants.Arm.kArmMotionConstraint, targetState, targetState);
-      feedforward = Constants.Arm.kArmFeedforward.calculate(m_encoder.getPosition()+Constants.Arm.kArmZeroCosineOffset, targetState.velocity);
-      m_motor.set(_power + (feedforward / 12.0));
-      manualValue = _power;
-     */
-
-
+    // setpoint = -1;
     setpoint = Constants.ArmPIDConstants.STAGE;
 
     m_timer = new Timer();
     m_timer.start();
-    m_timer.reset();
 
     updateMotionProfile();
   }
 
+  @Override
+  public void periodic() {
+    // if (setpoint < 1) setpoint = 1;
+    // else if (setpoint > 100) setpoint = 100;
+
+
+    if (encoder.getPosition() > Constants.ArmStops.StopPostion) m_LeftArm.set(Constants.ArmStops.StopSpeed);
+    if (encoder.getPosition() > Constants.ArmStops.BackPostion) m_LeftArm.set(Constants.ArmStops.BackSpeed);
+
+
+    kG = SmartDashboard.getNumber("kG", kG);
+
+    if (kP != SmartDashboard.getNumber("kP", kP) || kD != SmartDashboard.getNumber("kD", kD)) {
+      kP = SmartDashboard.getNumber("kP", kP);
+      kD = SmartDashboard.getNumber("kD", kD);
+      pidController.setP(kP);
+      pidController.setD(kD);
+    }
+
+
+    // P increases when setpoint is low
+      double p = kP * 0.5 + kP * 0.4 * Math.abs(Math.cos((getDistance() + 5) * (Math.PI/180)));
+      // P increases when going up
+      if (setpoint > getDistance()) p += kP * 0.2;
+      // P decreases when difference in setpoints is large
+      double diff = Math.abs(setpoint - getDistance());
+      if (diff > 60) p *= 0.6;
+      else if (diff > 30) p *= 0.8;
+      else if (diff < 10) p *= 1.2;
+      else if (diff < 5) p *= 1.5;
+      pidController.setP(p);
+
+
+    NetworkTableInstance.getDefault().getTable("Arm").getEntry("AbsoluteEncoderPosition").setDouble(getDistance());
+    NetworkTableInstance.getDefault().getTable("Arm").getEntry("TargetSetpoint").setDouble(setpoint);
+  }
+
+  /*
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
@@ -246,19 +231,7 @@ public class ArmSubsystem extends SubsystemBase {
     if (encoder.getPosition() > Constants.ArmStops.BackPostion) m_LeftArm.set(Constants.ArmStops.BackSpeed);
 
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
+  */
 
 
 
@@ -270,47 +243,43 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   public void updateMotionProfile() {
-    TrapezoidProfile.State state = new TrapezoidProfile.State(encoder.getPosition(), encoder.getVelocity());
-    TrapezoidProfile.State goal = new TrapezoidProfile.State(setpoint, 0.0);
-    armProfile = new TrapezoidProfile(armConstraints, goal, state);
+    m_start = new TrapezoidProfile.State(getDistance(), encoder.getVelocity());
+    m_end = new TrapezoidProfile.State(setpoint, 0.0);
+    armProfile = new TrapezoidProfile(armConstraints);
     m_timer.reset();
   }
 
-  public void AutomaticPositioning() {
+  public void AutomaticPositioning() {    
     double elapsedTime = m_timer.get();
     if (armProfile.isFinished(elapsedTime)) {
       targetState = new TrapezoidProfile.State(setpoint, 0.0);
     }
     else {
-      targetState = armProfile.calculate(elapsedTime);
+      targetState = armProfile.calculate(elapsedTime, m_start, m_end);
     }
 
-    feedforward = armFeedforward.calculate(encoder.getPosition() - 0.082, targetState.velocity);
-    pidController.setReference(targetState.position, CANSparkMax.ControlType.kPosition, 0, feedforward);
+    feedforward = kG * Math.cos(getRadians() - 0.082);
+    pidController.setReference(targetState.position, ControlType.kPosition, 0, feedforward);
+
+
+
+    NetworkTableInstance.getDefault().getTable("AutoArm").getEntry("Timer").setDouble(elapsedTime);
+    NetworkTableInstance.getDefault().getTable("AutoArm").getEntry("Finished").setBoolean(armProfile.isFinished(elapsedTime));
+    NetworkTableInstance.getDefault().getTable("AutoArm").getEntry("Feedforward").setDouble(feedforward);
+    NetworkTableInstance.getDefault().getTable("AutoArm").getEntry("RadPosition").setDouble(targetState.position);
   }
 
   public void ManualPositioning(double power) {
-    setpoint = encoder.getPosition();
-    targetState = new TrapezoidProfile.State(setpoint, 0.0);
-    armProfile = new TrapezoidProfile(armConstraints, targetState, targetState);
-    feedforward = armFeedforward.calculate(encoder.getPosition() - 0.082, targetState.velocity);
+    setpoint = getDistance();
+    updateMotionProfile();
+    feedforward = kG * Math.cos(getRadians() - 0.082);
     m_LeftArm.set(power + (feedforward / 12.0));
     m_RightArm.set(power + (feedforward / 12.0));
   }
 
 
 
-
-
-
-
-
-
-
-
-
-
-
+/*
   public Command SetPIDPosition(double setpoint) {
     return runOnce(() -> { 
       this.setpoint = setpoint; 
@@ -339,6 +308,7 @@ public class ArmSubsystem extends SubsystemBase {
     if (Math.abs(setpoint - sensor.angleMap) > 2) tempSetpoint = sensor.angleMap + 1;
     this.setpoint = sensor.angleMap;
   }
+*/
 
   public Command RunArm(double speed) {
     return runOnce(() -> {
@@ -352,13 +322,17 @@ public class ArmSubsystem extends SubsystemBase {
     return encoder.getPosition();
   }
 
+  public double getRadians() {
+    return getDistance() * (Math.PI/180);
+  }
+
   public double getError() 
   {
     return Math.abs(setpoint - getDistance());
   }
 
   public double getTargetPosition() {
-    return 0.0;
+    return setpoint;
   }
 
   public Command RunkG() {

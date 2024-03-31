@@ -11,6 +11,7 @@ import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -24,11 +25,15 @@ public class ShooterSubsystem extends SubsystemBase {
   SparkPIDController rightPid;
   SparkPIDController leftPid;
 
-  private double setPoint = 0;
+  double setPoint = 0;
+
+  double dashboardSpeed = 2000;
 
   SensorSubsystem sensorSubsystem;
 
   public ShooterSubsystem(SensorSubsystem sensor) {
+
+    SmartDashboard.putNumber("Shooter Speed", dashboardSpeed);
 
     sensorSubsystem = sensor;
 
@@ -43,6 +48,7 @@ public class ShooterSubsystem extends SubsystemBase {
     //m_ShooterLeft.restoreFactoryDefaults();
     m_ShooterLeft.setIdleMode(IdleMode.kCoast);
     m_ShooterLeft.setSmartCurrentLimit(CurrentConstants.AMP60, CurrentConstants.AMP40);
+    m_ShooterLeft.setInverted(true);
 
 
     m_ShooterRight.getEncoder().setMeasurementPeriod(16);
@@ -75,23 +81,24 @@ public class ShooterSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
 
+    dashboardSpeed = SmartDashboard.getNumber("Shooter Speed", dashboardSpeed);
 
     leftPid.setReference(setPoint, ControlType.kVelocity);
     rightPid.setReference(setPoint, ControlType.kVelocity);
 
-    if (sensorSubsystem.onSide()) {
-      if (setPoint == 0 && !sensorSubsystem.getIntakeSensor(0)) {
-        setNewTarget(1100);
-      }
-      if (setPoint == 1100 && sensorSubsystem.getIntakeSensor(0)) {
-        setNewTarget(0);
-      }
-    }
-    else {
-      if (setPoint == 1100) {
-        setNewTarget(0);
-      }
-    }
+    // if (sensorSubsystem.onSide()) {
+    //   if (setPoint == 0 && !sensorSubsystem.getIntakeSensor(0)) {
+    //     setNewTarget(1100);
+    //   }
+    //   if (setPoint == 1100 && sensorSubsystem.getIntakeSensor(0)) {
+    //     setNewTarget(0);
+    //   }
+    // }
+    // else {
+    //   if (setPoint == 1100) {
+    //     setNewTarget(0);
+    //   }
+    // }
 
     NetworkTableInstance.getDefault().getTable("Shooter").getEntry("RPM").setDouble(getSpeed());
     NetworkTableInstance.getDefault().getTable("Shooter").getEntry("Target RPM").setDouble(setPoint);
@@ -116,8 +123,9 @@ public class ShooterSubsystem extends SubsystemBase {
   }
 
   public Command shootNote(double target) {
+    if (target == 0) return runOnce(() -> setStopTarget());
     return runOnce(
-      () -> setNewTarget(target)
+      () -> setNewTarget(dashboardSpeed)
       );
   }
 

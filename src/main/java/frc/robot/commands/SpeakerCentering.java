@@ -61,7 +61,6 @@ public class SpeakerCentering extends Command {
     // DataLogManager.log("Auto shooting - init");
 
     m_DriveSubsystem.speakerCentering(m_controller, m_SensorSubsystem).schedule();
-    m_ShooterSubsystem.setShootSpeed(5500);
     
   }
 
@@ -71,16 +70,17 @@ public class SpeakerCentering extends Command {
 
     // DataLogManager.log("Auto shooting --- execute");
 
-    NetworkTableInstance.getDefault().getTable("AutoCentering").getEntry("InRange").setBoolean(m_SensorSubsystem.inRange());
-    NetworkTableInstance.getDefault().getTable("AutoCentering").getEntry("ShooterAtSpeed").setBoolean(m_ShooterSubsystem.getSpeed() > 4000);
+    NetworkTableInstance.getDefault().getTable("AutoCentering").getEntry("ShooterAtSpeed").setBoolean(m_ShooterSubsystem.getSpeed() > m_SensorSubsystem.speedMap - 250);
     NetworkTableInstance.getDefault().getTable("AutoCentering").getEntry("StartedShot").setBoolean(startedShot);
-    NetworkTableInstance.getDefault().getTable("AutoCentering").getEntry("ArmInRange").setBoolean(m_ArmSubsystem.getError() < 1);
-    NetworkTableInstance.getDefault().getTable("AutoCentering").getEntry("RotatonInRange").setBoolean(m_SensorSubsystem.getCenteringRotationError() < 4);
+    NetworkTableInstance.getDefault().getTable("AutoCentering").getEntry("ArmInRange").setBoolean(m_ArmSubsystem.getError() < 2.5 && m_ArmSubsystem.getError() > -0.5);
+    NetworkTableInstance.getDefault().getTable("AutoCentering").getEntry("RotatonInRange").setBoolean(m_SensorSubsystem.getCenteringRotationError() < 1.5);
 
-    m_ArmSubsystem.SetSensorPID(m_SensorSubsystem);
+    m_ArmSubsystem.setTrapezoidalSetpoint(m_SensorSubsystem.angleMap);
+    m_ArmSubsystem.AutomaticPositioning();
+    m_ShooterSubsystem.setShootSpeed(m_SensorSubsystem.speedMap);
 
-    if (!startedShot && m_ShooterSubsystem.getSpeed() > 3000 && m_ArmSubsystem.getError() < 0.5 && m_SensorSubsystem.getCenteringRotationError() < 15) {
-      // DataLogManager.log("Auto shooting ------------- Started shot --------");
+    if (!startedShot && m_ShooterSubsystem.getSpeed() > m_SensorSubsystem.speedMap - 250 && 
+        m_ArmSubsystem.getError() < 2.5 && m_ArmSubsystem.getError() > -0.5 && m_SensorSubsystem.getCenteringRotationError() < 1.5) {
       startedShot = true;
       m_IntakeSubsystem.RunIntake(1);
       new SequentialCommandGroup(Commands.waitSeconds(0.5), Commands.runOnce(() -> {this.finished = true;}));
@@ -93,9 +93,8 @@ public class SpeakerCentering extends Command {
   @Override
   public void end(boolean interrupted) {
 
-    // DataLogManager.log("Auto shooting --- End --------------------------------------------------");
     m_ShooterSubsystem.setShootSpeed(0);
-    m_ArmSubsystem.SetPositionPID(Constants.ArmPIDConstants.STAGE);
+    m_ArmSubsystem.setTrapezoidalSetpoint(Constants.ArmPIDConstants.STAGE);
     m_IntakeSubsystem.RunIntake(0);
     m_DriveSubsystem.regularDrive(m_controller).schedule();
 

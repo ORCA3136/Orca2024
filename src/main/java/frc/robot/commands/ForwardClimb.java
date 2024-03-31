@@ -15,7 +15,7 @@ public class ForwardClimb extends Command {
     double climberRightPosition;
 
     double armThreshold = 85;
-    double climberHeight = -110;
+    double climberHeight = -100;
 
     public ForwardClimb(ArmSubsystem arm, ClimberSubsystem climber) {
         m_ArmSubsystem = arm;
@@ -26,7 +26,7 @@ public class ForwardClimb extends Command {
     @Override
     public void initialize() {
 
-        m_ArmSubsystem.SetPositionPID(95);
+        //m_ArmSubsystem.SetPositionPID(92);
 
     }
 

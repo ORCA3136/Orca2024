@@ -30,8 +30,9 @@ public class SensorSubsystem extends SubsystemBase {
 
   ChassisSpeeds currentFieldSpeeds;
   double xSpeed;
-  double ySpeed;
+  double direction;
   double omegaSpeed;
+  double tangentSpeed;
 
   boolean red;
   Pose2d pose;
@@ -59,24 +60,34 @@ public class SensorSubsystem extends SubsystemBase {
 
     sensorValues = new boolean[2];
 
-    shooterSpeedMap.put(Double.valueOf(1.27), Double.valueOf(2600.0));
-    shooterSpeedMap.put(Double.valueOf(1.88), Double.valueOf(2850.0));
-    shooterSpeedMap.put(Double.valueOf(2.35), Double.valueOf(3800.0));
+    // More datapoints for 2, 2.5, 3, 3.5
 
-    shooterAngleMap.put(Double.valueOf(1.27), Double.valueOf(1.0));
-    shooterAngleMap.put(Double.valueOf(1.88), Double.valueOf(7.0));
-    shooterAngleMap.put(Double.valueOf(2.35), Double.valueOf(10.0));
+
+    shooterSpeedMap.put(Double.valueOf(1.2), Double.valueOf(3000));
+    shooterSpeedMap.put(Double.valueOf(1.5), Double.valueOf(2750));
+    shooterSpeedMap.put(Double.valueOf(2), Double.valueOf(3000));
+    shooterSpeedMap.put(Double.valueOf(2.5), Double.valueOf(3000));
+    shooterSpeedMap.put(Double.valueOf(3), Double.valueOf(3250));
+    shooterSpeedMap.put(Double.valueOf(3.5), Double.valueOf(3500));
+    shooterSpeedMap.put(Double.valueOf(4.5), Double.valueOf(5000));
+    shooterSpeedMap.put(Double.valueOf(5.3), Double.valueOf(5000));
+    shooterSpeedMap.put(Double.valueOf(6), Double.valueOf(5000));
+
+    shooterAngleMap.put(Double.valueOf(1.2), Double.valueOf(1));
+    shooterAngleMap.put(Double.valueOf(1.5), Double.valueOf(1));
+    shooterAngleMap.put(Double.valueOf(2), Double.valueOf(5));
+    shooterAngleMap.put(Double.valueOf(2.5), Double.valueOf(14));
+    shooterAngleMap.put(Double.valueOf(3), Double.valueOf(17.5));
+    shooterAngleMap.put(Double.valueOf(3.5), Double.valueOf(22));
+    shooterAngleMap.put(Double.valueOf(4.5), Double.valueOf(27));
+    shooterAngleMap.put(Double.valueOf(5.3), Double.valueOf(28.5));
+    shooterAngleMap.put(Double.valueOf(6), Double.valueOf(29.5));
 
     // Need more accurate/updated and more numerous setpoints
     // Need more accurate/updated and more numerous setpoints
     // Need more accurate/updated and more numerous setpoints
     // Need more accurate/updated and more numerous setpoints
     // Need more accurate/updated and more numerous setpoints
-
-    currentFieldSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(drive.getRobotRelativeSpeeds(), drive.getHeading());
-    xSpeed = currentFieldSpeeds.vxMetersPerSecond;
-    ySpeed = currentFieldSpeeds.vyMetersPerSecond;
-    omegaSpeed = currentFieldSpeeds.omegaRadiansPerSecond;
   }
 
   @Override
@@ -115,7 +126,7 @@ public class SensorSubsystem extends SubsystemBase {
     else {
       speaker = Constants.Field.BLUE_SPEAKER_FROM_CENTER;
       xDistance = Math.abs(speaker.getX()) - Math.abs(pose.getX());
-      yDistance = Math.abs(speaker.getY()) - Math.abs(pose.getY());
+      yDistance = Math.abs(pose.getY()) - Math.abs(speaker.getY());
     }
 
     distanceToSpeaker = Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
@@ -124,6 +135,18 @@ public class SensorSubsystem extends SubsystemBase {
 
     speedMap = shooterSpeedMap.get(distanceToSpeaker);
     angleMap = shooterAngleMap.get(Double.valueOf(distanceToSpeaker));
+
+
+    currentFieldSpeeds = robotDrive.getRobotRelativeSpeeds();
+    xSpeed = currentFieldSpeeds.vxMetersPerSecond;
+    direction = currentFieldSpeeds.vyMetersPerSecond; // Direction
+    omegaSpeed = currentFieldSpeeds.omegaRadiansPerSecond;
+    tangentSpeed = 0.0;
+
+    NetworkTableInstance.getDefault().getTable("Rotation").getEntry("TangentSpeed").setDouble(tangentSpeed);
+    NetworkTableInstance.getDefault().getTable("Rotation").getEntry("XSpeed").setDouble(xSpeed);
+    NetworkTableInstance.getDefault().getTable("Rotation").getEntry("YSpeed").setDouble(direction);
+    NetworkTableInstance.getDefault().getTable("Rotation").getEntry("OmegaSpeed").setDouble(omegaSpeed);
 
 
 
@@ -159,8 +182,6 @@ public class SensorSubsystem extends SubsystemBase {
 
   public double SpeakerRotation(DriveSubsystem m_DriveSubsystem) {
 
-    double tangentSpeed = Math.cos(radiansToSpeaker) * xSpeed + Math.sin(radiansToSpeaker) * ySpeed;
-
     double centeringOffset = tangentSpeed * 0.0;
 
     double rotationDifference = (angle - (angleToSpeaker + centeringOffset));
@@ -169,9 +190,9 @@ public class SensorSubsystem extends SubsystemBase {
 
     if (rotationDifference > 25) rotation = 0.2;
     else if (rotationDifference < -25) rotation = -0.2;
-    else  rotation = rotationDifference / 0.08;
+    else  rotation = rotationDifference * 0.0075 + 0.015;
 
-
+    // 0 - 10 degrees offset
 
 
 
@@ -194,5 +215,13 @@ public class SensorSubsystem extends SubsystemBase {
 
   public double getCenteringRotationError() {
     return Math.abs(angle - angleToSpeaker);
+  }
+
+  public double getCenteringAngle() {
+    return angleMap;
+  }
+
+  public double getCenteringSpeed() {
+    return speedMap;
   }
 }

@@ -50,6 +50,7 @@ import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.ClimberSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -142,10 +143,17 @@ public class RobotContainer {
                 true, true),
             m_robotDrive));
 
+  
+    m_ArmSubsystem.setDefaultCommand(
+      new RunCommand(
+        () -> m_ArmSubsystem.AutomaticPositioning(),
+        m_ArmSubsystem));
+    
+
     autoChooser = new SendableChooser<>(); // Default auto will be `Commands.none()`
 
 
-
+  /*
     // Blue autos
     autoChooser.addOption("Blue - Triple speaker score", new SequentialCommandGroup(
       
@@ -454,6 +462,7 @@ public class RobotContainer {
     ));
 
     SmartDashboard.putData("Auto Mode", autoChooser);
+  */
     
   }
 
@@ -468,13 +477,13 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     
-    new JoystickButton(m_driverController, 1).whileTrue(new RunIntakeCommand(0.5, m_IntakeSubsystem)).onFalse(new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(1.5));
-    new JoystickButton(m_driverController, 2).whileTrue(new ParallelCommandGroup(new RunIntakeCommand(-0.3, m_IntakeSubsystem), m_ShooterSubsystem.shootNote(Constants.ShooterConstants.reverse))).onFalse(m_ShooterSubsystem.shootNote(0));
-    new JoystickButton(m_driverController, 3).onTrue(m_ArmSubsystem.RunArm(0.5)).onFalse(m_ArmSubsystem.RunArm(0));
-    new JoystickButton(m_driverController, 4).onTrue(m_ArmSubsystem.RunArm(-0.3)).onFalse(m_ArmSubsystem.RunArm(0));
+    new JoystickButton(m_driverController, 1).onTrue(new RunIntakeCommand(0.5, m_IntakeSubsystem)).onFalse(new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(1.5));
+    new JoystickButton(m_driverController, 2).onTrue(new ParallelCommandGroup(new RunIntakeCommand(-0.3, m_IntakeSubsystem), m_ShooterSubsystem.shootNote(Constants.ShooterConstants.reverse))).onFalse(m_ShooterSubsystem.shootNote(0));
+    new JoystickButton(m_driverController, 3).whileTrue(new RunCommand(() -> m_ArmSubsystem.ManualPositioning(0.1), m_ArmSubsystem));
+    new JoystickButton(m_driverController, 4).whileTrue(new RunCommand(() -> m_ArmSubsystem.ManualPositioning(-0.1), m_ArmSubsystem));
 
     new JoystickButton(m_driverController, 5).onTrue(m_ShooterSubsystem.shootNote(Constants.ShooterConstants.reverse)).onFalse(m_ShooterSubsystem.shootNote(0));
-    new JoystickButton(m_driverController, 6).onTrue(m_ShooterSubsystem.shootNote(5500)).onFalse(m_ShooterSubsystem.shootNote(0));
+    new JoystickButton(m_driverController, 6).onTrue(m_ShooterSubsystem.shootNote(3000)).onFalse(m_ShooterSubsystem.shootNote(0));
     new JoystickButton(m_driverController, 7).onTrue(m_ClimberSubsystem.RunClimber(1)).onFalse(m_ClimberSubsystem.RunClimber(0));
     new JoystickButton(m_driverController, 8).onTrue(m_ClimberSubsystem.RunClimber(-1)).onFalse(m_ClimberSubsystem.RunClimber(0));
     
@@ -493,10 +502,10 @@ public class RobotContainer {
     m_secondaryController.button(7).onTrue(m_ClimberSubsystem.ResetEncoders());
     m_secondaryController.button(8).whileTrue(new ForwardClimb(m_ArmSubsystem, m_ClimberSubsystem));
 
-    m_secondaryController.button(9).onTrue(m_ArmSubsystem.SetPIDPosition(2));
-    m_secondaryController.button(10).onTrue(m_ArmSubsystem.SetPIDPosition(25));
-    m_secondaryController.button(11).onTrue(m_ArmSubsystem.SetPIDPosition(70));
-    m_secondaryController.button(12).onTrue(m_ArmSubsystem.SetPIDPosition(90));
+    m_secondaryController.button(9).onTrue(new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(3)));
+    m_secondaryController.button(10).onTrue(new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(25)));
+    m_secondaryController.button(11).onTrue(new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(70)));
+    m_secondaryController.button(12).onTrue(new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(90)));
 
 
 
@@ -509,8 +518,7 @@ public class RobotContainer {
     };
     Trigger LeftTrigger = new Trigger(LeftTriggerSupplier);
 
-    LeftTrigger.whileTrue(new SpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_robotDrive, m_IntakeSubsystem, m_driverController));
-    // LeftTrigger.whileTrue(new NOTNOTNoteSuck(m_robotDrive, m_IntakeSubsystem, m_SensorSubsystem, m_ShooterSubsystem));
+    LeftTrigger.whileTrue(new NOTNOTNoteSuck(m_robotDrive, m_IntakeSubsystem, m_SensorSubsystem, m_ShooterSubsystem));
 
     BooleanSupplier RightTriggerSupplier = new BooleanSupplier() {
       @Override
@@ -522,7 +530,7 @@ public class RobotContainer {
     Trigger RightTrigger = new Trigger(RightTriggerSupplier);
 
     // Change to shoot routine
-    RightTrigger.whileTrue(new TestSpeakerCentering(m_SensorSubsystem, m_ArmSubsystem, m_robotDrive, m_driverController));
+    RightTrigger.whileTrue(new SpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_robotDrive, m_IntakeSubsystem, m_driverController));
   }
 
 

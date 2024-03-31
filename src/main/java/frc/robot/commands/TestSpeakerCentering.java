@@ -63,7 +63,7 @@ public class TestSpeakerCentering extends Command {
     NetworkTableInstance.getDefault().getTable("AutoCentering").getEntry("ArmInRange").setBoolean(m_ArmSubsystem.getError() < 1);
     NetworkTableInstance.getDefault().getTable("AutoCentering").getEntry("RotatonInRange").setBoolean(m_SensorSubsystem.getCenteringRotationError() < 4);
 
-    m_ArmSubsystem.SetSensorPID(m_SensorSubsystem);
+    m_ArmSubsystem.setTrapezoidalSetpoint(m_SensorSubsystem.getCenteringAngle());
 
     if (!startedShot && m_ArmSubsystem.getError() < 0.5 && m_SensorSubsystem.getCenteringRotationError() < 15) {
       // DataLogManager.log("Auto shooting ------------- Started shot --------");
@@ -78,7 +78,7 @@ public class TestSpeakerCentering extends Command {
   @Override
   public void end(boolean interrupted) {
 
-    m_ArmSubsystem.SetPositionPID(Constants.ArmPIDConstants.STAGE);
+    m_ArmSubsystem.setTrapezoidalSetpoint(25);
     m_DriveSubsystem.regularDrive(m_controller).schedule();
 
   }
