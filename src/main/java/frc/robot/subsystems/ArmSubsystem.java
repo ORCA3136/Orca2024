@@ -41,6 +41,8 @@ public class ArmSubsystem extends SubsystemBase {
   CANSparkMax m_RightArm;
 
   AbsoluteEncoder encoder;
+  double encoderPosition;
+  double encoderVelocity;
 
   double targetPosition;
   boolean shootNoteInUse = false;
@@ -64,7 +66,7 @@ public class ArmSubsystem extends SubsystemBase {
   TrapezoidProfile.State m_end;
   TrapezoidProfile.State targetState;
   TrapezoidProfile.State m_start;
-  Constraints armConstraints = new TrapezoidProfile.Constraints(0.2, 0.1);
+  Constraints armConstraints = new TrapezoidProfile.Constraints(0.5, 0.3);
 
   ArmFeedforward armFeedforward = new ArmFeedforward(0, kG, 0, 0);
 
@@ -137,35 +139,40 @@ public class ArmSubsystem extends SubsystemBase {
     // if (setpoint < 1) setpoint = 1;
     // else if (setpoint > 100) setpoint = 100;
 
+    encoderPosition = getDistance();
+    encoderVelocity = encoder.getVelocity();
 
-    if (encoder.getPosition() > Constants.ArmStops.StopPostion) m_LeftArm.set(Constants.ArmStops.StopSpeed);
-    if (encoder.getPosition() > Constants.ArmStops.BackPostion) m_LeftArm.set(Constants.ArmStops.BackSpeed);
+    NetworkTableInstance.getDefault().getTable("Rotation").getEntry("ArmError").setDouble(encoderPosition - setpoint);
+    NetworkTableInstance.getDefault().getTable("Rotation").getEntry("ArmVelocity").setDouble(encoderVelocity);
 
+    // kG = SmartDashboard.getNumber("kG", kG);
 
-    kG = SmartDashboard.getNumber("kG", kG);
-
-    if (kP != SmartDashboard.getNumber("kP", kP) || kD != SmartDashboard.getNumber("kD", kD)) {
-      kP = SmartDashboard.getNumber("kP", kP);
-      kD = SmartDashboard.getNumber("kD", kD);
-      pidController.setP(kP);
-      pidController.setD(kD);
-    }
+    // if (kP != SmartDashboard.getNumber("kP", kP) || kD != SmartDashboard.getNumber("kD", kD)) {
+    //   kP = SmartDashboard.getNumber("kP", kP);
+    //   kD = SmartDashboard.getNumber("kD", kD);
+    //   pidController.setP(kP);
+    //   pidController.setD(kD);
+    // }
 
 
     // P increases when setpoint is low
-      double p = kP * 0.5 + kP * 0.4 * Math.abs(Math.cos((getDistance() + 5) * (Math.PI/180)));
+      double p = kP * 0.5 + kP * 0.4 * Math.abs(Math.cos((encoderPosition + 5) * (Math.PI/180)));
       // P increases when going up
-      if (setpoint > getDistance()) p += kP * 0.2;
+      if (setpoint > encoderPosition) p += kP * 0.2;
       // P decreases when difference in setpoints is large
-      double diff = Math.abs(setpoint - getDistance());
-      if (diff > 60) p *= 0.6;
-      else if (diff > 30) p *= 0.8;
+      double diff = Math.abs(setpoint - encoderPosition);
+      if (diff > 60) p *= 0.5;
+      else if (diff > 30) p *= 0.7;
       else if (diff < 10) p *= 1.2;
       else if (diff < 5) p *= 1.5;
+
+      if (encoderVelocity > 1) p *= 1;
+      else if (encoderVelocity < 0.1) p *= ((encoderVelocity * -1) + 1.1);
+
       pidController.setP(p);
 
 
-    NetworkTableInstance.getDefault().getTable("Arm").getEntry("AbsoluteEncoderPosition").setDouble(getDistance());
+    NetworkTableInstance.getDefault().getTable("Arm").getEntry("AbsoluteEncoderPosition").setDouble(encoderPosition);
     NetworkTableInstance.getDefault().getTable("Arm").getEntry("TargetSetpoint").setDouble(setpoint);
   }
 
@@ -243,9 +250,8 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   public void updateMotionProfile() {
-    m_start = new TrapezoidProfile.State(getDistance(), encoder.getVelocity());
+    m_start = new TrapezoidProfile.State(encoderPosition, encoder.getVelocity());
     m_end = new TrapezoidProfile.State(setpoint, 0.0);
-    armProfile = new TrapezoidProfile(armConstraints);
     m_timer.reset();
   }
 
@@ -260,17 +266,10 @@ public class ArmSubsystem extends SubsystemBase {
 
     feedforward = kG * Math.cos(getRadians() - 0.082);
     pidController.setReference(targetState.position, ControlType.kPosition, 0, feedforward);
-
-
-
-    NetworkTableInstance.getDefault().getTable("AutoArm").getEntry("Timer").setDouble(elapsedTime);
-    NetworkTableInstance.getDefault().getTable("AutoArm").getEntry("Finished").setBoolean(armProfile.isFinished(elapsedTime));
-    NetworkTableInstance.getDefault().getTable("AutoArm").getEntry("Feedforward").setDouble(feedforward);
-    NetworkTableInstance.getDefault().getTable("AutoArm").getEntry("RadPosition").setDouble(targetState.position);
   }
 
   public void ManualPositioning(double power) {
-    setpoint = getDistance();
+    setpoint = encoderPosition;
     updateMotionProfile();
     feedforward = kG * Math.cos(getRadians() - 0.082);
     m_LeftArm.set(power + (feedforward / 12.0));
@@ -323,12 +322,12 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   public double getRadians() {
-    return getDistance() * (Math.PI/180);
+    return encoderPosition * (Math.PI/180);
   }
 
   public double getError() 
   {
-    return Math.abs(setpoint - getDistance());
+    return encoderPosition - setpoint;
   }
 
   public double getTargetPosition() {

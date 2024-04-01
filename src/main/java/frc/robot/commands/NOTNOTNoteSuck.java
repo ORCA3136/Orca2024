@@ -34,7 +34,6 @@ public class NOTNOTNoteSuck extends Command {
   @Override
   public void initialize() {
 
-    // DataLogManager.log("NOTNOTNoteSuck Init");
     m_IntakeSubsystem.RunIntake(0.5);
 
   }
@@ -42,8 +41,6 @@ public class NOTNOTNoteSuck extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-
-    // DataLogManager.log("NOTNOTNoteSuck Execute");
 
     // if (m_SensorSubsystem.getIntakeSensor(1)) {
     //   end(false);
@@ -72,16 +69,15 @@ public class NOTNOTNoteSuck extends Command {
   @Override
   public void end(boolean interrupted) {
 
-    // DataLogManager.log("NOTNOTNoteSuck End -------");
     m_IntakeSubsystem.RunIntake(0);
     if (DriverStation.isTeleop())
-      new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(1.5).schedule();
+      new NoteOffIntake(m_IntakeSubsystem, m_SensorSubsystem).withTimeout(1.5).schedule();
 
   }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return m_SensorSubsystem.getIntakeSensor(1);
+    return m_SensorSubsystem.getIntakeSensor(2);
   }
 }

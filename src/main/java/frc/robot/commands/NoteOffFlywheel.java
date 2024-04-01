@@ -9,7 +9,7 @@ import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.SensorSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 
-public class NoteOffIntake extends Command {
+public class NoteOffFlywheel extends Command {
     /** Creates a new RunIntakeCommand. */
 
   IntakeSubsystem m_IntakeSubsystem;
@@ -22,11 +22,14 @@ public class NoteOffIntake extends Command {
   boolean finished = false;
   boolean finishedIntake = false;
 
-  public NoteOffIntake(IntakeSubsystem IntakeSubsystem, SensorSubsystem SensorSubsystem) {
+  boolean onTopSensor = false;
+
+  public NoteOffFlywheel(ShooterSubsystem ShooterSubsystem, IntakeSubsystem IntakeSubsystem, SensorSubsystem SensorSubsystem) {
     // Use addRequirements() here to declare subsystem dependencies.
     m_IntakeSubsystem = IntakeSubsystem;
+    m_ShooterSubsystem = ShooterSubsystem;
     m_SensorSubsystem = SensorSubsystem;
-    addRequirements(IntakeSubsystem);
+    addRequirements(IntakeSubsystem, ShooterSubsystem);
   }
 
   // Called when the command is initially scheduled.
@@ -56,10 +59,18 @@ public class NoteOffIntake extends Command {
     // Bottom sensor is engaged - intake in
     else if (m_IntakeSideBottomSensorValue) {
       m_IntakeSubsystem.RunIntake(0.15);
+      if (onTopSensor) {
+        m_ShooterSubsystem.setNewTarget(0);
+        onTopSensor = false;
+      }
     }
     // Top sensor is engaged - intake out
     else if (m_IntakeSideTopSensorValue) {
       m_IntakeSubsystem.RunIntake(-0.1);
+      if (!onTopSensor) {
+        m_ShooterSubsystem.setNewTarget(-500);
+        onTopSensor = true;
+      }
     }
   }
 
@@ -68,6 +79,7 @@ public class NoteOffIntake extends Command {
   public void end(boolean interrupted) {
 
     m_IntakeSubsystem.RunIntake(0);
+    m_ShooterSubsystem.setNewTarget(0);
 
   }
 

@@ -117,7 +117,6 @@ public class DriveSubsystem extends SubsystemBase {
     NetworkTableInstance.getDefault().getTable("Robot Pose").getEntry("Rotation").setDouble(getPose().getRotation().getDegrees());
     NetworkTableInstance.getDefault().getTable("Robot Pose").getEntry("Heading").setDouble(getHeading().getDegrees());
 
-
     //DataLogManager.log("POSE: "+getPose());
 
     //publisher.set(poseA);
@@ -226,6 +225,7 @@ public class DriveSubsystem extends SubsystemBase {
         fieldRelative
             ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, getHeading())
             : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
+
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
     m_frontLeft.setDesiredState(swerveModuleStates[0]);

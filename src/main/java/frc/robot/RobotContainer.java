@@ -33,6 +33,7 @@ import frc.robot.Constants.ModuleConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.commands.ForwardClimb;
 import frc.robot.commands.NOTNOTNoteSuck;
+import frc.robot.commands.NoteOffFlywheel;
 import frc.robot.commands.RunIntakeCommand;
 import frc.robot.commands.RunArmCommand;
 import frc.robot.commands.SetSwerveXCommand;
@@ -149,6 +150,8 @@ public class RobotContainer {
         () -> m_ArmSubsystem.AutomaticPositioning(),
         m_ArmSubsystem));
     
+    m_IntakeSubsystem.setDefaultCommand(
+      new NoteOffIntake(m_IntakeSubsystem, m_SensorSubsystem));
 
     autoChooser = new SendableChooser<>(); // Default auto will be `Commands.none()`
 
@@ -477,13 +480,13 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     
-    new JoystickButton(m_driverController, 1).onTrue(new RunIntakeCommand(0.5, m_IntakeSubsystem)).onFalse(new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(1.5));
+    new JoystickButton(m_driverController, 1).whileTrue(new RunIntakeCommand(0.5, m_IntakeSubsystem));
     new JoystickButton(m_driverController, 2).onTrue(new ParallelCommandGroup(new RunIntakeCommand(-0.3, m_IntakeSubsystem), m_ShooterSubsystem.shootNote(Constants.ShooterConstants.reverse))).onFalse(m_ShooterSubsystem.shootNote(0));
-    new JoystickButton(m_driverController, 3).whileTrue(new RunCommand(() -> m_ArmSubsystem.ManualPositioning(0.1), m_ArmSubsystem));
-    new JoystickButton(m_driverController, 4).whileTrue(new RunCommand(() -> m_ArmSubsystem.ManualPositioning(-0.1), m_ArmSubsystem));
+    new JoystickButton(m_driverController, 3).whileTrue(new RunCommand(() -> m_ArmSubsystem.ManualPositioning(0.3), m_ArmSubsystem));
+    new JoystickButton(m_driverController, 4).whileTrue(new RunCommand(() -> m_ArmSubsystem.ManualPositioning(-0.2), m_ArmSubsystem));
 
     new JoystickButton(m_driverController, 5).onTrue(m_ShooterSubsystem.shootNote(Constants.ShooterConstants.reverse)).onFalse(m_ShooterSubsystem.shootNote(0));
-    new JoystickButton(m_driverController, 6).onTrue(m_ShooterSubsystem.shootNote(3000)).onFalse(m_ShooterSubsystem.shootNote(0));
+    new JoystickButton(m_driverController, 6).onTrue(m_ShooterSubsystem.shootNote(3500)).onFalse(m_ShooterSubsystem.shootNote(0));
     new JoystickButton(m_driverController, 7).onTrue(m_ClimberSubsystem.RunClimber(1)).onFalse(m_ClimberSubsystem.RunClimber(0));
     new JoystickButton(m_driverController, 8).onTrue(m_ClimberSubsystem.RunClimber(-1)).onFalse(m_ClimberSubsystem.RunClimber(0));
     
@@ -498,7 +501,7 @@ public class RobotContainer {
     // m_secondaryController.button(4).onTrue();
 
     // m_secondaryController.button(5).onTrue();
-    m_secondaryController.button(6).onTrue(new NoteOffIntake(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(1.5));
+    m_secondaryController.button(6).onTrue(new NoteOffFlywheel(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(1.5));
     m_secondaryController.button(7).onTrue(m_ClimberSubsystem.ResetEncoders());
     m_secondaryController.button(8).whileTrue(new ForwardClimb(m_ArmSubsystem, m_ClimberSubsystem));
 
@@ -518,7 +521,8 @@ public class RobotContainer {
     };
     Trigger LeftTrigger = new Trigger(LeftTriggerSupplier);
 
-    LeftTrigger.whileTrue(new NOTNOTNoteSuck(m_robotDrive, m_IntakeSubsystem, m_SensorSubsystem, m_ShooterSubsystem));
+    // LeftTrigger.whileTrue(new NOTNOTNoteSuck(m_robotDrive, m_IntakeSubsystem, m_SensorSubsystem, m_ShooterSubsystem));
+    LeftTrigger.whileTrue(new TestSpeakerCentering(m_SensorSubsystem, m_ArmSubsystem, m_robotDrive, m_driverController));
 
     BooleanSupplier RightTriggerSupplier = new BooleanSupplier() {
       @Override

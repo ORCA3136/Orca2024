@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.SparkPIDController;
 import com.revrobotics.CANSparkBase.IdleMode;
@@ -22,10 +23,13 @@ public class ShooterSubsystem extends SubsystemBase {
   CANSparkMax m_ShooterLeft;
   CANSparkMax m_ShooterRight;
 
+  RelativeEncoder encoder;
+
   SparkPIDController rightPid;
   SparkPIDController leftPid;
 
   double setPoint = 0;
+  double encoderVelocity;
 
   double dashboardSpeed = 2000;
 
@@ -43,18 +47,18 @@ public class ShooterSubsystem extends SubsystemBase {
     m_ShooterRight.setSmartCurrentLimit(CurrentConstants.AMP60, CurrentConstants.AMP40);
     m_ShooterRight.setInverted(true);
 
-
     m_ShooterLeft = new CANSparkMax(Constants.DriveConstants.kShooterLeftCanId, MotorType.kBrushless);
     //m_ShooterLeft.restoreFactoryDefaults();
     m_ShooterLeft.setIdleMode(IdleMode.kCoast);
     m_ShooterLeft.setSmartCurrentLimit(CurrentConstants.AMP60, CurrentConstants.AMP40);
     m_ShooterLeft.setInverted(true);
 
+    encoder = m_ShooterRight.getEncoder();
 
-    m_ShooterRight.getEncoder().setMeasurementPeriod(16);
-    m_ShooterLeft.getEncoder().setMeasurementPeriod(16);
-    m_ShooterRight.getEncoder().setAverageDepth(2);
-    m_ShooterLeft.getEncoder().setAverageDepth(2);
+    encoder.setMeasurementPeriod(16);
+    encoder.setMeasurementPeriod(16);
+    encoder.setAverageDepth(2);
+    encoder.setAverageDepth(2);
 
 
     // Negative is forward
@@ -86,6 +90,8 @@ public class ShooterSubsystem extends SubsystemBase {
     leftPid.setReference(setPoint, ControlType.kVelocity);
     rightPid.setReference(setPoint, ControlType.kVelocity);
 
+    encoderVelocity = encoder.getVelocity();
+
     // if (sensorSubsystem.onSide()) {
     //   if (setPoint == 0 && !sensorSubsystem.getIntakeSensor(0)) {
     //     setNewTarget(1100);
@@ -111,7 +117,7 @@ public class ShooterSubsystem extends SubsystemBase {
   }
 
   public double getSpeed() {
-    return m_ShooterRight.getEncoder().getVelocity();
+    return encoderVelocity;
   }
 
   private double getError() {
@@ -123,10 +129,13 @@ public class ShooterSubsystem extends SubsystemBase {
   }
 
   public Command shootNote(double target) {
-    if (target == 0) return runOnce(() -> setStopTarget());
     return runOnce(
-      () -> setNewTarget(dashboardSpeed)
+      () -> setNewTarget(target)
       );
+  }
+
+  public void updateSetpointOnly(double target) {
+    setPoint = target;
   }
 
   public void setShootSpeed(double target) {
@@ -156,7 +165,6 @@ public class ShooterSubsystem extends SubsystemBase {
   private void setStopTarget() {
     rightPid.setOutputRange(0.0, 0.0);
     leftPid.setOutputRange(0.0, 0.0);
-    this.setPoint = 0;
   }
 
   public double getTargetSpeed() {

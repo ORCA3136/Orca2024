@@ -13,6 +13,7 @@ import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.networktables.NetworkTableInstance;
 
@@ -20,19 +21,26 @@ public class SensorSubsystem extends SubsystemBase {
 
   private static DigitalInput DIO_0;
   private static DigitalInput DIO_1;
+  private static DigitalInput DIO_2;
   private boolean output0;
   private boolean output1;
+  private boolean output2;
   private boolean[] sensorValues;
   private DriveSubsystem robotDrive;
 
   private InterpolatingDoubleTreeMap shooterSpeedMap = new InterpolatingDoubleTreeMap();
   private InterpolatingDoubleTreeMap shooterAngleMap = new InterpolatingDoubleTreeMap();
 
+  ChassisSpeeds currentRobotSpeeds;
   ChassisSpeeds currentFieldSpeeds;
-  double xSpeed;
+  double speed;
   double direction;
   double omegaSpeed;
+
+  double xSpeed;
+  double ySpeed;
   double tangentSpeed;
+  double normalSpeed;
 
   boolean red;
   Pose2d pose;
@@ -48,6 +56,7 @@ public class SensorSubsystem extends SubsystemBase {
 
   public double speedMap;
   public double angleMap;
+  public double verticalOffset;
 
   /** Creates a new SensorSubsystem. */
   public SensorSubsystem(DriveSubsystem drive) {
@@ -56,12 +65,12 @@ public class SensorSubsystem extends SubsystemBase {
 
     DIO_0 = new DigitalInput(0);
     DIO_1 = new DigitalInput(1);
+    DIO_2 = new DigitalInput(2);
     robotDrive = drive;
 
-    sensorValues = new boolean[2];
+    sensorValues = new boolean[3];
 
     // More datapoints for 2, 2.5, 3, 3.5
-
 
     shooterSpeedMap.put(Double.valueOf(1.2), Double.valueOf(3000));
     shooterSpeedMap.put(Double.valueOf(1.5), Double.valueOf(2750));
@@ -99,9 +108,13 @@ public class SensorSubsystem extends SubsystemBase {
     sensorValues[0] = output0;
     NetworkTableInstance.getDefault().getTable("Sensors").getEntry("DIO_0").setBoolean(output0);
 
-    output1 = DIO_1.get();
+    output1 = !DIO_1.get();
     sensorValues[1] = output1;
     NetworkTableInstance.getDefault().getTable("Sensors").getEntry("DIO_1").setBoolean(output1);
+
+    output2 = DIO_2.get();
+    sensorValues[2] = output2;
+    NetworkTableInstance.getDefault().getTable("Sensors").getEntry("DIO_2").setBoolean(output2);
     
     if (LimelightHelpers.getTV("limelight-april")) {
       robotDrive.visionPose(LimelightHelpers.getBotPose2d("limelight-april"), Timer.getFPGATimestamp());
@@ -130,23 +143,35 @@ public class SensorSubsystem extends SubsystemBase {
     }
 
     distanceToSpeaker = Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
-    angleToSpeaker = Math.atan2(yDistance, xDistance) * (180/Math.PI);
-    radiansToSpeaker = Math.atan2(yDistance, xDistance);
+    angleToSpeaker = (Math.atan2(yDistance, xDistance) * (180/Math.PI)) + 2;  // Angular offset from test values - 2
+    radiansToSpeaker = Math.atan2(yDistance, xDistance) + 0.035;
 
     speedMap = shooterSpeedMap.get(distanceToSpeaker);
     angleMap = shooterAngleMap.get(Double.valueOf(distanceToSpeaker));
 
 
-    currentFieldSpeeds = robotDrive.getRobotRelativeSpeeds();
-    xSpeed = currentFieldSpeeds.vxMetersPerSecond;
-    direction = currentFieldSpeeds.vyMetersPerSecond; // Direction
-    omegaSpeed = currentFieldSpeeds.omegaRadiansPerSecond;
-    tangentSpeed = 0.0;
+    currentRobotSpeeds = robotDrive.getRobotRelativeSpeeds();
+    currentFieldSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(currentRobotSpeeds, new Rotation2d(angle));
+    speed = currentRobotSpeeds.vxMetersPerSecond;
+    direction = currentRobotSpeeds.vyMetersPerSecond; // Direction
+    omegaSpeed = currentRobotSpeeds.omegaRadiansPerSecond;
 
-    NetworkTableInstance.getDefault().getTable("Rotation").getEntry("TangentSpeed").setDouble(tangentSpeed);
-    NetworkTableInstance.getDefault().getTable("Rotation").getEntry("XSpeed").setDouble(xSpeed);
-    NetworkTableInstance.getDefault().getTable("Rotation").getEntry("YSpeed").setDouble(direction);
+    xSpeed = speed * Math.sin(direction);
+    ySpeed = speed * Math.cos(direction);
+    tangentSpeed = xSpeed * Math.cos(angleToSpeaker * (Math.PI/180)) + ySpeed * Math.sin(angleToSpeaker * (Math.PI/180));
+    normalSpeed = xSpeed * Math.sin(angleToSpeaker * (Math.PI/180)) + ySpeed * Math.cos(angleToSpeaker * (Math.PI/180));
+
+    verticalOffset = normalSpeed * 7 /* * dist? */ ;
+    // verticalOffset = 0;
+
+    NetworkTableInstance.getDefault().getTable("Rotation").getEntry("Speed").setDouble(speed);
+    NetworkTableInstance.getDefault().getTable("Rotation").getEntry("Direction").setDouble(direction);
     NetworkTableInstance.getDefault().getTable("Rotation").getEntry("OmegaSpeed").setDouble(omegaSpeed);
+
+    NetworkTableInstance.getDefault().getTable("Rotation").getEntry("XSpeed").setDouble(xSpeed);
+    NetworkTableInstance.getDefault().getTable("Rotation").getEntry("YSpeed").setDouble(ySpeed);
+    NetworkTableInstance.getDefault().getTable("Rotation").getEntry("TangentSpeed").setDouble(tangentSpeed);
+    NetworkTableInstance.getDefault().getTable("Rotation").getEntry("NormalSpeed").setDouble(normalSpeed);
 
 
 
@@ -182,18 +207,18 @@ public class SensorSubsystem extends SubsystemBase {
 
   public double SpeakerRotation(DriveSubsystem m_DriveSubsystem) {
 
-    double centeringOffset = tangentSpeed * 0.0;
+    double centeringOffset = tangentSpeed * 40;
 
     double rotationDifference = (angle - (angleToSpeaker + centeringOffset));
 
     double rotation = 0.0;
 
-    if (rotationDifference > 25) rotation = 0.2;
-    else if (rotationDifference < -25) rotation = -0.2;
-    else  rotation = rotationDifference * 0.0075 + 0.015;
+    if (rotationDifference > 25) rotation = 0.3;
+    else if (rotationDifference < -25) rotation = -0.3;
+    else if (rotationDifference > 0) rotation = rotationDifference * 0.0125 + 0.015;
+    else if (rotationDifference < 0) rotation = rotationDifference * 0.0125 - 0.015;
 
     // 0 - 10 degrees offset
-
 
 
 
