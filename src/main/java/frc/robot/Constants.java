@@ -128,7 +128,7 @@ public final class Constants {
     public static final double kDrivingMinOutput = -1;
     public static final double kDrivingMaxOutput = 1;
 
-    public static final double kTurningP = 2;
+    public static final double kTurningP = 4;
     public static final double kTurningI = 0;
     public static final double kTurningD = 0;
     public static final double kTurningFF = 0;
@@ -168,7 +168,7 @@ public final class Constants {
 
   public static final class AutoConstants {
     public static final double kMaxSpeedMetersPerSecond = 2.5; // 2.5
-    public static final double kMaxAccelerationMetersPerSecondSquared = 4; // 2.5
+    public static final double kMaxAccelerationMetersPerSecondSquared = 3; // 2.5
     public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI * 2;
     public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI * 2;
 

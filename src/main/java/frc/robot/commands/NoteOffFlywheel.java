@@ -53,12 +53,18 @@ public class NoteOffFlywheel extends Command {
 
 
     // Both side sensors are engaged - end
-    if (m_IntakeSideTopSensorValue && m_IntakeSideBottomSensorValue) end(false);
+    if (m_IntakeSideTopSensorValue && m_IntakeSideBottomSensorValue) {
+      finished = true;
+      end(false);
+    }
     // No note in intake
-    else if (!m_IntakeSideTopSensorValue && !m_IntakeSideBottomSensorValue) end(false);
+    else if (!m_IntakeSideTopSensorValue && !m_IntakeSideBottomSensorValue) {
+      finished = true;
+      end(false);
+    }
     // Bottom sensor is engaged - intake in
     else if (m_IntakeSideBottomSensorValue) {
-      m_IntakeSubsystem.RunIntake(0.15);
+      m_IntakeSubsystem.RunIntake(0.2);
       if (onTopSensor) {
         m_ShooterSubsystem.setNewTarget(0);
         onTopSensor = false;
@@ -66,7 +72,7 @@ public class NoteOffFlywheel extends Command {
     }
     // Top sensor is engaged - intake out
     else if (m_IntakeSideTopSensorValue) {
-      m_IntakeSubsystem.RunIntake(-0.1);
+      m_IntakeSubsystem.RunIntake(-0.2);
       if (!onTopSensor) {
         m_ShooterSubsystem.setNewTarget(-500);
         onTopSensor = true;

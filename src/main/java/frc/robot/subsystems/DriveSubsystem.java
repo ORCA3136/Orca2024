@@ -300,6 +300,10 @@ public class DriveSubsystem extends SubsystemBase {
     return Rotation2d.fromDegrees(m_gyro.getAngle() * (DriveConstants.kGyroReversed ? -1.0 : 1.0));
   }
 
+  public double getTotalRotation() {
+    return m_gyro.getAngle();
+  }
+
   /**
    * Returns the turn rate of the robot.
    *
@@ -313,6 +317,15 @@ public class DriveSubsystem extends SubsystemBase {
 
 
   public Command speakerCentering(XboxController xboxController, SensorSubsystem sensor) {
+    return new RunCommand(
+          () -> this.drive(
+              -MathUtil.applyDeadband(xboxController.getLeftY(), OIConstants.kDriveDeadband),
+              -MathUtil.applyDeadband(xboxController.getLeftX(), OIConstants.kDriveDeadband),
+              -MathUtil.applyDeadband(sensor.SpeakerRotation(this), OIConstants.kCenteringDeadband),
+              true, true));
+  }
+
+  public Command speakerCenteringTele(XboxController xboxController, SensorSubsystem sensor) {
     return runOnce(() -> this.setDefaultCommand(
       new RunCommand(
           () -> this.drive(
@@ -320,10 +333,11 @@ public class DriveSubsystem extends SubsystemBase {
               -MathUtil.applyDeadband(xboxController.getLeftX(), OIConstants.kDriveDeadband),
               -MathUtil.applyDeadband(sensor.SpeakerRotation(this), OIConstants.kCenteringDeadband),
               true, true),
-            this)));
+          this)));
   }
 
   public Command regularDrive(XboxController xboxController) {
+    DataLogManager.log("Reset rotation");
     return runOnce(() -> this.setDefaultCommand(
       new RunCommand(
           () -> this.drive(
@@ -334,25 +348,25 @@ public class DriveSubsystem extends SubsystemBase {
           this)));
   }
 
-  public void speakerCenteringTele(XboxController xboxController, SensorSubsystem sensor) {
-    this.setDefaultCommand(
-      new RunCommand(
-          () -> this.drive(
-              -MathUtil.applyDeadband(xboxController.getLeftY(), OIConstants.kDriveDeadband),
-              -MathUtil.applyDeadband(xboxController.getLeftX(), OIConstants.kDriveDeadband),
-              -MathUtil.applyDeadband(sensor.SpeakerRotation(this), OIConstants.kCenteringDeadband),
-              true, true),
-            this));
-  }
+//   public void speakerCenteringTele(XboxController xboxController, SensorSubsystem sensor) {
+//     this.setDefaultCommand(
+//       new RunCommand(
+//           () -> this.drive(
+//               -MathUtil.applyDeadband(xboxController.getLeftY(), OIConstants.kDriveDeadband),
+//               -MathUtil.applyDeadband(xboxController.getLeftX(), OIConstants.kDriveDeadband),
+//               -MathUtil.applyDeadband(sensor.SpeakerRotation(this), OIConstants.kCenteringDeadband),
+//               true, true),
+//             this));
+//   }
 
-  public void regularDriveTele(XboxController xboxController) {
-    this.setDefaultCommand(
-      new RunCommand(
-          () -> this.drive(
-              -MathUtil.applyDeadband(xboxController.getLeftY(), OIConstants.kDriveDeadband),
-              -MathUtil.applyDeadband(xboxController.getLeftX(), OIConstants.kDriveDeadband),
-              -MathUtil.applyDeadband(xboxController.getRightX(), OIConstants.kDriveDeadband),
-              true, true),
-          this));
-  }
+//   public void regularDriveTele(XboxController xboxController) {
+//     this.setDefaultCommand(
+//       new RunCommand(
+//           () -> this.drive(
+//               -MathUtil.applyDeadband(xboxController.getLeftY(), OIConstants.kDriveDeadband),
+//               -MathUtil.applyDeadband(xboxController.getLeftX(), OIConstants.kDriveDeadband),
+//               -MathUtil.applyDeadband(xboxController.getRightX(), OIConstants.kDriveDeadband),
+//               true, true),
+//           this));
+//   }
 }

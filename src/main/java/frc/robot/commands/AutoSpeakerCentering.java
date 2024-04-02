@@ -17,7 +17,7 @@ import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
 
 
-public class SpeakerCentering extends Command {
+public class AutoSpeakerCentering extends Command {
 
   ShooterSubsystem m_ShooterSubsystem;
   IntakeSubsystem m_IntakeSubsystem;
@@ -39,15 +39,13 @@ public class SpeakerCentering extends Command {
   boolean startedShot = false;
   boolean finished = false;
 
-  public SpeakerCentering(ShooterSubsystem ShooterSubsystem, SensorSubsystem SensorSubsystem, ArmSubsystem ArmSubsystem,
-        DriveSubsystem DriveSubsystem, IntakeSubsystem IntakeSubsystem, XboxController controller) {
+  public AutoSpeakerCentering(ShooterSubsystem ShooterSubsystem, SensorSubsystem SensorSubsystem, 
+  ArmSubsystem ArmSubsystem, IntakeSubsystem IntakeSubsystem) {
     // Use addRequirements() here to declare subsystem dependencies.
     m_SensorSubsystem = SensorSubsystem;
     m_ShooterSubsystem = ShooterSubsystem;
     m_ArmSubsystem = ArmSubsystem;
     m_IntakeSubsystem = IntakeSubsystem;
-    m_DriveSubsystem = DriveSubsystem;
-    m_controller = controller;
 
     addRequirements(ShooterSubsystem, IntakeSubsystem);
   }
@@ -60,7 +58,7 @@ public class SpeakerCentering extends Command {
     finished = false;
     DataLogManager.log("Auto shooting - init");
 
-    m_DriveSubsystem.speakerCenteringTele(m_controller, m_SensorSubsystem).schedule();
+    // m_DriveSubsystem.speakerCentering(m_controller, m_SensorSubsystem).schedule();
     m_ShooterSubsystem.setShootSpeed(m_SensorSubsystem.speedMap);
     
   }
@@ -69,46 +67,39 @@ public class SpeakerCentering extends Command {
   @Override
   public void execute() {
 
-    DataLogManager.log("Auto shooting --- execute");
+    // DataLogManager.log("Auto shooting --- execute");
 
     NetworkTableInstance.getDefault().getTable("AutoCentering").getEntry("ShooterAtSpeed").setBoolean(m_ShooterSubsystem.getSpeed() > m_SensorSubsystem.speedMap - 300);
     NetworkTableInstance.getDefault().getTable("AutoCentering").getEntry("ArmInRange").setBoolean(m_ArmSubsystem.getError() > -2.5 && m_ArmSubsystem.getError() < 0);
     NetworkTableInstance.getDefault().getTable("AutoCentering").getEntry("RotatonInRange").setBoolean(m_SensorSubsystem.getCenteringRotationError() < 2);
 
-    // Gets encoder velocity and resets timer
     m_ArmSubsystem.setTrapezoidalSetpoint(m_SensorSubsystem.angleMap);
-
-    // m_ArmSubsystem.AutomaticPositioning();
-
+    m_ArmSubsystem.AutomaticPositioning();
     m_ShooterSubsystem.updateSetpointOnly(m_SensorSubsystem.speedMap + m_SensorSubsystem.verticalOffset);
 
     if (!startedShot && m_ShooterSubsystem.getSpeed() > m_SensorSubsystem.speedMap - 300 && 
-        m_ArmSubsystem.getError() > -2.5 && m_ArmSubsystem.getError() < 0 && m_SensorSubsystem.getCenteringRotationError() < 2
-        || m_controller.getPOV() == 90) {
-      DataLogManager.log("Auto shooting ----------- started shot");
+        m_ArmSubsystem.getError() > -2.5 && m_ArmSubsystem.getError() < 0 && m_SensorSubsystem.getCenteringRotationError() < 2) {
+      // DataLogManager.log("Auto shooting ----------- started shot");
       startedShot = true;
       m_IntakeSubsystem.RunIntake(1);
-      new SequentialCommandGroup(Commands.waitSeconds(0.3), Commands.runOnce(() -> {this.finished = true;}));
     }
-   
-    
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
 
-    m_DriveSubsystem.regularDrive(m_controller).schedule();
+    // m_DriveSubsystem.regularDrive(m_controller).schedule();
     m_ShooterSubsystem.setShootSpeed(0);
     m_IntakeSubsystem.RunIntake(0);
 
-    DataLogManager.log("Auto shooting --------- end");
+    // DataLogManager.log("Auto shooting --------- end");
 
   }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return finished;
+    return startedShot && !m_SensorSubsystem.getIntakeSensor(2);
   }
 }

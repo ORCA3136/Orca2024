@@ -82,15 +82,15 @@ public class SensorSubsystem extends SubsystemBase {
     shooterSpeedMap.put(Double.valueOf(5.3), Double.valueOf(5000));
     shooterSpeedMap.put(Double.valueOf(6), Double.valueOf(5000));
 
-    shooterAngleMap.put(Double.valueOf(1.2), Double.valueOf(1));
-    shooterAngleMap.put(Double.valueOf(1.5), Double.valueOf(1));
-    shooterAngleMap.put(Double.valueOf(2), Double.valueOf(5));
-    shooterAngleMap.put(Double.valueOf(2.5), Double.valueOf(14));
+    shooterAngleMap.put(Double.valueOf(1.2), Double.valueOf(1.5));
+    shooterAngleMap.put(Double.valueOf(1.5), Double.valueOf(3));
+    shooterAngleMap.put(Double.valueOf(2), Double.valueOf(6));
+    shooterAngleMap.put(Double.valueOf(2.5), Double.valueOf(14.2));
     shooterAngleMap.put(Double.valueOf(3), Double.valueOf(17.5));
     shooterAngleMap.put(Double.valueOf(3.5), Double.valueOf(22));
-    shooterAngleMap.put(Double.valueOf(4.5), Double.valueOf(27));
+    shooterAngleMap.put(Double.valueOf(4.5), Double.valueOf(27.5));
     shooterAngleMap.put(Double.valueOf(5.3), Double.valueOf(28.5));
-    shooterAngleMap.put(Double.valueOf(6), Double.valueOf(29.5));
+    shooterAngleMap.put(Double.valueOf(6), Double.valueOf(29));
 
     // Need more accurate/updated and more numerous setpoints
     // Need more accurate/updated and more numerous setpoints
@@ -117,7 +117,8 @@ public class SensorSubsystem extends SubsystemBase {
     NetworkTableInstance.getDefault().getTable("Sensors").getEntry("DIO_2").setBoolean(output2);
     
     if (LimelightHelpers.getTV("limelight-april")) {
-      robotDrive.visionPose(LimelightHelpers.getBotPose2d("limelight-april"), Timer.getFPGATimestamp());
+      if (LimelightHelpers.getTA("limelight-april") > 0.25)
+        robotDrive.visionPose(LimelightHelpers.getBotPose2d("limelight-april"), Timer.getFPGATimestamp());
     }
 
     pose = robotDrive.getPose();
@@ -134,12 +135,12 @@ public class SensorSubsystem extends SubsystemBase {
     if (red) {
       speaker = Constants.Field.RED_SPEAKER_FROM_CENTER;
       xDistance = Math.abs(speaker.getX()) - Math.abs(pose.getX());
-      yDistance = Math.abs(speaker.getY()) - Math.abs(pose.getY());
+      yDistance = speaker.getY() - pose.getY();
     }
     else {
       speaker = Constants.Field.BLUE_SPEAKER_FROM_CENTER;
       xDistance = Math.abs(speaker.getX()) - Math.abs(pose.getX());
-      yDistance = Math.abs(pose.getY()) - Math.abs(speaker.getY());
+      yDistance = pose.getY() - speaker.getY();
     }
 
     distanceToSpeaker = Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));

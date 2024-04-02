@@ -35,13 +35,13 @@ import frc.robot.commands.ForwardClimb;
 import frc.robot.commands.NOTNOTNoteSuck;
 import frc.robot.commands.NoteOffFlywheel;
 import frc.robot.commands.RunIntakeCommand;
-import frc.robot.commands.RunArmCommand;
 import frc.robot.commands.SetSwerveXCommand;
 import frc.robot.commands.ZeroHeading;
 import frc.robot.commands.NoteOffIntake;
 import frc.robot.commands.ShootSpeaker;
 import frc.robot.commands.SpeakerCentering;
-import frc.robot.commands.TestSpeakerCentering;
+import frc.robot.commands.TurnToAngle;
+import frc.robot.commands.AutoSpeakerCentering;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.SensorSubsystem;
@@ -74,6 +74,10 @@ import edu.wpi.first.wpilibj.RobotController;
  * (including subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
+  // The driver's controller
+  XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
+  CommandJoystick m_secondaryController = new CommandJoystick(1);
+
   // The robot's subsystems
   private final DriveSubsystem m_robotDrive = new DriveSubsystem();
   private final SensorSubsystem m_SensorSubsystem = new SensorSubsystem(m_robotDrive);
@@ -86,19 +90,8 @@ public class RobotContainer {
   private final SendableChooser<Command> autoChooser;
   private final Field2d field;
 
-      
-  Command speakSourceNoteTrajectoryBlue, sourceNoteSpeakTrajectoryBlue;
-
-  Command speakAmpNoteTrajectoryRed, ampNoteSpeakTrajectoryRed, speakSourceNoteTrajectoryRed, sourceNoteSpeakTrajectoryRed;
-
-  
-
   private PIDController AutoDrivePID;
   private PIDController AutoTurnPID;
-
-  // The driver's controller
-  XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
-  CommandJoystick m_secondaryController = new CommandJoystick(1);
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -108,22 +101,6 @@ public class RobotContainer {
      
      AutoDrivePID = new PIDController(ModuleConstants.kDrivingP, ModuleConstants.kDrivingI, ModuleConstants.kDrivingD);
      AutoTurnPID = new PIDController(ModuleConstants.kTurningP, ModuleConstants.kTurningI, ModuleConstants.kTurningD);
-
-     ArrayList<Trajectory> MidSpeakBlue = m_trajectories.getMiddleDoubleScore(false);
-     ArrayList<Trajectory> DubAmpBlue = m_trajectories.getAmpDoubleScore(false);
-     ArrayList<Trajectory> DriveOutBlue = m_trajectories.getDriveForward(false);
-     ArrayList<Trajectory> TripSpeakBlue = m_trajectories.getTripleSpeakerScore(false);
-
-     speakSourceNoteTrajectoryBlue = GenerateTrajectoryCommand(TripSpeakBlue.get(2));
-     sourceNoteSpeakTrajectoryBlue = GenerateTrajectoryCommand(TripSpeakBlue.get(3));
-
-     ArrayList<Trajectory> MidSpeakRed = m_trajectories.getMiddleDoubleScore(true);
-     ArrayList<Trajectory> DubAmpRed = m_trajectories.getAmpDoubleScore(true);
-     ArrayList<Trajectory> DriveOutRed = m_trajectories.getDriveForward(true);
-     ArrayList<Trajectory> TripSpeakRed = m_trajectories.getTripleSpeakerScore(true);
-
-     speakSourceNoteTrajectoryRed = GenerateTrajectoryCommand(TripSpeakRed.get(2));
-     sourceNoteSpeakTrajectoryRed = GenerateTrajectoryCommand(TripSpeakRed.get(3));
      
      field = new Field2d();
      SmartDashboard.putData("Field", field);
@@ -153,8 +130,93 @@ public class RobotContainer {
     m_IntakeSubsystem.setDefaultCommand(
       new NoteOffIntake(m_IntakeSubsystem, m_SensorSubsystem));
 
+    Trajectory[] blueTrajectories = m_trajectories.GetTrajectories(false);
+    Trajectory[] redTrajectories = m_trajectories.GetTrajectories(true);
+    
     autoChooser = new SendableChooser<>(); // Default auto will be `Commands.none()`
 
+    autoChooser.addOption("Blue - Double speaker score", new SequentialCommandGroup(
+      new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
+        new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem)),
+
+      m_IntakeSubsystem.RunIntakeCommand(0.4),
+      GenerateTrajectoryCommand(blueTrajectories[0]),
+      new NoteOffFlywheel(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(0.5),
+
+      new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
+        new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem))
+      ));
+
+    autoChooser.addOption("Blue - Triple speaker score - amp side", new SequentialCommandGroup(
+      new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
+        new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem)),
+
+      m_IntakeSubsystem.RunIntakeCommand(0.4),
+      GenerateTrajectoryCommand(blueTrajectories[0]),
+      new NoteOffFlywheel(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(0.5),
+
+      new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
+        new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem)),
+
+      new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(3)),
+      new TurnToAngle(m_robotDrive, m_SensorSubsystem, -90),
+      new NOTNOTNoteSuck(m_robotDrive, m_IntakeSubsystem, m_SensorSubsystem, m_ShooterSubsystem).withTimeout(1),
+      new RunIntakeCommand(0.75, m_IntakeSubsystem).withTimeout(0.25),
+      new NoteOffFlywheel(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(0.5),
+
+      new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
+        new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem))
+
+      ));
+
+    autoChooser.addOption("Blue - Amp then centerline", new SequentialCommandGroup(
+      new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(90)),  
+      GenerateTrajectoryCommand(blueTrajectories[1]),
+      
+      m_IntakeSubsystem.RunIntakeCommand(0.3),
+      m_ShooterSubsystem.shootNote(700),
+
+      Commands.waitSeconds(0.3),
+
+      m_IntakeSubsystem.RunIntakeCommand(0),
+      m_ShooterSubsystem.shootNote(0),
+      new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(75)),
+
+      GenerateTrajectoryCommand(blueTrajectories[3]),
+      m_IntakeSubsystem.RunIntakeCommand(0.5),
+      new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(3)),
+      GenerateTrajectoryCommand(blueTrajectories[4]),
+
+      new NOTNOTNoteSuck(m_robotDrive, m_IntakeSubsystem, m_SensorSubsystem, m_ShooterSubsystem).withTimeout(0.5),
+      new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(10)),
+      new ParallelCommandGroup(new NoteOffFlywheel(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(0.5),
+        GenerateTrajectoryCommand(blueTrajectories[5])),
+      
+      new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
+        new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem))
+
+    ));
+
+    autoChooser.addOption("Blue - Speaker then source side centerline", new SequentialCommandGroup(
+      new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
+        new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem)),
+
+      new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(25)),
+    
+      new ParallelRaceGroup(GenerateTrajectoryCommand(blueTrajectories[6]),
+        new SequentialCommandGroup(Commands.waitSeconds(1), m_IntakeSubsystem.RunIntakeCommand(0.5))),
+      
+      
+
+      new ParallelCommandGroup(new NoteOffFlywheel(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(0.5),
+        GenerateTrajectoryCommand(blueTrajectories[7])),
+
+      new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
+        new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem))
+      
+    ));
+
+    SmartDashboard.putData("Auto Mode", autoChooser);
 
   /*
     // Blue autos
@@ -495,9 +557,9 @@ public class RobotContainer {
 
     //---------------------------------------------------------------------------------------------------------------------------------
 
-    // m_secondaryController.button(1).onTrue(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem)).onFalse(m_robotDrive.regularDrive(m_driverController));
-    // m_secondaryController.button(2).onTrue(m_ArmSubsystem.SetPIDSensor(m_SensorSubsystem));
-    // m_secondaryController.button(3).onTrue();
+    m_secondaryController.button(1).whileTrue(new TurnToAngle(m_robotDrive, m_SensorSubsystem, 90));
+    m_secondaryController.button(2).whileTrue(new TurnToAngle(m_robotDrive, m_SensorSubsystem, -90));
+    m_secondaryController.button(3).onTrue(new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(6)));
     // m_secondaryController.button(4).onTrue();
 
     // m_secondaryController.button(5).onTrue();
@@ -521,8 +583,8 @@ public class RobotContainer {
     };
     Trigger LeftTrigger = new Trigger(LeftTriggerSupplier);
 
-    // LeftTrigger.whileTrue(new NOTNOTNoteSuck(m_robotDrive, m_IntakeSubsystem, m_SensorSubsystem, m_ShooterSubsystem));
-    LeftTrigger.whileTrue(new TestSpeakerCentering(m_SensorSubsystem, m_ArmSubsystem, m_robotDrive, m_driverController));
+    LeftTrigger.whileTrue(new NOTNOTNoteSuck(m_robotDrive, m_IntakeSubsystem, m_SensorSubsystem, m_ShooterSubsystem));
+    // LeftTrigger.whileTrue(new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem));
 
     BooleanSupplier RightTriggerSupplier = new BooleanSupplier() {
       @Override
@@ -555,10 +617,6 @@ public class RobotContainer {
     return m_driverController.getPOV();
   }
 
-  public final double getLeftTrigger() {
-    return m_driverController.getLeftTriggerAxis();
-  }
-
   private Command GenerateTrajectoryCommand(Trajectory trajectory) {
     ProfiledPIDController thetaController = new ProfiledPIDController(
         AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
@@ -577,7 +635,7 @@ public class RobotContainer {
         m_robotDrive);
 
     // Run path following command, then stop at the end.
-    return swerveControllerCommand;
+    return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, true, true));
   }
 }
 

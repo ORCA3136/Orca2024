@@ -70,6 +70,7 @@ public class NOTNOTNoteSuck extends Command {
   public void end(boolean interrupted) {
 
     m_IntakeSubsystem.RunIntake(0);
+    m_robotDrive.drive(0, 0, 0, false, true);
     if (DriverStation.isTeleop())
       new NoteOffIntake(m_IntakeSubsystem, m_SensorSubsystem).withTimeout(1.5).schedule();
 
@@ -78,6 +79,6 @@ public class NOTNOTNoteSuck extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return m_SensorSubsystem.getIntakeSensor(2);
+    return m_SensorSubsystem.getIntakeSensor(1);
   }
 }

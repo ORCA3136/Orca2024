@@ -55,11 +55,11 @@ public class NoteOffIntake extends Command {
     else if (!m_IntakeSideTopSensorValue && !m_IntakeSideBottomSensorValue) end(false);
     // Bottom sensor is engaged - intake in
     else if (m_IntakeSideBottomSensorValue) {
-      m_IntakeSubsystem.RunIntake(0.15);
+      m_IntakeSubsystem.RunIntake(0.2);
     }
     // Top sensor is engaged - intake out
     else if (m_IntakeSideTopSensorValue) {
-      m_IntakeSubsystem.RunIntake(-0.1);
+      m_IntakeSubsystem.RunIntake(-0.2);
     }
   }
 

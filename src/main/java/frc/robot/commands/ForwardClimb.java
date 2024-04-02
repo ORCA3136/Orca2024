@@ -26,7 +26,7 @@ public class ForwardClimb extends Command {
     @Override
     public void initialize() {
 
-        //m_ArmSubsystem.SetPositionPID(92);
+        m_ArmSubsystem.setTrapezoidalSetpoint(92);
 
     }
 
@@ -36,6 +36,8 @@ public class ForwardClimb extends Command {
     armPosition = m_ArmSubsystem.getDistance();
     climberLeftPosition = m_ClimberSubsystem.getLeftPos();
     climberRightPosition = m_ClimberSubsystem.getRightPos();
+
+    m_ArmSubsystem.AutomaticPositioning();
     
     NetworkTableInstance.getDefault().getTable("ClimberSequence").getEntry("ArmThreshold").setBoolean(armPosition > armThreshold);
     NetworkTableInstance.getDefault().getTable("ClimberSequence").getEntry("LeftThreshold").setBoolean(climberLeftPosition > climberHeight);
