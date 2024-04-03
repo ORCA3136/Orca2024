@@ -19,10 +19,8 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 
 public class SensorSubsystem extends SubsystemBase {
 
-  private static DigitalInput DIO_0;
   private static DigitalInput DIO_1;
   private static DigitalInput DIO_2;
-  private boolean output0;
   private boolean output1;
   private boolean output2;
   private boolean[] sensorValues;
@@ -63,7 +61,6 @@ public class SensorSubsystem extends SubsystemBase {
 
     LimelightHelpers.setPipelineIndex("limelight-note", 0);
 
-    DIO_0 = new DigitalInput(0);
     DIO_1 = new DigitalInput(1);
     DIO_2 = new DigitalInput(2);
     robotDrive = drive;
@@ -72,8 +69,8 @@ public class SensorSubsystem extends SubsystemBase {
 
     // More datapoints for 2, 2.5, 3, 3.5
 
-    shooterSpeedMap.put(Double.valueOf(1.2), Double.valueOf(3000));
-    shooterSpeedMap.put(Double.valueOf(1.5), Double.valueOf(2750));
+    shooterSpeedMap.put(Double.valueOf(1.2), Double.valueOf(3300));
+    shooterSpeedMap.put(Double.valueOf(1.5), Double.valueOf(2900));
     shooterSpeedMap.put(Double.valueOf(2), Double.valueOf(3000));
     shooterSpeedMap.put(Double.valueOf(2.5), Double.valueOf(3000));
     shooterSpeedMap.put(Double.valueOf(3), Double.valueOf(3250));
@@ -104,9 +101,7 @@ public class SensorSubsystem extends SubsystemBase {
     
     NetworkTableInstance.getDefault().getTable("AutoCentering").getEntry("RotatonInRange").setBoolean(getCenteringRotationError() < 17);
 
-    output0 = DIO_0.get();
-    sensorValues[0] = output0;
-    NetworkTableInstance.getDefault().getTable("Sensors").getEntry("DIO_0").setBoolean(output0);
+    sensorValues[0] = false;
 
     output1 = !DIO_1.get();
     sensorValues[1] = output1;
@@ -118,7 +113,8 @@ public class SensorSubsystem extends SubsystemBase {
     
     if (LimelightHelpers.getTV("limelight-april")) {
       if (LimelightHelpers.getTA("limelight-april") > 0.25)
-        robotDrive.visionPose(LimelightHelpers.getBotPose2d("limelight-april"), Timer.getFPGATimestamp());
+        robotDrive.visionPose(LimelightHelpers.getBotPose2d_wpiBlue("limelight-april"), Timer.getFPGATimestamp());
+        // robotDrive.visionPose(LimelightHelpers.getBotPose2d("limelight-april"), Timer.getFPGATimestamp());
     }
 
     pose = robotDrive.getPose();
@@ -129,17 +125,17 @@ public class SensorSubsystem extends SubsystemBase {
         red = DriverStation.getAlliance().get() == DriverStation.Alliance.Red;
       }
     }
-    else if (pose.getX() > 0) red = true;
+    else if (pose.getX() > 8.27) red = true;
     else red = false;
 
     if (red) {
-      speaker = Constants.Field.RED_SPEAKER_FROM_CENTER;
-      xDistance = Math.abs(speaker.getX()) - Math.abs(pose.getX());
+      speaker = Constants.Field.RED_SPEAKER;
+      xDistance = Math.abs(speaker.getX() - pose.getX());
       yDistance = speaker.getY() - pose.getY();
     }
     else {
-      speaker = Constants.Field.BLUE_SPEAKER_FROM_CENTER;
-      xDistance = Math.abs(speaker.getX()) - Math.abs(pose.getX());
+      speaker = Constants.Field.BLUE_SPEAKER;
+      xDistance = Math.abs(speaker.getX() - pose.getX());
       yDistance = pose.getY() - speaker.getY();
     }
 

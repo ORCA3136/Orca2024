@@ -92,7 +92,7 @@ public class Trajectories {
 
         Pose2d speakerPose = new Pose2d(b * -6.8, 1.295, new Rotation2d(calcAngle(0, isRed)));
         Pose2d sideSpeakerPose = new Pose2d(b * -7.42, 0.3, new Rotation2d(calcAngle(-Math.PI/4, isRed)));
-        Pose2d ampPose = new Pose2d(b * -6.4, 3.55, new Rotation2d(calcAngle(-Math.PI/2, isRed)));
+        Pose2d ampPose = new Pose2d(b * -6.45, 3.63, new Rotation2d(calcAngle(-Math.PI/2, isRed)));
         Pose2d ampNotePose = new Pose2d(b * -5.57, 3.2, new Rotation2d(calcAngle(0.2, isRed)));
         Pose2d middleNotePose = new Pose2d(b * -5.67, 1.295, new Rotation2d(calcAngle(0, isRed)));
         Pose2d sourceNotePose = new Pose2d(b * -5.95, 0, new Rotation2d(calcAngle(0, isRed)));
@@ -109,7 +109,7 @@ public class Trajectories {
 
         // Corner of starting zone -> Amp
         Trajectory driveToAmp = TrajectoryGenerator.generateTrajectory(
-            new Pose2d(b * -6.82, 2.895, new Rotation2d(calcAngle(-Math.PI/2, isRed))),
+            new Pose2d(b * -6.82, 2.9, new Rotation2d(calcAngle(-Math.PI/2, isRed))),
             List.of(new Translation2d(b * -6.4, 3.395)),
             ampPose,
             config);

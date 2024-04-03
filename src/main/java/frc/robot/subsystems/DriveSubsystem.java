@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -33,9 +34,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain;
-
-import java.util.List;
+import com.choreo.lib.*;
 
 import com.kauailabs.navx.frc.AHRS;
 
@@ -348,25 +347,21 @@ public class DriveSubsystem extends SubsystemBase {
           this)));
   }
 
-//   public void speakerCenteringTele(XboxController xboxController, SensorSubsystem sensor) {
-//     this.setDefaultCommand(
-//       new RunCommand(
-//           () -> this.drive(
-//               -MathUtil.applyDeadband(xboxController.getLeftY(), OIConstants.kDriveDeadband),
-//               -MathUtil.applyDeadband(xboxController.getLeftX(), OIConstants.kDriveDeadband),
-//               -MathUtil.applyDeadband(sensor.SpeakerRotation(this), OIConstants.kCenteringDeadband),
-//               true, true),
-//             this));
-//   }
+  public Command GenerateChoreoPath(String pathName, boolean isRed) {
+    
+    ChoreoTrajectory traj = Choreo.getTrajectory(pathName); // 
 
-//   public void regularDriveTele(XboxController xboxController) {
-//     this.setDefaultCommand(
-//       new RunCommand(
-//           () -> this.drive(
-//               -MathUtil.applyDeadband(xboxController.getLeftY(), OIConstants.kDriveDeadband),
-//               -MathUtil.applyDeadband(xboxController.getLeftX(), OIConstants.kDriveDeadband),
-//               -MathUtil.applyDeadband(xboxController.getRightX(), OIConstants.kDriveDeadband),
-//               true, true),
-//           this));
-//   }
+    return Choreo.choreoSwerveCommand(
+      traj, // 
+      this::getPose, // 
+      new PIDController(Constants.ModuleConstants.kDrivingP, 0.0, 0.0), // 
+      new PIDController(Constants.ModuleConstants.kDrivingP, 0.0, 0.0), // 
+      new PIDController(Constants.ModuleConstants.kTurningP, 0.0, 0.0), // 
+      (ChassisSpeeds speeds) -> // 
+        this.driveRobotRelative(speeds),
+      () -> isRed, // 
+      this // 
+    );
+  }
+  
 }
