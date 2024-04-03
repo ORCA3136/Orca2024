@@ -254,17 +254,14 @@ public class RobotContainer {
         Commands.waitSeconds(0.9), new NoteOffFlywheel(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(2))),
 
       new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
+        new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem)),
+
+      new NOTNOTNoteSuck(m_robotDrive, m_IntakeSubsystem, m_SensorSubsystem, m_ShooterSubsystem).withTimeout(0.8),
+
+      new NoteOffFlywheel(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(0.5),
+
+      new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
         new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem))
-
-      
-      // Maybe replace with coral
-      // new ParallelCommandGroup(m_robotDrive.GenerateChoreoPath("AmpNote", false),
-      //   new SequentialCommandGroup(m_IntakeSubsystem.RunIntakeCommand(0.5), new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(3)))),
-
-      // new NoteOffFlywheel(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(0.5),
-
-      // new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
-      //   new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem))
 
     // Maybe Center Line if time available
 
