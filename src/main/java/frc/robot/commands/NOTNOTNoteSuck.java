@@ -42,25 +42,20 @@ public class NOTNOTNoteSuck extends Command {
   @Override
   public void execute() {
 
-    // if (m_SensorSubsystem.getIntakeSensor(1)) {
-    //   end(false);
-    // }
-
     //Positive: Target is right of cursor
     double m_tx = LimelightHelpers.getTX(limelightName);
 
     double xSpeed = 0.3;
 
+    //if (rotationDifference > 25) rotation = 0.3;
+    //else if (rotationDifference < -25) rotation = -0.3;
+    //else if (rotationDifference > 0) rotation = rotationDifference * 0.0125 + 0.015;
+    //else if (rotationDifference < 0) rotation = rotationDifference * 0.0125 - 0.015;
+
     double rot = 0;
-    if (m_tx < -8) {
-      rot = 0.15;
-    } else if (m_tx < -3) {
-        rot = 0.1;
-    } else if (m_tx > 8) {
-        rot = -0.15;
-    } else if (m_tx > 3) {
-      rot = -0.1;
-    }
+    if (m_tx < 0) rot = m_tx * -0.01 - 0.015;
+    else if (m_tx > 0) rot = m_tx * -0.01 + 0.015;
+  
     m_robotDrive.drive(xSpeed, 0, rot, false, true);
 
   }
@@ -71,8 +66,6 @@ public class NOTNOTNoteSuck extends Command {
 
     m_IntakeSubsystem.RunIntake(0);
     m_robotDrive.drive(0, 0, 0, false, true);
-    if (DriverStation.isTeleop())
-      new NoteOffIntake(m_IntakeSubsystem, m_SensorSubsystem).withTimeout(1.5).schedule();
 
   }
 

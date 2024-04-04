@@ -83,7 +83,7 @@ public class SpeakerCentering extends Command {
     m_ShooterSubsystem.updateSetpointOnly(m_SensorSubsystem.speedMap + m_SensorSubsystem.verticalOffset);
 
     if (!startedShot && m_ShooterSubsystem.getSpeed() > m_SensorSubsystem.speedMap - 300 && 
-        m_ArmSubsystem.getError() > -2.5 && m_ArmSubsystem.getError() < 0 && m_SensorSubsystem.getCenteringRotationError() < 2
+        m_ArmSubsystem.getError() > -2.2 && m_ArmSubsystem.getError() < -0.2 && m_SensorSubsystem.getCenteringRotationError() < 2
         || m_controller.getPOV() == 90) {
       DataLogManager.log("Auto shooting ----------- started shot");
       startedShot = true;

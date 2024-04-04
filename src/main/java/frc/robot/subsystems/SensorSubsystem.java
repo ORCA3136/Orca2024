@@ -70,30 +70,27 @@ public class SensorSubsystem extends SubsystemBase {
     // More datapoints for 2, 2.5, 3, 3.5
 
     shooterSpeedMap.put(Double.valueOf(1.2), Double.valueOf(3300));
-    shooterSpeedMap.put(Double.valueOf(1.5), Double.valueOf(2900));
+    shooterSpeedMap.put(Double.valueOf(1.5), Double.valueOf(3100));
     shooterSpeedMap.put(Double.valueOf(2), Double.valueOf(3000));
     shooterSpeedMap.put(Double.valueOf(2.5), Double.valueOf(3000));
-    shooterSpeedMap.put(Double.valueOf(3), Double.valueOf(3250));
-    shooterSpeedMap.put(Double.valueOf(3.5), Double.valueOf(3500));
-    shooterSpeedMap.put(Double.valueOf(4.5), Double.valueOf(5000));
+    shooterSpeedMap.put(Double.valueOf(3), Double.valueOf(3000));
+    shooterSpeedMap.put(Double.valueOf(3.5), Double.valueOf(3250));
+    shooterSpeedMap.put(Double.valueOf(4), Double.valueOf(3600));
+    shooterSpeedMap.put(Double.valueOf(4.5), Double.valueOf(4300));
     shooterSpeedMap.put(Double.valueOf(5.3), Double.valueOf(5000));
     shooterSpeedMap.put(Double.valueOf(6), Double.valueOf(5000));
 
     shooterAngleMap.put(Double.valueOf(1.2), Double.valueOf(1.5));
-    shooterAngleMap.put(Double.valueOf(1.5), Double.valueOf(3));
-    shooterAngleMap.put(Double.valueOf(2), Double.valueOf(6));
+    shooterAngleMap.put(Double.valueOf(1.5), Double.valueOf(5));
+    shooterAngleMap.put(Double.valueOf(2), Double.valueOf(8));
     shooterAngleMap.put(Double.valueOf(2.5), Double.valueOf(14.2));
     shooterAngleMap.put(Double.valueOf(3), Double.valueOf(17.5));
-    shooterAngleMap.put(Double.valueOf(3.5), Double.valueOf(22));
-    shooterAngleMap.put(Double.valueOf(4.5), Double.valueOf(27.5));
+    shooterAngleMap.put(Double.valueOf(3.5), Double.valueOf(22.5));
+    shooterAngleMap.put(Double.valueOf(4), Double.valueOf(26));
+    shooterAngleMap.put(Double.valueOf(4.5), Double.valueOf(28));
     shooterAngleMap.put(Double.valueOf(5.3), Double.valueOf(28.5));
     shooterAngleMap.put(Double.valueOf(6), Double.valueOf(29));
 
-    // Need more accurate/updated and more numerous setpoints
-    // Need more accurate/updated and more numerous setpoints
-    // Need more accurate/updated and more numerous setpoints
-    // Need more accurate/updated and more numerous setpoints
-    // Need more accurate/updated and more numerous setpoints
   }
 
   @Override
@@ -112,9 +109,11 @@ public class SensorSubsystem extends SubsystemBase {
     NetworkTableInstance.getDefault().getTable("Sensors").getEntry("DIO_2").setBoolean(output2);
     
     if (LimelightHelpers.getTV("limelight-april")) {
-      if (LimelightHelpers.getTA("limelight-april") > 0.25)
+      if (DriverStation.isAutonomous())
+        if (LimelightHelpers.getTA("limelight-april") > 0.25)
+          robotDrive.visionPose(LimelightHelpers.getBotPose2d_wpiBlue("limelight-april"), Timer.getFPGATimestamp());
+      if (LimelightHelpers.getTA("limelight-april") > 0.125)
         robotDrive.visionPose(LimelightHelpers.getBotPose2d_wpiBlue("limelight-april"), Timer.getFPGATimestamp());
-        // robotDrive.visionPose(LimelightHelpers.getBotPose2d("limelight-april"), Timer.getFPGATimestamp());
     }
 
     pose = robotDrive.getPose();
@@ -132,6 +131,10 @@ public class SensorSubsystem extends SubsystemBase {
       speaker = Constants.Field.RED_SPEAKER;
       xDistance = Math.abs(speaker.getX() - pose.getX());
       yDistance = speaker.getY() - pose.getY();
+
+      if (angle > 0) angle -= 180;
+      else angle += 180;
+      // angle *= -1;
     }
     else {
       speaker = Constants.Field.BLUE_SPEAKER;
@@ -140,7 +143,9 @@ public class SensorSubsystem extends SubsystemBase {
     }
 
     distanceToSpeaker = Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
-    angleToSpeaker = (Math.atan2(yDistance, xDistance) * (180/Math.PI)) + 2;  // Angular offset from test values - 2
+    angleToSpeaker = (Math.atan2(yDistance, xDistance) * (180/Math.PI));  // Angular offset from test values - 2
+    if (red) angleToSpeaker -= 1;
+    else angleToSpeaker += 2;
     radiansToSpeaker = Math.atan2(yDistance, xDistance) + 0.035;
 
     speedMap = shooterSpeedMap.get(distanceToSpeaker);

@@ -166,9 +166,6 @@ public class ArmSubsystem extends SubsystemBase {
       else if (diff < 10) p *= 1.2;
       else if (diff < 5) p *= 1.5;
 
-      if (encoderVelocity > 1) p *= 1;
-      else if (encoderVelocity < 0.1) p *= ((encoderVelocity * -1) + 1.1);
-
       pidController.setP(p);
 
 
@@ -270,10 +267,18 @@ public class ArmSubsystem extends SubsystemBase {
 
   public void ManualPositioning(double power) {
     setpoint = encoderPosition;
+    if (setpoint > 97) setpoint = 97;
+    else if (setpoint < 2) setpoint = 2;
     updateMotionProfile();
     feedforward = kG * Math.cos(getRadians() - 0.082);
-    m_LeftArm.set(power + (feedforward / 12.0));
-    m_RightArm.set(power + (feedforward / 12.0));
+    if (encoderPosition < 97) {
+      m_LeftArm.set(power + (feedforward / 12.0));
+      m_RightArm.set(power + (feedforward / 12.0));
+    }
+    else if (encoderPosition > 97) {
+      m_LeftArm.set(-0.1);
+      m_RightArm.set(-0.1);
+    }
   }
 
 
