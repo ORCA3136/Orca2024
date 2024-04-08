@@ -66,7 +66,7 @@ public class ArmSubsystem extends SubsystemBase {
   TrapezoidProfile.State m_end;
   TrapezoidProfile.State targetState;
   TrapezoidProfile.State m_start;
-  Constraints armConstraints = new TrapezoidProfile.Constraints(0.5, 0.3);
+  Constraints armConstraints = new TrapezoidProfile.Constraints(0.65, 0.3);
 
   ArmFeedforward armFeedforward = new ArmFeedforward(0, kG, 0, 0);
 
@@ -159,6 +159,8 @@ public class ArmSubsystem extends SubsystemBase {
       double p = kP * 0.5 + kP * 0.4 * Math.abs(Math.cos((encoderPosition + 5) * (Math.PI/180)));
       // P increases when going up
       if (setpoint > encoderPosition) p += kP * 0.2;
+      else p -= kP * 0.03;
+
       // P decreases when difference in setpoints is large
       double diff = Math.abs(setpoint - encoderPosition);
       if (diff > 60) p *= 0.5;

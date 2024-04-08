@@ -176,8 +176,7 @@ public class RobotContainer {
     ));
 
     autoChooser.addOption("Blue - Speaker then source side centerline", new SequentialCommandGroup(
-      new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
-        new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem)),
+      new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem),
 
       new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(25)),
     
@@ -284,8 +283,7 @@ public class RobotContainer {
     ));
 
     autoChooser.addOption("Red - Speaker then source side centerline", new SequentialCommandGroup(
-      new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
-        new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem)),
+      new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem),
 
       new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(25)),
     
@@ -349,6 +347,13 @@ public class RobotContainer {
 
       m_robotDrive.GenerateChoreoPath("4NoteCenter", true)
 
+    ));
+
+    autoChooser.addOption("Shoot stay still", new SequentialCommandGroup(
+
+    new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
+      new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem))
+      
     ));
 
     SmartDashboard.putData("Auto Mode", autoChooser);
