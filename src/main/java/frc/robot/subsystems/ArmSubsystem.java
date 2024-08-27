@@ -269,8 +269,11 @@ public class ArmSubsystem extends SubsystemBase {
 
   public void ManualPositioning(double power) {
     setpoint = encoderPosition;
-    if (setpoint > 97) setpoint = 97;
-    else if (setpoint < 2) setpoint = 2;
+    
+    if (setpoint < 2) setpoint = 2;
+    else if (setpoint > 350) setpoint = 2;
+    else if (setpoint > 97) setpoint = 97;
+
     updateMotionProfile();
     feedforward = kG * Math.cos(getRadians() - 0.082);
     if (encoderPosition < 97) {

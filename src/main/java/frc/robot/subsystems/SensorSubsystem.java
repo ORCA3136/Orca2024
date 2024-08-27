@@ -80,10 +80,10 @@ public class SensorSubsystem extends SubsystemBase {
     shooterSpeedMap.put(Double.valueOf(5.3), Double.valueOf(5000));
     shooterSpeedMap.put(Double.valueOf(6), Double.valueOf(5000));
 
-    shooterAngleMap.put(Double.valueOf(1.2), Double.valueOf(2));
-    shooterAngleMap.put(Double.valueOf(1.5), Double.valueOf(5));
-    shooterAngleMap.put(Double.valueOf(2), Double.valueOf(8));
-    shooterAngleMap.put(Double.valueOf(2.5), Double.valueOf(14.2));
+    shooterAngleMap.put(Double.valueOf(1.2), Double.valueOf(1.5));
+    shooterAngleMap.put(Double.valueOf(1.5), Double.valueOf(4.5));
+    shooterAngleMap.put(Double.valueOf(2), Double.valueOf(11));
+    shooterAngleMap.put(Double.valueOf(2.5), Double.valueOf(15.5));
     shooterAngleMap.put(Double.valueOf(3), Double.valueOf(17.5));
     shooterAngleMap.put(Double.valueOf(3.5), Double.valueOf(22.5));
     shooterAngleMap.put(Double.valueOf(4), Double.valueOf(26));

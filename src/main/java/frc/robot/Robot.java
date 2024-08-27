@@ -10,6 +10,7 @@ import org.littletonrobotics.urcl.URCL;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.cameraserver.*;
 
 
 /**
@@ -32,8 +33,13 @@ public class Robot extends LoggedRobot {
   public void robotInit() {
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
+
     DataLogManager.start();
+    DataLogManager.logNetworkTables(true);
+    // DriverStation.startDataLog(DataLogManager.getLog());
     URCL.start();
+
+    // CameraServer.startAutomaticCapture();
 
     m_robotContainer = new RobotContainer();
 

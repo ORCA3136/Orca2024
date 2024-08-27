@@ -41,6 +41,7 @@ import frc.robot.commands.NoteOffIntake;
 import frc.robot.commands.ShootSpeaker;
 import frc.robot.commands.SpeakerCentering;
 import frc.robot.commands.TurnToAngle;
+import frc.robot.commands.AutoBackupShoot;
 import frc.robot.commands.AutoSpeakerCentering;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
@@ -152,7 +153,7 @@ public class RobotContainer {
       new ParallelCommandGroup(m_robotDrive.GenerateChoreoPath("AmpWall", false),
         new SequentialCommandGroup(Commands.waitSeconds(0.8), m_IntakeSubsystem.RunIntakeCommand(0.5), new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(3)))),
 
-      new NOTNOTNoteSuck(m_robotDrive, m_IntakeSubsystem, m_SensorSubsystem, m_ShooterSubsystem).withTimeout(0.75),
+      new NOTNOTNoteSuck(m_robotDrive, m_IntakeSubsystem, m_SensorSubsystem, m_ShooterSubsystem).withTimeout(1),
 
       new ParallelCommandGroup(m_robotDrive.GenerateChoreoPath("AmpNoteShoot", false),
         new SequentialCommandGroup(m_IntakeSubsystem.RunIntakeCommand(0.5), Commands.waitSeconds(0.3), new NoteOffFlywheel(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(0.5))),
@@ -176,7 +177,9 @@ public class RobotContainer {
     ));
 
     autoChooser.addOption("Blue - Speaker then source side centerline", new SequentialCommandGroup(
-      new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem),
+      new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
+        new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem)).withTimeout(3),
+      new AutoBackupShoot(m_ShooterSubsystem, m_SensorSubsystem, m_IntakeSubsystem),
 
       new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(25)),
     
@@ -259,7 +262,7 @@ public class RobotContainer {
       new ParallelCommandGroup(m_robotDrive.GenerateChoreoPath("AmpWall", true),
         new SequentialCommandGroup(Commands.waitSeconds(0.8), m_IntakeSubsystem.RunIntakeCommand(0.5), new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(3)))),
 
-      new NOTNOTNoteSuck(m_robotDrive, m_IntakeSubsystem, m_SensorSubsystem, m_ShooterSubsystem).withTimeout(0.5),
+      new NOTNOTNoteSuck(m_robotDrive, m_IntakeSubsystem, m_SensorSubsystem, m_ShooterSubsystem).withTimeout(1),
 
       new ParallelCommandGroup(m_robotDrive.GenerateChoreoPath("AmpNoteShoot", true),
         new SequentialCommandGroup(m_IntakeSubsystem.RunIntakeCommand(0.5), Commands.waitSeconds(0.3), new NoteOffFlywheel(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(0.5))),
@@ -283,7 +286,9 @@ public class RobotContainer {
     ));
 
     autoChooser.addOption("Red - Speaker then source side centerline", new SequentialCommandGroup(
-      new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem),
+      new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
+        new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem)).withTimeout(3),
+      new AutoBackupShoot(m_ShooterSubsystem, m_SensorSubsystem, m_IntakeSubsystem),
 
       new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(25)),
     
@@ -396,7 +401,7 @@ public class RobotContainer {
     m_secondaryController.button(7).onTrue(m_ClimberSubsystem.ResetEncoders());
     m_secondaryController.button(8).whileTrue(new ForwardClimb(m_ArmSubsystem, m_ClimberSubsystem));
 
-    m_secondaryController.button(9).onTrue(new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(3)));
+    m_secondaryController.button(9).onTrue(new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(2)));
     m_secondaryController.button(10).onTrue(new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(25)));
     m_secondaryController.button(11).onTrue(new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(70)));
     m_secondaryController.button(12).onTrue(new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(90)));

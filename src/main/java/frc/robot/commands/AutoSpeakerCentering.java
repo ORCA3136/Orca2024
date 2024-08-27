@@ -79,7 +79,7 @@ public class AutoSpeakerCentering extends Command {
 
     if (!startedShot && m_ShooterSubsystem.getSpeed() > m_SensorSubsystem.speedMap - 300 && 
         m_ArmSubsystem.getError() > -2.5 && m_ArmSubsystem.getError() < 0 && m_SensorSubsystem.getCenteringRotationError() < 2) {
-      // DataLogManager.log("Auto shooting ----------- started shot");
+      // DataLogManager.log("Auto shooti.ng ----------- started shot");
       startedShot = true;
       m_IntakeSubsystem.RunIntake(1);
     }

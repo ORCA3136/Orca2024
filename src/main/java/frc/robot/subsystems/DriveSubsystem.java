@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
@@ -63,6 +64,7 @@ public class DriveSubsystem extends SubsystemBase {
   // The NavX
   private final AHRS m_gyro = new AHRS(SPI.Port.kMXP);
 
+  private final Field2d m_field = new Field2d();
 
   // For AdvantageScope
   //Pose2d poseA = new Pose2d();
@@ -96,7 +98,7 @@ public class DriveSubsystem extends SubsystemBase {
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
-    
+    SmartDashboard.putData("Field", m_field);
   }
 
   @Override
@@ -110,6 +112,8 @@ public class DriveSubsystem extends SubsystemBase {
             m_rearLeft.getPosition(),
             m_rearRight.getPosition()
         });
+
+    m_field.setRobotPose(m_poseEstimator.getEstimatedPosition());
 
     NetworkTableInstance.getDefault().getTable("Robot Pose").getEntry("Robot X").setDouble(getPose().getX());
     NetworkTableInstance.getDefault().getTable("Robot Pose").getEntry("Robot Y").setDouble(getPose().getY());
@@ -336,7 +340,7 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   public Command regularDrive(XboxController xboxController) {
-    DataLogManager.log("Reset rotation");
+    // DataLogManager.log("Reset rotation");
     return runOnce(() -> this.setDefaultCommand(
       new RunCommand(
           () -> this.drive(
