@@ -167,8 +167,9 @@ public final class Constants {
     public static final double AMP = 90;
   }
 
-  public static final class AutoConstants {
-    public static final double kMaxSpeedMetersPerSecond = 2.5; // 2.5
+  public static final class AutoConstants { // auto constants
+
+    public static final double kMaxSpeedMetersPerSecond = 5; // 2.5  
     public static final double kMaxAccelerationMetersPerSecondSquared = 3; // 2.5
     public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI * 2;
     public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI * 2;

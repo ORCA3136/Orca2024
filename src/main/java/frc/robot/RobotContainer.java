@@ -4,52 +4,16 @@
 
 package frc.robot;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 import java.util.function.BooleanSupplier;
-
-import com.choreo.lib.Choreo;
-//import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.Trajectory;
-import edu.wpi.first.math.trajectory.TrajectoryConfig;
-import edu.wpi.first.math.trajectory.TrajectoryGenerator;
-import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.Constants.AutoConstants;
-import frc.robot.Constants.DriveConstants;
-import frc.robot.Constants.ModuleConstants;
-import frc.robot.Constants.OIConstants;
-import frc.robot.commands.ForwardClimb;
-import frc.robot.commands.NOTNOTNoteSuck;
-import frc.robot.commands.NoteOffFlywheel;
-import frc.robot.commands.RunIntakeCommand;
-import frc.robot.commands.SetSwerveXCommand;
-import frc.robot.commands.ZeroHeading;
-import frc.robot.commands.NoteOffIntake;
-import frc.robot.commands.ShootSpeaker;
-import frc.robot.commands.SpeakerCentering;
-import frc.robot.commands.TurnToAngle;
-import frc.robot.commands.AutoBackupShoot;
-import frc.robot.commands.AutoSpeakerCentering;
-import frc.robot.subsystems.DriveSubsystem;
-import frc.robot.subsystems.IntakeSubsystem;
-import frc.robot.subsystems.SensorSubsystem;
-import frc.robot.subsystems.ShooterSubsystem;
-import frc.robot.subsystems.Trajectories;
-import frc.robot.subsystems.ArmSubsystem;
-import frc.robot.subsystems.ClimberSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -58,15 +22,29 @@ import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import edu.wpi.first.wpilibj.DataLogManager;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.RobotController;
+import frc.robot.Constants.AutoConstants;
+import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.ModuleConstants;
+import frc.robot.Constants.OIConstants;
+import frc.robot.commands.AutoBackupShoot;
+import frc.robot.commands.AutoSpeakerCentering;
+import frc.robot.commands.ForwardClimb;
+import frc.robot.commands.NOTNOTNoteSuck;
+import frc.robot.commands.NoteOffFlywheel;
+import frc.robot.commands.NoteOffIntake;
+import frc.robot.commands.RunIntakeCommand;
+import frc.robot.commands.SpeakerCentering;
+import frc.robot.commands.ZeroHeading;
+import frc.robot.subsystems.ArmSubsystem;
+import frc.robot.subsystems.ClimberSubsystem;
+import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.SensorSubsystem;
+import frc.robot.subsystems.ShooterSubsystem;
+import frc.robot.subsystems.Trajectories;
 
 /*
  * This class is where the bulk of the robot should be declared.  Since Command-based is a
@@ -149,6 +127,9 @@ public class RobotContainer {
       m_IntakeSubsystem.RunIntakeCommand(0),
       m_ShooterSubsystem.shootNote(0),
       new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(25)),
+
+      new ParallelCommandGroup(m_robotDrive.GenerateChoreoPath("forward", true),
+        new SequentialCommandGroup(Commands.waitSeconds(0.8), m_IntakeSubsystem.RunIntakeCommand(0.5), new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(3)))),
 
       new ParallelCommandGroup(m_robotDrive.GenerateChoreoPath("AmpWall", false),
         new SequentialCommandGroup(Commands.waitSeconds(0.8), m_IntakeSubsystem.RunIntakeCommand(0.5), new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(3)))),
@@ -360,6 +341,148 @@ public class RobotContainer {
       new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem))
       
     ));
+    
+    autoChooser.addOption("square", new SequentialCommandGroup(
+
+    //new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
+      //new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem))
+      new ParallelCommandGroup(m_robotDrive.GenerateChoreoPath("square", false),
+        new SequentialCommandGroup(Commands.waitSeconds(0.8), m_IntakeSubsystem.RunIntakeCommand(0.5), new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(3))))
+    ));
+    autoChooser.addOption("forward", new SequentialCommandGroup(
+
+    //new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
+      //new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem))
+      new ParallelCommandGroup(m_robotDrive.GenerateChoreoPath("forward", false),
+        new SequentialCommandGroup(Commands.waitSeconds(0.8), m_IntakeSubsystem.RunIntakeCommand(0.5), new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(3))))
+    ));
+
+    autoChooser.addOption("New Auto", new SequentialCommandGroup(
+
+      //new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
+        //new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem)),
+
+      new ParallelRaceGroup(m_robotDrive.GenerateChoreoPath("NewPath17", false),
+        new SequentialCommandGroup(new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(3)),
+        Commands.waitSeconds(1.4), new NoteOffFlywheel(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(2))),
+
+      Commands.waitSeconds(0.1),
+
+      new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
+        new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem))
+
+     ));
+    autoChooser.addOption("right", new SequentialCommandGroup(
+
+    //new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
+      //new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem))
+      new ParallelCommandGroup(m_robotDrive.GenerateChoreoPath("right", false),
+        new SequentialCommandGroup(Commands.waitSeconds(0.8), m_IntakeSubsystem.RunIntakeCommand(0.5), new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(3))))
+    ));
+    autoChooser.addOption("Z", new SequentialCommandGroup(
+
+    //new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
+      //new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem))
+      new ParallelCommandGroup(m_robotDrive.GenerateChoreoPath("Z", false),
+        new SequentialCommandGroup(new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(25)), Commands.waitSeconds(0.8), m_IntakeSubsystem.RunIntakeCommand(0.5)))
+    ));
+    autoChooser.addOption("halfway", new SequentialCommandGroup(
+      m_robotDrive.GenerateChoreoPath("halfway", false)
+    ));
+
+    ////awuigblaks gfhoIUE HIUTGHZOIUDH GOZIUHDGLZNDF LZGS LZG LU HZGHO ROSORIUGHOIDHRLISU ZWEOTI
+
+    ///sryhualhuvatavunanivuiadsviuvhnaoiurghaoui hgaugnaoiubfouiahreiou aiurghai iughai gka fjkalu 
+    autoChooser.addOption("Blue - First Note", new SequentialCommandGroup(
+
+    new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
+      new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem)),
+
+    new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(10)),
+
+    new ParallelCommandGroup(m_robotDrive.GenerateChoreoPath("firstNote", false), 
+      new SequentialCommandGroup(Commands.waitSeconds(.5), m_IntakeSubsystem.RunIntakeCommand(0.5), new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(3)))),
+
+    new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
+      new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem))
+      
+    ));
+
+     autoChooser.addOption("Blue - amp shot", new SequentialCommandGroup(
+
+     new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(90)),
+
+     m_robotDrive.GenerateChoreoPath("ampShot1", false),
+
+      m_IntakeSubsystem.RunIntakeCommand(0.3),
+      m_ShooterSubsystem.shootNote(700),
+
+      Commands.waitSeconds(0.5),
+
+      m_IntakeSubsystem.RunIntakeCommand(0),
+      m_ShooterSubsystem.shootNote(0),
+
+      new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(3)),
+
+      m_robotDrive.GenerateChoreoPath("ampShot2", false),
+
+      new NOTNOTNoteSuck(m_robotDrive, m_IntakeSubsystem, m_SensorSubsystem, m_ShooterSubsystem).withTimeout(0.4),
+      m_IntakeSubsystem.RunIntakeCommand(0.5),
+      Commands.waitSeconds(0.1),
+      new NoteOffFlywheel(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(0.5),
+
+      new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
+      new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem))
+
+     ));
+
+     autoChooser.addOption("Red - First Note", new SequentialCommandGroup(
+
+    new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
+      new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem)),
+
+    new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(5)),
+
+    m_robotDrive.GenerateChoreoPath("firstNote", true), 
+      new NOTNOTNoteSuck(m_robotDrive, m_IntakeSubsystem, m_SensorSubsystem, m_ShooterSubsystem).withTimeout(0.4),
+      m_IntakeSubsystem.RunIntakeCommand(0.5),
+      Commands.waitSeconds(0.1),
+      new NoteOffFlywheel(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(0.5),
+
+    new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
+      new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem))
+      
+    ));
+
+     autoChooser.addOption("Red - amp shot", new SequentialCommandGroup(
+
+     new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(90)),
+
+     m_robotDrive.GenerateChoreoPath("ampShot1", true),
+
+      m_IntakeSubsystem.RunIntakeCommand(0.3),
+      m_ShooterSubsystem.shootNote(700),
+
+      Commands.waitSeconds(0.5),
+
+      m_IntakeSubsystem.RunIntakeCommand(0),
+      m_ShooterSubsystem.shootNote(0),
+
+      new InstantCommand(() -> m_ArmSubsystem.setTrapezoidalSetpoint(3)),
+
+      m_robotDrive.GenerateChoreoPath("ampShot2", true),
+
+      
+
+      new NOTNOTNoteSuck(m_robotDrive, m_IntakeSubsystem, m_SensorSubsystem, m_ShooterSubsystem).withTimeout(0.4),
+      m_IntakeSubsystem.RunIntakeCommand(0.5),
+      Commands.waitSeconds(0.1),
+      new NoteOffFlywheel(m_ShooterSubsystem, m_IntakeSubsystem, m_SensorSubsystem).withTimeout(0.5),
+
+      new ParallelRaceGroup(m_robotDrive.speakerCentering(m_driverController, m_SensorSubsystem),
+      new AutoSpeakerCentering(m_ShooterSubsystem, m_SensorSubsystem, m_ArmSubsystem, m_IntakeSubsystem))
+      
+     ));
 
     SmartDashboard.putData("Auto Mode", autoChooser);
     
